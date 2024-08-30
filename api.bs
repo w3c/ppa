@@ -15,6 +15,7 @@ Status: CG-DRAFT
 Level: None
 </pre>
 
+
 # Introduction # {#intro}
 
 This document defines a simple API for browsers
@@ -25,8 +26,10 @@ The primary goal of this API is to enable attribution for advertising.
 
 ## Background ## {#background}
 
-From the early days of the Web, advertising has been widely used to financially support the creation of sites.
-A critical feature that distinguished the Web from other venues for advertising
+From the early days of the Web,
+advertising has been widely used to financially support the creation of sites.
+
+One characteristic that distinguished the Web from other venues for advertising
 was the ability to obtain information about the effectiveness of advertising campaigns.
 
 Web advertisers were able to measure key metrics like reach (how many people saw an ad),
@@ -90,10 +93,56 @@ The differential privacy design used is outlined in [[#dp]].
 New additions to the
 
 
-# Overview # {#overview}
+## Attribution Using Histograms ## {#histograms}
+
+TODO explain why we use histograms
+
+
+# Overview of Operation # {#overview}
+
+At impression time, information about an advertisement is saved by the browser in a write-only store.
+This includes an identifier for the ad and some metadata about the ad,
+such as whether the impression was an ad view or an ad click.
+
+At conversion time, information for aggregation is created based on the impressions that were previously stored.
+A site can request that the browser select impressions based on a simple query.
+
+*   If there was no matching impression,
+    or the [=privacy budget=] for the site is exhausted,
+    a histogram consisting entirely of zeros (0) is constructed.
+
+*   If a matching impression is found,
+    the specified value is added to a histogram
+    at the bucket that was specified for the ad at the time of the impression.
+    All other buckets are set to zero.
+
+The resulting histogram is prepared for aggregation according to the requirements
+of the chosen [=aggregation service=] and returned to the site.
+This minimally involves encryption of the histogram.
+
+<p class=note>A site that invokes this API will always receive a valid conversion report.
+As a result, sites learn nothing about what happened on other sites from this interaction.
+
+The site can collect the encrypted histograms it receives from calls to this API
+and submit them to the aggregation service.
+
+The aggregation service:
+
+1.  confirms that it has not
+    previously computed an aggregate
+    from the provided inputs
+    and that there are enough conversion reports,
+
+2.  adds the histograms including sufficient [[#dp noise]]
+    to produce a differentially-private aggregate histogram, and
+
+3.  returns the aggregate to the site.
 
 
 
+# API Details # {#api}
+
+TODO
 
 
 # Aggregation # {#aggregation}
@@ -114,12 +163,25 @@ TODO
 TODO
 
 
-# Differential Privacy # {#dp}
+## Conversion Report Encryption ## {#encryption}
 
 TODO
 
 
-# API Details # {#api}
+# Differential Privacy # {#dp}
+
+This design uses the concept of differential privacy as the basis of its privacy design.
+
+
+## Privacy Budgets ## {#dp-budget}
+
+Browsers maintain a <dfn>privacy budget</dfn>,
+which is a means of limiting the amount of privacy loss.
+
+TODO
+
+
+# Security # {#security}
 
 TODO
 
