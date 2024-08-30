@@ -1,19 +1,31 @@
-name: deploy
+name: "Deploy to GitHub Pages"
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   build:
+    name: "Build HTML"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-    - run: pip install bikeshed
-    - run: bikeshed update
-    - run: make publish
-    - uses: peaceiris/actions-gh-pages@v4
+    - run: make
+    - uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: build
+        path: build
+
+  deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: $
+    needs: build
+    steps:
+    - name: "Publish to GitHub Pages"
+      uses: actions/deploy-pages@v4
