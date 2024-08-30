@@ -1,0 +1,33 @@
+<pre class="metadata">
+Title: Privacy-Preserving Attribution: Level 1
+Shortname: Attribution
+Repository: private-attribution/api
+URL: https://private-attribution.github.io/api/
+Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
+Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
+Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
+Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
+Complain About: accidental-2119 yes, missing-example-ids yes
+Markup Shorthands: markdown yes, css no
+Assume Explicit For: yes
+Group: patcg
+Status: CG-DRAFT
+Level: None
+</pre>
+
+<section class="non-normative">
+<h2 id="intro">Introduction</h2>
+
+<em>This section is non-normative.</em>
+
+Blah blah blah.
+</section>
+
+<h2 id="acknowledgements" class="no-num">Acknowledgements</h2>
+
+Many thanks to
+Some Body,
+Somebody Else,
+and
+A. Third Person
+for their feedback on this proposal.

@@ -1,27 +1,23 @@
-# This Makefile assumes you have a local install of bikeshed. Like any
-# other Python tool, you install it with pip:
-#
-#     python3 -m pip install bikeshed && bikeshed update
-
-# It also assumes you have doctoc installed. This is a tool that
-# automatically generates Table of Contents for Markdown files. It can
-# be installed like any other NPM module:
-#
-#    npm install -g doctoc
-
-.PHONY: all publish clean update-explainer-toc
+.PHONY: all venv clean
 .SUFFIXES: .bs .html
 
-all: publish update-explainer-toc
+all: build/index.html
 
 clean:
-	rm -rf build *~
+	-rm -rf build venv
 
-publish: build/index.html
+venv-marker := venv/.make
+bikeshed := venv/bin/bikeshed
+venv: $(venv-marker)
 
-update-explainer-toc: README.md Makefile
-	doctoc $< --title "## Table of Contents" > /dev/null
+$(venv-marker): Makefile
+	python3 -m venv venv
+	@touch $@
 
-build/index.html: work-item.bs Makefile
+$(bikeshed): $(venv-marker) Makefile
+	venv/bin/pip install $(notdir $@)
+	@touch $@
+
+build/index.html: api.bs $(bikeshed)
 	mkdir -p build
-	bikeshed --die-on=warning spec $< $@
+	$(bikeshed) --die-on=warning spec $< $@
