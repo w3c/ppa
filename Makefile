@@ -18,6 +18,8 @@ $(bikeshed): $(venv-marker) Makefile
 	venv/bin/pip install $(notdir $@)
 	@touch $@
 
-build/index.html: api.bs $(bikeshed)
-	mkdir -p build
+build:
+	mkdir -p $@
+
+build/index.html: api.bs build $(bikeshed)
 	$(bikeshed) --die-on=warning spec $< $@

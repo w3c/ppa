@@ -1,4 +1,4 @@
-<pre class="metadata">
+<pre class=metadata>
 Title: Privacy-Preserving Attribution: Level 1
 Shortname: Attribution
 Repository: private-attribution/api
@@ -8,26 +8,146 @@ Abstract: This specifies a browser API for the measurement of advertising perfor
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
 Complain About: accidental-2119 yes, missing-example-ids yes
-Markup Shorthands: markdown yes, css no
+Markup Shorthands: markdown yes, css no, dfn yes
 Assume Explicit For: yes
 Group: patcg
 Status: CG-DRAFT
 Level: None
 </pre>
 
-<section class="non-normative">
-<h2 id="intro">Introduction</h2>
+# Introduction # {#intro}
 
-<em>This section is non-normative.</em>
+This document defines a simple API for browsers
+that enables the collection of aggregated, differentially-private metrics.
 
-Blah blah blah.
-</section>
+The primary goal of this API is to enable attribution for advertising.
 
-<h2 id="acknowledgements" class="no-num">Acknowledgements</h2>
 
-Many thanks to
-Some Body,
-Somebody Else,
-and
-A. Third Person
-for their feedback on this proposal.
+## Background ## {#background}
+
+From the early days of the Web, advertising has been widely used to financially support the creation of sites.
+A critical feature that distinguished the Web from other venues for advertising
+was the ability to obtain information about the effectiveness of advertising campaigns.
+
+Web advertisers were able to measure key metrics like reach (how many people saw an ad),
+frequency (how often each person saw an ad),
+and conversions (how many people saw the ad then later took the action that the ad was supposed to motivate).
+In comparison, these measurements were far more timely and accurate than for any other medium.
+
+The cost of measurement performance was privacy.
+In order to produce accurate and comprehensive information,
+advertising businesses performed extensive tracking of the activity of all Web users.
+Each browser was given a tracking identifier,
+often using cookies that were lodged by cross-site content.
+Every action of interest was logged against this identifier,
+forming a comprehensive record of a person's online activities.
+
+Having a detailed record of a person's actions allowed advertisers to infer characteristics about people.
+Those characteristics made it easier to choose the right audience for advertising,
+greatly improving its effectiveness.
+This created a strong incentive to gather more information.
+
+Online advertising is intensely competitive.
+Sites that show advertising seek to obtain the most money for each ad placement.
+Advertisers seek to place advertising where it will have the most effect relative to its cost.
+Any competitive edge gained by these entities--
+and the intermediaries that operate on their behalf--
+depends on having more comprehensive information about a potential audience.
+
+Over time, actions of interest expanded to include nearly every aspects of online activity.
+Methods were devised to correlate that information with activity outside of the Web.
+An energetic trade has formed,
+with multiple purveyors of personal information that is traded for various purposes.
+
+
+## Goals ## {#goals}
+
+The goal of this document is to define an means of performing attribution
+that does not enable tracking.
+
+The primary challenge with attribution is in maintaining privacy.
+Attribution involves connecting activity on different sites.
+If that information were directly revealed,
+it would enable unwanted
+[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition cross-context recognition]],
+thereby enabling tracking.
+
+This document avoids cross context recognition by ensuring that
+attribution information is aggregated using an [=aggregation service=].
+The aggregation service is trusted to compute an aggregate
+without revealing the values that each person contributes to that aggregate.
+
+Strict limits are placed on the amount of information that each browser instance
+contributes to the aggregates for a given site.
+Differential privacy is used to provide additional privacy protection for each contribution.
+
+Details of aggregation service operation is included in [[#aggregation]].
+The differential privacy design used is outlined in [[#dp]].
+
+
+## End-User Benefit ## {#user-benefit}
+
+New additions to the
+
+
+# Overview # {#overview}
+
+
+
+
+
+# Aggregation # {#aggregation}
+
+An <dfn>aggregation service</dfn> takes multiple pieces of attribution information
+and produces an aggregate metric.
+
+Each browser will have different requirements for aggregation.
+
+
+## Multi-Party Computation Aggregation ## {#mpc}
+
+TODO
+
+
+## Trusted Execution Environments ## {#tee}
+
+TODO
+
+
+# Differential Privacy # {#dp}
+
+TODO
+
+
+# API Details # {#api}
+
+TODO
+
+
+# Acknowledgements # {#ack}
+
+This specification is the result of a lot of work from many people.
+The broad shape of this level of the API is based on an idea from Luke Winstrom.
+The privacy architecture is courtesy of the authors of [[PPA-DP]].
+
+
+<pre class=biblio>
+{
+  "ppa-dp": {
+    "authors": [
+      "Pierre Tholoniat",
+      "Kelly Kostopoulou",
+      "Peter McNeely",
+      "Prabhpreet Singh Sodhi",
+      "Anirudh Varanasi",
+      "Benjamin Case",
+      "Asaf Cidon",
+      "Roxana Geambasu",
+      "Mathias Lécuyer"
+    ],
+    "href": "https://arxiv.org/abs/2405.16719",
+    "title": "Cookie Monster: Efficient On-device Budgeting for Differentially-Private Ad-Measurement Systems",
+    "publisher": "SOSP'24"
+  }
+}
+</pre>
