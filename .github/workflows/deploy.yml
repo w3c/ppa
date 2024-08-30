@@ -16,7 +16,8 @@ jobs:
       with:
         path: build
 
-  deploy:
+  publish:
+    name: "Publish HTML"
     permissions:
       contents: read
       pages: write
