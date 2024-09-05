@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="272" width="432" viewBox="0 0 432 272" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<text id="aa" display="none"><![CDATA[
++-------------+            +------------+
+|             |            |            |
+|    User     +----------->| Advertiser |
+|             | Attention  |            |
++-------------+            +-----+------+
+      ^                          |
+      | Content and              | Money
+      | Services                 |
+      |                          v
+ .----+------.             +------------+
+|  Content    |            |            |
+| Production  | Investment |            |   Profit,
+|     /       |<-----------+  Website   +------->
+|  Service    |            |            |   Expenses,
+| Improvement |            |            |   etc...
+ '-----------'             +------------+
+]]></text>
+<path d="M 8,16 L 8,80" fill="none" stroke="black"/>
+<path d="M 8,176 L 8,240" fill="none" stroke="black"/>
+<path d="M 56,88 L 56,160" fill="none" stroke="black"/>
+<path d="M 120,16 L 120,80" fill="none" stroke="black"/>
+<path d="M 120,176 L 120,240" fill="none" stroke="black"/>
+<path d="M 224,16 L 224,80" fill="none" stroke="black"/>
+<path d="M 224,160 L 224,256" fill="none" stroke="black"/>
+<path d="M 272,80 L 272,152" fill="none" stroke="black"/>
+<path d="M 328,16 L 328,80" fill="none" stroke="black"/>
+<path d="M 328,160 L 328,256" fill="none" stroke="black"/>
+<path d="M 8,16 L 120,16" fill="none" stroke="black"/>
+<path d="M 224,16 L 328,16" fill="none" stroke="black"/>
+<path d="M 120,48 L 216,48" fill="none" stroke="black"/>
+<path d="M 8,80 L 120,80" fill="none" stroke="black"/>
+<path d="M 224,80 L 328,80" fill="none" stroke="black"/>
+<path d="M 24,160 L 104,160" fill="none" stroke="black"/>
+<path d="M 224,160 L 328,160" fill="none" stroke="black"/>
+<path d="M 128,208 L 224,208" fill="none" stroke="black"/>
+<path d="M 328,208 L 392,208" fill="none" stroke="black"/>
+<path d="M 24,256 L 104,256" fill="none" stroke="black"/>
+<path d="M 224,256 L 328,256" fill="none" stroke="black"/>
+<path d="M 24,160 C 15.16936,160 8,167.16936 8,176" fill="none" stroke="black"/>
+<path d="M 104,160 C 112.83064,160 120,167.16936 120,176" fill="none" stroke="black"/>
+<path d="M 24,256 C 15.16936,256 8,248.83064 8,240" fill="none" stroke="black"/>
+<path d="M 104,256 C 112.83064,256 120,248.83064 120,240" fill="none" stroke="black"/>
+<polygon class="arrowhead" points="400,208 388,202.4 388,213.6" fill="black" transform="rotate(0,392,208)"/>
+<polygon class="arrowhead" points="280,152 268,146.4 268,157.6" fill="black" transform="rotate(90,272,152)"/>
+<polygon class="arrowhead" points="224,48 212,42.4 212,53.6" fill="black" transform="rotate(0,216,48)"/>
+<polygon class="arrowhead" points="136,208 124,202.4 124,213.6" fill="black" transform="rotate(180,128,208)"/>
+<polygon class="arrowhead" points="64,88 52,82.4 52,93.6" fill="black" transform="rotate(270,56,88)"/>
+<g class="text">
+<text x="60" y="52">User</text>
+<text x="276" y="52">Advertiser</text>
+<text x="168" y="68">Attention</text>
+<text x="112" y="116">Content and</text>
+<text x="304" y="116">Money</text>
+<text x="100" y="132">Services</text>
+<text x="56" y="180">Content</text>
+<text x="60" y="196">Production</text>
+<text x="172" y="196">Investment</text>
+<text x="384" y="196">Profit,</text>
+<text x="56" y="212">/</text>
+<text x="272" y="212">Website</text>
+<text x="56" y="228">Service</text>
+<text x="392" y="228">Expenses,</text>
+<text x="64" y="244">Improvement</text>
+<text x="380" y="244">etc...</text>
+</g>
+</svg>
