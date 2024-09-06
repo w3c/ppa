@@ -4,6 +4,7 @@ Shortname: Attribution
 Repository: private-attribution/api
 URL: https://private-attribution.github.io/api/
 Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
+Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
@@ -97,15 +98,39 @@ New additions to the
 
 TODO explain why we use histograms
 
+* Compatibility with privacy-preserving aggregation systems
+* Flexibility to assign buckets
+
+* As histogram size increases, noise becomes a problem
+
 
 # Overview of Operation # {#overview}
 
-At impression time, information about an advertisement is saved by the browser in a write-only store.
-This includes an identifier for the ad and some metadata about the ad,
-such as whether the impression was an ad view or an ad click.
+The private attribution API provides aggregate information about the
+association between two classes of events: [=impressions=] and [=conversions=].
 
-At conversion time, information for aggregation is created based on the impressions that were previously stored.
-A site can request that the browser select impressions based on a simple query.
+An <dfn>impression</dfn>, sometimes called a *source event*, is the
+event to which [=conversion=]s are being attributed. Selection of impression
+events is left to the consumer of the API. Examples include:
+
+*   Displaying an advertisement to a user.
+*   Viewing a particular web page.
+
+A <dfn>conversion</dfn>, sometimes called a *trigger event*, is the
+event being attributed to [=impression=]s. Selection of conversion events
+is again left to the consumer of the API. Examples include:
+
+*   Signing up for an account.
+*   Making a purchase.
+
+When an [=impression=] occurs, information about the impression is saved by the
+browser in a write-only store. This includes an identifier for the impression
+and some metadata about the impression, such as whether the impression was an
+ad view or an ad click.
+
+At [=conversion=] time, information for aggregation is created based on the
+impressions that were previously stored.  A site can request that the browser
+select impressions based on a simple query.
 
 *   If there was no matching impression,
     or the [=privacy budget=] for the site is exhausted,
@@ -113,7 +138,7 @@ A site can request that the browser select impressions based on a simple query.
 
 *   If a matching impression is found,
     the specified value is added to a histogram
-    at the bucket that was specified for the ad at the time of the impression.
+    at the bucket that was specified at the time of the impression.
     All other buckets are set to zero.
 
 The resulting histogram is prepared for aggregation according to the requirements
@@ -142,8 +167,147 @@ The aggregation service:
 
 # API Details # {#api}
 
+Open questions:
+*   Filter/query language
+*   Reports are sent to aggregation system directly, or via conversion site? Or
+    option of either? => via conversion site
+*   Epochs
+
 TODO
 
+## ListAggregationSystems API ## {#list-aggregation-systems-api}
+
+navigator.privateAttribution.listAggregationSystems()
+
+<xmp class=idl>
+dictionary PrivateAttributionAggregationSystem {
+  required DOMString id;
+};
+</xmp>
+
+## SaveImpression API ## {#save-impression-api}
+
+<pre>
+navigator.privateAttribution.saveImpression({
+  type: "view",                  // either "view" or "click"
+  index: 3,                      // the histogram index for counting this impression
+  ad: "sample-campaign-eijb",    // a unique identifier for the ad placement
+  target: "advertiser.example",  // the advertiser site where a conversion will occur
+});
+</pre>
+
+Add:
+* attribution system
+* TTL
+* DP parameters
+
+Questions:
+*   Revisit the set of impression types. Can we get rid of it, and put it in the
+    ad ID? Or generalize to "attribution constraint"?
+
+<xmp class=idl>
+enum PrivateAttributionImpressionType { "view", "click" };
+
+dictionary PrivateAttributionImpressionOptions {
+  PrivateAttributionImpressionType type = "view";
+  required unsigned long index;
+  required DOMString ad;
+  required DOMString target;
+};
+
+[SecureContext, Exposed=Window]
+interface PrivateAttribution {
+  [Throws] undefined saveImpression(DOMString aggregationSystemId, PrivateAttributionImpressionOptions options);
+};
+</xmp>
+
+Implicit saveImpression API inputs:
+* Timestamp (epoch?)
+* Source site
+
+
+### Operation ### {#save-impression-api-operation}
+
+1. Validate inputs
+2. If the private attribution API is not enabled, discard the impression data.
+3. Save the impression to the store.
+
+
+## MeasureConversion API ## {#measure-conversion-api}
+
+TODO:
+* Add conversion value
+* Change filter data
+
+
+navigator.privateAttribution.measureConversion({
+  // the number of buckets in the histogram
+  "size": 20,
+
+  // only consider impressions within the last N days
+  lookbackDays: 30,
+  // the type of impression to match against (if omitted, match either)
+  impression: "view",
+  // a list of possible ad identifiers that can be attributed
+  ads: ["sample-campaign-eijb"],
+  // a list of sites where impressions might have been registered
+  source: ["publisher.example"]
+});
+
+
+<xmp class=idl>
+dictionary PrivateAttributionConversionOptions {
+  required unsigned long histogramSize;
+
+  unsigned long lookbackDays = Infinity;
+  PrivateAttributionImpressionType impression;
+  sequence<DOMString> ads = [];
+  sequence<DOMString> sources = [];
+};
+
+[SecureContext, Exposed=Window]
+partial interface PrivateAttribution {
+  [Throws] ArrayBufferView measureConversion(DOMString aggregationSystemId, PrivateAttributionConversionOptions options);
+};
+</xmp>
+
+
+Implicit MeasureConversion API inputs:
+* Timestamp (epoch?)
+* Target site
+
+### Operation ### {#measure-conversion-api-operation}
+
+1. Validate inputs
+2. Set reportedConversionValue = 0.
+3. If the private attribution API is enabled, search for a matching impression.
+4. If a matching impression was found:
+    1. Set histogramIndex to the value from the matching impression
+    2. set reportedConversionValue to the smaller of the following:
+        1. The conversion value passed to the MeasureConversion API.
+        2. The limit on conversion value determined by the remaining privacy budget.
+5. Update the privacy budget store to reflect the reported conversion value.
+6. Construct a report from reportedConversionValue, histogramIndex, and histogramSize.
+7. Encrypt the report.
+8. Return the encrypted report.
+
+
+## Impression database ## {#impression-database}
+
+
+
+## User control and visibility ## {#user-control}
+
+* Users should be able to opt out. Opt out should be undetectable.
+* User ability to view the impression store.
+
+# Implementation Considerations # {#implementation-considerations}
+
+* Management and distribution of values for the following:
+    * Histogram size
+    * Target site for impressions
+    * Source site for conversions
+    * Ad IDs
 
 # Aggregation # {#aggregation}
 
@@ -184,6 +348,17 @@ TODO
 # Security # {#security}
 
 TODO
+
+* Browser security
+    * Clearing of impression store
+    * Partitioning of impression store
+    * Interaction with private browsing modes
+    * Interaction with telemetry opt-outs
+    * Timing attacks on APIs
+
+* Aggregation system security
+
+* Fraud and abuse
 
 
 # Acknowledgements # {#ack}
