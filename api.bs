@@ -119,7 +119,6 @@ with multiple purveyors of personal information that is traded for various purpo
 The goal of this document is to define an means of performing attribution
 that does not enable tracking.
 
-<<<<<<< Updated upstream
 The primary challenge with attribution is in maintaining privacy.
 Attribution involves connecting activity on different sites.
 If that information were directly revealed,
@@ -139,8 +138,6 @@ Differential privacy is used to provide additional privacy protection for each c
 Details of aggregation service operation is included in [[#aggregation]].
 The differential privacy design used is outlined in [[#dp]].
 
-=======
->>>>>>> Stashed changes
 
 ## End-User Benefit ## {#user-benefit}
 
