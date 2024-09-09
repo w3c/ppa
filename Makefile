@@ -1,5 +1,7 @@
-.PHONY: all venv clean
+.PHONY: all venv clean images
 .SUFFIXES: .bs .html
+
+IMAGES := $(wildcard images/*.svg)
 
 all: build/index.html
 
@@ -21,5 +23,12 @@ $(bikeshed): $(venv-marker) Makefile
 build:
 	mkdir -p $@
 
-build/index.html: api.bs build $(bikeshed)
+build/index.html: api.bs $(IMAGES) build $(bikeshed)
 	$(bikeshed) --die-on=warning spec $< $@
+
+images:
+	@echo "Regenerating images"
+	for i in $(IMAGES); do \
+	  tmp="$$(mktemp)"; \
+	  npx aasvg --extract --embed <"$$i" >"$$tmp" && mv "$$tmp" "$$i"; \
+	done
