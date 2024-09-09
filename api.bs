@@ -65,8 +65,8 @@ with multiple purveyors of personal information that is traded for various purpo
 
 ## Goals ## {#goals}
 
-The goal of this document is to define an means of performing attribution
-that does not enable tracking.
+The goal of this document is to define an means of performing attribution (the process of linking
+a conversion to a specific impression or set of impressions) that does not enable tracking.
 
 The primary challenge with attribution is in maintaining privacy.
 Attribution involves connecting activity on different sites.
