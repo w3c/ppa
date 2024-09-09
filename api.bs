@@ -24,6 +24,57 @@ that enables the collection of aggregated, differentially-private metrics.
 The primary goal of this API is to enable attribution for advertising.
 
 
+## Attribution ## {#s-attribution}
+
+<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+that precede an [=outcome=] of interest,
+and allocating value to those [=actions=].
+
+For advertising, <dfn>actions</dfn> that are of interest
+are primarily the showing of advertisements
+(also referred to as <dfn>impressions</dfn>).
+Other actions include ad clicks (or other interactions)
+and opportunities to show ads that were not taken.
+
+Desired <dfn>outcomes</dfn> for advertising are more diverse,
+as they include any result that an advertiser seeks to improve
+through the showing of ads.
+A desirable outcome might also be referred to as a <dfn>conversion</dfn>,
+which refers to "converting" a potential customer
+into a customer.
+What counts as a conversion could include
+sales, subscriptions, page visits, and enquiries.
+
+For this API, [=actions=] and [=outcomes=] are both
+events: things that happen once.
+What is unique about attribution for advertising
+is that these events might not occur on the same [=site=].
+Advertisements are most often shown on sites
+other than the advertiser's site.
+
+The primary challenge with attribution is in maintaining privacy.
+Attribution involves connecting activity on different sites.
+The goal of attribution is to find an impression
+that was shown to the same person before the conversion occurred.
+
+If attribution information were directly revealed,
+it would enable unwanted
+[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
+thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
+
+This document avoids cross context recognition by ensuring that
+attribution information is aggregated using an [=aggregation service=].
+The aggregation service is trusted to compute an aggregate
+without revealing the values that each person contributes to that aggregate.
+
+Strict limits are placed on the amount of information that each browser instance
+contributes to the aggregates for a given site.
+Differential privacy is used to provide additional privacy protection for each contribution.
+
+Details of aggregation service operation is included in [[#aggregation]].
+The differential privacy design used is outlined in [[#dp]].
+
+
 ## Background ## {#background}
 
 From the early days of the Web,
@@ -34,7 +85,7 @@ was the ability to obtain information about the effectiveness of advertising cam
 
 Web advertisers were able to measure key metrics like reach (how many people saw an ad),
 frequency (how often each person saw an ad),
-and conversions (how many people saw the ad then later took the action that the ad was supposed to motivate).
+and [=conversions=] (how many people saw the ad then later took the action that the ad was supposed to motivate).
 In comparison, these measurements were far more timely and accurate than for any other medium.
 
 The cost of measurement performance was privacy.
@@ -68,6 +119,7 @@ with multiple purveyors of personal information that is traded for various purpo
 The goal of this document is to define an means of performing attribution
 that does not enable tracking.
 
+<<<<<<< Updated upstream
 The primary challenge with attribution is in maintaining privacy.
 Attribution involves connecting activity on different sites.
 If that information were directly revealed,
@@ -87,6 +139,8 @@ Differential privacy is used to provide additional privacy protection for each c
 Details of aggregation service operation is included in [[#aggregation]].
 The differential privacy design used is outlined in [[#dp]].
 
+=======
+>>>>>>> Stashed changes
 
 ## End-User Benefit ## {#user-benefit}
 
@@ -95,7 +149,50 @@ New additions to the
 
 ## Attribution Using Histograms ## {#histograms}
 
-TODO explain why we use histograms
+Attribution attempts to measure correlation
+between one or more ad placements ([=impressions=])
+and the [=outcomes=] that an advertiser desires.
+
+When considered in the aggregate,
+information about individuals is not useful.
+Actions and outcomes need to be grouped.
+
+The simplest form of attribution splits impressions into a number of groupings
+according to the attributes of the advertisement
+and counts the number of conversions.
+Groupings might be formed from attributes such as
+where the ad is shown,
+what was shown (the "creative"),
+when the ad was shown,
+or to whom.
+
+These groupings
+and the tallies of conversions attributed to each
+form a histogram.
+Each bucket of the histogram counts the conversions
+for a group of ads.
+
+<figure>
+<pre class=include-raw>
+path:images/histogram.svg
+</pre>
+<figcaption>Sample histogram for conversion counts,
+  grouped by the site where the impressions were shown</figcaption>
+</figure>
+
+Different groupings might be used for different purposes.
+For instance, grouping by creative (the content of an ad)
+might be used to learn which creative works best.
+
+Adding a value greater than one at each conversion
+enables more than simple counts.
+Histograms can also aggregate values,
+which might be used to differentiate between different outcomes.
+A higher value might be used for larger purchases
+or any outcome that is more highly-valued.
+A conversion value might also be split between multiple impressions
+to split credit,
+though this capability is not presently supported in the API.
 
 
 # Overview of Operation # {#overview}
