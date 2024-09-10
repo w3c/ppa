@@ -180,9 +180,13 @@ TODO
 
 navigator.privateAttribution.listAggregationSystems()
 
+TODO: add whatever else is needed in this struct
+
 <xmp class=idl>
 dictionary PrivateAttributionAggregationSystem {
-  required DOMString id;
+  // Name of the aggregation system. This is passed as the `aggregator` parameter to
+  // other APIs.
+  required DOMString name;
 };
 </xmp>
 
@@ -190,32 +194,27 @@ dictionary PrivateAttributionAggregationSystem {
 
 <pre>
 navigator.privateAttribution.saveImpression({
-  type: "view",                  // either "view" or "click"
-  index: 3,                      // the histogram index for counting this impression
-  ad: "sample-campaign-eijb",    // a unique identifier for the ad placement
-  target: "advertiser.example",  // the advertiser site where a conversion will occur
+  aggregator: "aggregator.example", // the name of the aggregation system
+  index: 3,                         // the histogram index for counting this impression
+  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
+  target: "advertiser.example",     // the advertiser site where a conversion will occur
 });
 </pre>
 
 Add:
-* attribution system
 * TTL
-* DP parameters
-
-Questions:
-*   Revisit the set of impression types. Can we get rid of it, and put it in the
-    ad ID? Or generalize to "attribution constraint"?
 
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
-  required unsigned long index;
+  required DOMString aggregator;
+  required unsigned long histogramIndex;
   required DOMString ad;
   required DOMString target;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  [Throws] undefined saveImpression(DOMString aggregationSystemId, PrivateAttributionImpressionOptions options);
+  [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
@@ -233,17 +232,17 @@ Implicit saveImpression API inputs:
 ## MeasureConversion API ## {#measure-conversion-api}
 
 TODO:
-* Add conversion value
 * Change filter data
 
-
 navigator.privateAttribution.measureConversion({
+  // name of the aggregation system
+  aggregator: "aggregator.example",
+
   // the number of buckets in the histogram
-  size: 20,
-  
+  histogramSize: 20,
+
   // the value to assign to the histogram index of the impression
   value: 3,
-
 
   // only consider impressions within the last N days
   lookbackDays: 30,
@@ -253,14 +252,16 @@ navigator.privateAttribution.measureConversion({
   source: ["publisher.example"]
 });
 
+// TODO clarify "Infinity"
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
+  required DOMString aggregator;
+
   required unsigned long histogramSize;
   unsigned long value = 1;
 
   unsigned long lookbackDays = Infinity;
-  PrivateAttributionImpressionType impression;
   sequence<DOMString> ads = [];
   sequence<DOMString> sources = [];
 };
@@ -279,15 +280,15 @@ Implicit MeasureConversion API inputs:
 ### Operation ### {#measure-conversion-api-operation}
 
 1. Validate inputs
-2. Set reportedConversionValue = 0.
+2. Set |reportedConversionValue| to 0.
 3. If the private attribution API is enabled, search for a matching impression.
 4. If a matching impression was found:
-    1. Set histogramIndex to the value from the matching impression
-    2. set reportedConversionValue to the smaller of the following:
+    1. Set |histogramIndex| to the value from the matching impression
+    2. Set |reportedConversionValue| to the smaller of the following:
         1. The conversion value passed to the MeasureConversion API.
         2. The limit on conversion value determined by the remaining privacy budget.
 5. Update the privacy budget store to reflect the reported conversion value.
-6. Construct a report from reportedConversionValue, histogramIndex, and histogramSize.
+6. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
 7. Encrypt the report.
 8. Return the encrypted report.
 
