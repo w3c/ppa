@@ -109,22 +109,23 @@ TODO explain why we use histograms
 The private attribution API provides aggregate information about the
 association between two classes of events: [=impressions=] and [=conversions=].
 
-An <dfn>impression</dfn>, sometimes called a *source event*, is the
+An <dfn>impression</dfn> is the
 event to which [=conversion=]s are being attributed. Selection of impression
 events is left to the consumer of the API. Examples include:
 
 *   Displaying an advertisement to a user.
 *   Viewing a particular web page.
 
-A <dfn>conversion</dfn>, sometimes called a *trigger event*, is the
+A <dfn>conversion</dfn> is the
 event being attributed to [=impression=]s. Selection of conversion events
 is again left to the consumer of the API. Examples include:
 
 *   Signing up for an account.
 *   Making a purchase.
+*   Visiting a webpage.
 
 When an [=impression=] occurs, information about the impression is saved by the
-browser in a write-only store. This includes an identifier for the impression
+browser. This includes an identifier for the impression
 and some metadata about the impression, such as whether the impression was an
 ad view or an ad click.
 
@@ -206,10 +207,7 @@ Questions:
     ad ID? Or generalize to "attribution constraint"?
 
 <xmp class=idl>
-enum PrivateAttributionImpressionType { "view", "click" };
-
 dictionary PrivateAttributionImpressionOptions {
-  PrivateAttributionImpressionType type = "view";
   required unsigned long index;
   required DOMString ad;
   required DOMString target;
@@ -229,8 +227,7 @@ Implicit saveImpression API inputs:
 ### Operation ### {#save-impression-api-operation}
 
 1. Validate inputs
-2. If the private attribution API is not enabled, discard the impression data.
-3. Save the impression to the store.
+2. If the private attribution API is enabled, save the impression to the store.
 
 
 ## MeasureConversion API ## {#measure-conversion-api}
@@ -242,12 +239,14 @@ TODO:
 
 navigator.privateAttribution.measureConversion({
   // the number of buckets in the histogram
-  "size": 20,
+  size: 20,
+  
+  // the value to assign to the histogram index of the impression
+  value: 3,
+
 
   // only consider impressions within the last N days
   lookbackDays: 30,
-  // the type of impression to match against (if omitted, match either)
-  impression: "view",
   // a list of possible ad identifiers that can be attributed
   ads: ["sample-campaign-eijb"],
   // a list of sites where impressions might have been registered
@@ -258,6 +257,7 @@ navigator.privateAttribution.measureConversion({
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
   required unsigned long histogramSize;
+  unsigned long value = 1;
 
   unsigned long lookbackDays = Infinity;
   PrivateAttributionImpressionType impression;
@@ -267,7 +267,7 @@ dictionary PrivateAttributionConversionOptions {
 
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] ArrayBufferView measureConversion(DOMString aggregationSystemId, PrivateAttributionConversionOptions options);
+  [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
 };
 </xmp>
 
