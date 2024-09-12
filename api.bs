@@ -4,6 +4,7 @@ Shortname: Attribution
 Repository: private-attribution/api
 URL: https://private-attribution.github.io/api/
 Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
+Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
@@ -24,6 +25,57 @@ that enables the collection of aggregated, differentially-private metrics.
 The primary goal of this API is to enable attribution for advertising.
 
 
+## Attribution ## {#s-attribution}
+
+<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+that precede an [=outcome=] of interest,
+and allocating value to those [=actions=].
+
+For advertising, <dfn>actions</dfn> that are of interest
+are primarily the showing of advertisements
+(also referred to as <dfn>impressions</dfn>).
+Other actions include ad clicks (or other interactions)
+and opportunities to show ads that were not taken.
+
+Desired <dfn>outcomes</dfn> for advertising are more diverse,
+as they include any result that an advertiser seeks to improve
+through the showing of ads.
+A desirable outcome might also be referred to as a <dfn>conversion</dfn>,
+which refers to "converting" a potential customer
+into a customer.
+What counts as a conversion could include
+sales, subscriptions, page visits, and enquiries.
+
+For this API, [=actions=] and [=outcomes=] are both
+events: things that happen once.
+What is unique about attribution for advertising
+is that these events might not occur on the same [=site=].
+Advertisements are most often shown on sites
+other than the advertiser's site.
+
+The primary challenge with attribution is in maintaining privacy.
+Attribution involves connecting activity on different sites.
+The goal of attribution is to find an impression
+that was shown to the same person before the conversion occurred.
+
+If attribution information were directly revealed,
+it would enable unwanted
+[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
+thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
+
+This document avoids cross context recognition by ensuring that
+attribution information is aggregated using an [=aggregation service=].
+The aggregation service is trusted to compute an aggregate
+without revealing the values that each person contributes to that aggregate.
+
+Strict limits are placed on the amount of information that each browser instance
+contributes to the aggregates for a given site.
+Differential privacy is used to provide additional privacy protection for each contribution.
+
+Details of aggregation service operation is included in [[#aggregation]].
+The differential privacy design used is outlined in [[#dp]].
+
+
 ## Background ## {#background}
 
 From the early days of the Web,
@@ -34,7 +86,7 @@ was the ability to obtain information about the effectiveness of advertising cam
 
 Web advertisers were able to measure key metrics like reach (how many people saw an ad),
 frequency (how often each person saw an ad),
-and conversions (how many people saw the ad then later took the action that the ad was supposed to motivate).
+and [=conversions=] (how many people saw the ad then later took the action that the ad was supposed to motivate).
 In comparison, these measurements were far more timely and accurate than for any other medium.
 
 The cost of measurement performance was privacy.
@@ -212,25 +264,108 @@ without revealing that choice to sites; see [[#opt-out]].
 
 ## Attribution Using Histograms ## {#histograms}
 
-TODO explain why we use histograms
+[=Attribution=] attempts to measure correlation
+between one or more ad placements ([=impressions=])
+and the [=outcomes=] that an advertiser desires.
+
+When considered in the aggregate,
+information about individuals is not useful.
+Actions and outcomes need to be grouped.
+
+The simplest form of attribution splits impressions into a number of groupings
+according to the attributes of the advertisement
+and counts the number of conversions.
+Groupings might be formed from attributes such as
+where the ad is shown,
+what was shown (the "creative"),
+when the ad was shown,
+or to whom.
+
+These groupings
+and the tallies of conversions attributed to each
+form a histogram.
+Each bucket of the histogram counts the conversions
+for a group of ads.
+
+<figure>
+<pre class=include-raw>
+path:images/histogram.svg
+</pre>
+<figcaption>Sample histogram for conversion counts,
+  grouped by the site where the impressions were shown</figcaption>
+</figure>
+
+Different groupings might be used for different purposes.
+For instance, grouping by creative (the content of an ad)
+might be used to learn which creative works best.
+
+Adding a value greater than one at each conversion
+enables more than simple counts.
+Histograms can also aggregate values,
+which might be used to differentiate between different outcomes.
+The value that is allocated to impressions
+is called a <dfn>conversion value</dfn>.
+A higher conversion value might be used for larger purchases
+or any outcome that is more highly-valued.
+A conversion value might also be split between multiple impressions
+to split credit,
+though this capability is not presently supported in the API.
+
+* Compatibility with privacy-preserving aggregation systems
+* Flexibility to assign buckets
+
+* As histogram size increases, noise becomes a problem
 
 
 # Overview of Operation # {#overview}
 
-At impression time, information about an advertisement is saved by the browser in a write-only store.
-This includes an identifier for the ad and some metadata about the ad,
-such as whether the impression was an ad view or an ad click.
+The private attribution API provides aggregate information about the
+association between two classes of events: [=impressions=] and [=conversions=].
 
-At conversion time, information for aggregation is created based on the impressions that were previously stored.
-A site can request that the browser select impressions based on a simple query.
+An [=impression=] is any action that an advertiser takes on any website.
+The API does not constrain what can be recorded as an impression.
+Typical actions that an advertiser might seek to measure include:
 
-*   If there was no matching impression,
+*   Displaying an advertisement.
+*   Having a user interact with an advertisement in some way.
+*   Not displaying an advertisement (especially for controlled experiments that seek to confirm whether an advertising campaign is effective).
+
+For the API, a [=conversion=] is an [=outcome=] that is being measured.
+The API does not constrain what might be considered to be an outcome.
+Typical outcomes that advertisers might seek to measure include:
+
+*   Making a purchase.
+*   Signing up for an account.
+*   Visiting a webpage.
+
+When an [=impression=] occurs,
+the <a method for=PrivateAttribution>saveImpression()</a> method can be used
+to request that the browser save information.
+This includes an identifier for the impression
+and some additional information about the impression.
+For instance, advertisers might use additional information
+to record whether the impression was an ad view or an ad click.
+
+At [=conversion=] time, a [=conversion report=] is created.
+A <dfn>conversion report</dfn> is an encrypted histogram contribution
+that includes information from any [=impressions=] that the browser previously stored.
+
+The <a method for=PrivateAttribution>measureConversion</a> method accepts a simple query that is used
+to tell the browser how to construct a [=conversion report=].
+That includes a simple query that selects from the [=impressions=]
+that the browser has stored,
+a [=conversion value=] that is allocated to the selected impression(s),
+and other information needed to construct the [=conversion report=].
+
+The histogram created by the [=conversion report=] is constructed as follows:
+
+*   If the query found no impressions,
     or the [=privacy budget=] for the site is exhausted,
     a histogram consisting entirely of zeros (0) is constructed.
 
 *   If a matching impression is found,
-    the specified value is added to a histogram
-    at the bucket that was specified for the ad at the time of the impression.
+    the provided value is added to a histogram
+    at the bucket that was specified at the time of the impression.
     All other buckets are set to zero.
 
 The resulting histogram is prepared for aggregation according to the requirements
@@ -259,8 +394,207 @@ The aggregation service:
 
 # API Details # {#api}
 
-TODO
+Open questions:
+*   Filter/query language
+*   Reports are sent to aggregation system directly, or via conversion site? Or
+    option of either? => via conversion site
+*   Epochs
 
+
+## ListAggregationSystems API ## {#list-aggregation-systems-api}
+
+navigator.privateAttribution.listAggregationSystems()
+
+TODO: add whatever else is needed in this struct
+
+<xmp class=idl>
+dictionary PrivateAttributionAggregationSystem {
+  // Name of the aggregation system. This is passed as the `aggregator` parameter to
+  // other APIs.
+  required DOMString name;
+};
+</xmp>
+
+## Saving Impressions ## {#save-impression-api}
+
+The <dfn method for=PrivateAttribution>saveImpression()</dfn> method does something or other.
+
+<pre>
+navigator.privateAttribution.saveImpression({
+  aggregator: "aggregator.example", // the name of the aggregation system
+  index: 3,                         // the histogram index for counting this impression
+  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
+  target: "advertiser.example",     // the advertiser site where a conversion will occur
+});
+</pre>
+
+Add:
+* TTL
+
+<xmp class=idl>
+dictionary PrivateAttributionImpressionOptions {
+  required DOMString aggregator;
+  required unsigned long histogramIndex;
+  required DOMString ad;
+  required DOMString target;
+};
+
+[SecureContext, Exposed=Window]
+interface PrivateAttribution {
+  [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
+};
+</xmp>
+
+Implicit saveImpression API inputs:
+* Timestamp (epoch?)
+* Source site
+
+
+### Operation ### {#save-impression-api-operation}
+
+1. Validate inputs
+2. If the private attribution API is enabled, save the impression to the store.
+
+
+## MeasureConversion API ## {#measure-conversion-api}
+
+The <dfn method for=PrivateAttribution>measureConversion()</dfn> method is used to do stuff.
+
+TODO:
+* Change filter data
+
+<pre>
+navigator.privateAttribution.measureConversion({
+  // name of the aggregation system
+  aggregator: "aggregator.example",
+
+  // the number of buckets in the histogram
+  histogramSize: 20,
+
+  // the value to assign to the histogram index of the impression
+  value: 3,
+
+  // only consider impressions within the last N days
+  lookbackDays: 30,
+  // a list of possible ad identifiers that can be attributed
+  ads: ["sample-campaign-eijb"],
+  // a list of sites where impressions might have been registered
+  source: ["publisher.example"]
+});
+</pre>
+
+// TODO clarify "Infinity"
+
+<xmp class=idl>
+dictionary PrivateAttributionConversionOptions {
+  required DOMString aggregator;
+
+  required unsigned long histogramSize;
+  double epsilon = 1.0;
+
+  PrivateAttributionLogic logic = "last-touch";
+  unsigned long value = 1;
+
+  unsigned long lookbackDays = Infinity;
+  sequence<DOMString> ads = [];
+  sequence<DOMString> sources = [];
+};
+
+[SecureContext, Exposed=Window]
+partial interface PrivateAttribution {
+  [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
+};
+</xmp>
+
+The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as follows:
+
+<dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
+  <dt><dfn>aggregator</dfn></dt>
+  <dd>A selection from the [=aggregation services=]
+      that can be listed using aggregationServices <!-- TODO link -->
+
+  <dt><dfn>histogramSize</dfn></dt>
+  <dt><dfn>epsilon</dfn></dt>
+  <dt><dfn>logic</dfn></dt>
+  <dt><dfn>value</dfn></dt>
+  <dd>The conversion value</dd>
+  <dt><dfn>lookbackDays</dfn></dt>
+  <dt><dfn>ads</dfn></dt>
+  <dt><dfn>sources</dfn></dt>
+</dl>
+
+
+Implicit MeasureConversion API inputs:
+* Timestamp (epoch?)
+* Target site
+
+### Operation ### {#measure-conversion-api-operation}
+
+1. Validate inputs
+2. Set |reportedConversionValue| to 0.
+3. If the private attribution API is enabled, search for a matching impression.
+4. If a matching impression was found:
+    1. Set |histogramIndex| to the value from the matching impression
+    2. Set |reportedConversionValue| to the smaller of the following:
+        1. The conversion value passed to the MeasureConversion API.
+        2. The limit on conversion value determined by the remaining privacy budget.
+5. Update the privacy budget store to reflect the reported conversion value.
+6. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
+7. Encrypt the report.
+8. Return the encrypted report.
+
+
+## Impression database ## {#impression-database}
+
+
+## Attribution Logic ## {#s-logic}
+
+A site that measures conversions can specify <dfn>attribution logic</dfn>,
+which determines how the [=conversion value=] is allocated to histogram buckets.
+The <a method for=PrivateAttribution>measureConversion()</a> function
+accepts a <a dict-member for=PrivateAttributionConversionOptions>logic</a> parameter
+that specifies the [=attribution logic=].
+
+<xmp class=idl>
+enum PrivateAttributionLogic {
+  "last-touch",
+};
+</xmp>
+
+Each attribution logic specifies a process for allocating values to histogram buckets.
+This logic includes how to select impressions,
+how to handle weeks in which the [=privacy budget=] is insufficient,
+and (optionally) how to process any additional parameters that might be used.
+
+
+### Last Touch Attribution ## {#logic-last-touch}
+
+The <dfn enum-value for=PrivateAttributionLogic>last-touch</dfn> [=attribution logic=]
+indicates that the browser should select
+the last impression that matches the [[#logic-matching|common matching logic]].
+The entire [=conversion value=] is allocated to the histogram bucket
+that was saved with the impression.
+
+
+### Common Matching Logic ### {#logic-matching}
+
+TODO specify how to match using "lookbackDays", "ads" and "sources".
+
+
+
+
+## User control and visibility ## {#user-control}
+
+* Users should be able to opt out. Opt out should be undetectable.
+* User ability to view the impression store.
+
+# Implementation Considerations # {#implementation-considerations}
+
+* Management and distribution of values for the following:
+    * Histogram size
+    * Target site for impressions
+    * Source site for conversions
+    * Ad IDs
 
 # Aggregation # {#aggregation}
 
@@ -284,10 +618,195 @@ TODO
 
 TODO
 
+## Anti-Replay Requirements ## {#anti-replay}
+
+<!-- TODO link to definition of "conversion report" -->
+Conversion reports generated by browsers are bound
+to the amount of [=privacy budget=]
+that was expended by the site that requested the report.
+
+TODO
+
 
 # Differential Privacy # {#dp}
 
-This design uses the concept of differential privacy as the basis of its privacy design.
+This design uses the concept of [=differential privacy=]
+as the basis of its privacy design. [[PPA-DP]]
+
+<dfn>Differential privacy</dfn> is a mathematical definition of privacy
+that can guarantee the amount of private information
+that is revealed by a system. [[DP]]
+Differential privacy is not the only means
+by which privacy is protected in this system,
+but it is the most rigorously defined and analyzed.
+As such, it provides the strongest privacy guarantees.
+
+Differential privacy uses randomized noise
+to hide private data contributions
+to an aggregated dataset.
+The effect of noise is to hide
+individual contributions to the dataset,
+but to retain the usefulness of any aggregated analysis.
+
+To apply differential privacy,
+it is necessary to define what information is protected.
+In this system, the protected information is
+the [=impressions=] of a single user profile,
+on a single [=user agent=],
+over a single week,
+for a single website that registers [=conversions=].
+[[#dp-unit]] describes the implications of this design
+in more detail.
+
+This attribution design uses a form of differential privacy
+called <dfn>individual differential privacy</dfn>.
+In this model, user agents are each separately responsible
+for ensuring that they limit the information
+that is contributed.
+
+The [=individual differential privacy=] design of this API
+has three primary components:
+
+1.  User agents limit the number of times
+    that they use [=impressions=] in [=conversion reports=].
+    [[#dp-budget]] explores this in greater depth.
+
+2.  [=Aggregation services=] ensure that any given [=conversion report=] is
+    only used in accordance with the [=privacy budget=].
+    [[#anti-replay]] describes requirements on aggregation services
+    in more detail.
+
+3.  Noise is added by [=aggregation services=].
+    [[#dp-mechanism]] details the mechanisms that might be used.
+
+Together, these measures place limits
+on the information that is released for each [=privacy unit=].
+
+
+## Privacy Unit ## {#dp-unit}
+
+An implementation of differential privacy
+requires a clear definition for what is protected.
+This is known as the <dfn>privacy unit</dfn>,
+which represents the entity that receives privacy protection.
+
+This system adopts a [=privacy unit=]
+that is the combination of three values:
+
+1.  A user agent profile.
+    That is, an instance of a user agent,
+    as used by a single person.
+
+2.  The [=site=] that requests information about impressions.
+
+    <p class=note>The sites that register impressions
+    are not considered.
+    Those sites do not receive information from this system directly.
+
+3.  The current week.
+
+A change to any of these values produces a new privacy unit,
+which results in a separate [=privacy budget=].
+Each site that a person visits receives a bounded amount of information
+for each week.
+
+Ideally, the [=privacy unit=] is a single person.
+Though ideal, it is not possible to develop a useful system
+that guarantees perfect correspondance with a person,
+for a number of reasons:
+
+*   People use multiple browsers and multiple devices,
+    often without coordination.
+
+*   A unit that covered all websites
+    could be exhausted by one site,
+    denying other sites any information.
+
+*   Advertising is an ongoing activity.
+    Without renewing the [=privacy budget=] periodically,
+    sites could exhaust their budget forever.
+
+
+### Browser Instances ### {#dp-instance}
+
+Each browser instance manages a separate [=privacy budget=].
+
+Coordination between browser instances might be possible,
+but not expected.
+That coordination might allow privacy to be improved
+by reducing the total amount of information that is released.
+It might also improve the utility of attribution
+by allowing impressions on one browser instance
+to be converted on another.
+
+Coordination across different implementations
+is presently out of scope for this work.
+Implementations can perform some coordination
+between instances that are known to be for the same person,
+but this is not mandatory.
+
+
+### Per-Site Limits ### {#dp-site}
+
+The information released to websites is done on the basis of [=site=].
+This aligns with the same boundary used in other privacy-relevant functions.
+
+A finer privacy unit, such as an [=origin=],
+would make it trivial to obtain additional information.
+Information about the same person could be gathered
+from multiple origins.
+That information could then be combined
+by exploiting the free flow of information within the site,
+using cookies [[COOKIES]] or similar.
+
+[[#dp-safety]] discusses attacks that exploit this limit
+and some additional [=safety limits=] that might be implemented
+by user agents
+to protect against those attacks.
+
+
+### Refresh Interval ### {#dp-refresh}
+
+The differential privacy budget available to a site
+is refreshed at an interval of one week.
+
+This budget applies to the [=impressions=]
+that are registered with the user agent
+and later queried,
+not conversions.
+
+From the perspective of the analysis [[PPA-DP]]
+each week of impressions forms a separate database.
+A finite number of queries can be made of each database,
+as determined by the [=privacy budget=]
+associated with that database.
+
+Having a [=conversion report=] produced from impressions
+that span multiple weeks has privacy consequences.
+A single visit to a website can give that site information
+about activities across many weeks.
+This only requires that
+the conversion site is identified as the destination
+for impressions over that entire period.
+The number of weeks that can be queried are limited by [=user agents=].
+
+The goal is to set a refresh interval value
+that is as large as feasible.
+A longer period of time allows for a better privacy/utility balance
+because sites can be allocated a larger overall budget
+at any point in time,
+while keeping the overall rate of privacy loss low.
+However, a longer interval means that it is easier to
+exhaust a privacy budget completely,
+yield no information until the next refresh.
+
+The choice of a week is largely arbitrary.
+One week is expected to be enough to allow sites
+the ability to make decisions about how to spend [=privacy budgets=]
+without careful planning that needs to account for
+changes that might occur days or weeks in the future.
+
+[[#dp-budget]] describes the process for budgeting in more detail.
 
 
 ## Privacy Budgets ## {#dp-budget}
@@ -295,7 +814,90 @@ This design uses the concept of differential privacy as the basis of its privacy
 Browsers maintain a <dfn>privacy budget</dfn>,
 which is a means of limiting the amount of privacy loss.
 
-TODO
+This specification uses an individual form
+of (&epsilon;, &delta;)-differential privacy as its basis.
+In this model, privacy loss is measured using the value &epsilon;.
+The &delta; value is handled by the [=aggregation service=]
+when adding noise to aggregates.
+
+Each user agent instance is responsible for
+managing privacy budgets.
+
+Each [=conversion report=] that is requested specifies an &epsilon; value
+that represents the amount of privacy budget
+that the report consumes.
+
+When searching for impressions for the conversion report,
+the user agent deducts the specified &epsilon; value from
+the budget for the week in which those impressions were saved.
+If the privacy budget for that week is not sufficient,
+the impressions from that week are not used.
+
+<div class=example id=ex-budget>
+    In the following figure,
+    impressions are recorded from a number of different sites,
+    shown with circles.
+
+    <figure>
+    <pre class=include-raw>
+    path:images/budget.svg
+    </pre>
+    <figcaption>An example of a store of impressions over time</figcaption>
+    </figure>
+
+    A [=conversion report=] might be requested at the time marked with "now".
+    That conversion report selects impressions marked with black circles,
+    corresponding to impressions from Site B, C, and E.
+
+    As a result, privacy budgets for the querying site is deducted
+    from weeks 1, 3, 4, and 5.
+    No impressions were recorded for week 2,
+    so no budget is deducted from that week.
+</div>
+
+How a [=user agent=] manages exhaustion of a privacy budget
+depends on the [=attribution logic=] that was specified.
+
+
+### Safety Limits ### {#dp-safety}
+
+The basic [=privacy unit=] is vulnerable to attack
+by an adversary that is able to correlate activity for the same person
+across multiple [=sites=].
+
+Groups of sites can sometimes coordinate their activity,
+such as when they have shared ownership or strong agreements.
+A group of sites that can be sure that particular visitor is the same person--
+using any means, including something like FedCM [[FEDCM]]--
+can combine information gained from this API.
+
+This can be used to increase the rate
+at which a site gains information from attribution,
+proportional to the number of sites
+across which coordination occurs.
+The default privacy unit places no limit on the information released
+in this way.
+
+To counteract this effect, user agents can implement <dfn>safety limits</dfn>,
+which are additional privacy budgets that do not consider site.
+Safety limits might be significantly higher than per-site budgets,
+so that they are not reached for most normal browsing activity.
+The goal would be to ensure that they are only effective
+for intensive activity or when being attacked.
+
+Like the per-site privacy budget,
+it is critical that sites be unable to determine
+whether their request for a [=conversion report=] has caused
+a safety limit to be exceeded.
+
+
+
+
+## Differential Privacy Mechanisms ## {#dp-mechanism}
+
+The specific mechanisms that are used
+depend on the type of [=aggregation service=].
+
 
 
 ## Optional Participation ## {#opt-out}
@@ -307,6 +909,17 @@ TODO
 
 TODO
 
+* Browser security
+    * Clearing of impression store
+    * Partitioning of impression store
+    * Interaction with private browsing modes
+    * Interaction with telemetry opt-outs
+    * Timing attacks on APIs
+
+* Aggregation system security
+
+* Fraud and abuse
+
 
 # Acknowledgements # {#ack}
 
@@ -315,6 +928,10 @@ The broad shape of this level of the API is based on an idea from Luke Winstrom.
 The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 
+<pre class=link-defaults>
+spec:html; type:dfn; text:site
+spec:infra; type:dfn; text:user agent
+</pre>
 <pre class=biblio>
 {
   "coppacalypse": {
@@ -327,6 +944,16 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
     "title": "COPPAcalypse? The Youtube Settlement's Impact on Kids Content",
     "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4430334",
     "date": "2024-03-14"
+  },
+  "dp": {
+    "authors": [
+      "Cynthia Dwork",
+      "Aaron Roth"
+    ],
+    "date": "2014",
+    "href": "https://doi.org/10.1561/0400000042",
+    "title": "The Algorithmic Foundations of Differential Privacy",
+    "publisher": "now, Foundations and Trends in Theoretical Computer Science, Vol. 9, Nos. 3–4"
   },
   "eu-ad": {
     "authors": [
