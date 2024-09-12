@@ -4,6 +4,7 @@ Shortname: Attribution
 Repository: private-attribution/api
 URL: https://private-attribution.github.io/api/
 Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
+Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
@@ -24,6 +25,57 @@ that enables the collection of aggregated, differentially-private metrics.
 The primary goal of this API is to enable attribution for advertising.
 
 
+## Attribution ## {#s-attribution}
+
+<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+that precede an [=outcome=] of interest,
+and allocating value to those [=actions=].
+
+For advertising, <dfn>actions</dfn> that are of interest
+are primarily the showing of advertisements
+(also referred to as <dfn>impressions</dfn>).
+Other actions include ad clicks (or other interactions)
+and opportunities to show ads that were not taken.
+
+Desired <dfn>outcomes</dfn> for advertising are more diverse,
+as they include any result that an advertiser seeks to improve
+through the showing of ads.
+A desirable outcome might also be referred to as a <dfn>conversion</dfn>,
+which refers to "converting" a potential customer
+into a customer.
+What counts as a conversion could include
+sales, subscriptions, page visits, and enquiries.
+
+For this API, [=actions=] and [=outcomes=] are both
+events: things that happen once.
+What is unique about attribution for advertising
+is that these events might not occur on the same [=site=].
+Advertisements are most often shown on sites
+other than the advertiser's site.
+
+The primary challenge with attribution is in maintaining privacy.
+Attribution involves connecting activity on different sites.
+The goal of attribution is to find an impression
+that was shown to the same person before the conversion occurred.
+
+If attribution information were directly revealed,
+it would enable unwanted
+[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
+thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
+
+This document avoids cross context recognition by ensuring that
+attribution information is aggregated using an [=aggregation service=].
+The aggregation service is trusted to compute an aggregate
+without revealing the values that each person contributes to that aggregate.
+
+Strict limits are placed on the amount of information that each browser instance
+contributes to the aggregates for a given site.
+Differential privacy is used to provide additional privacy protection for each contribution.
+
+Details of aggregation service operation is included in [[#aggregation]].
+The differential privacy design used is outlined in [[#dp]].
+
+
 ## Background ## {#background}
 
 From the early days of the Web,
@@ -34,7 +86,7 @@ was the ability to obtain information about the effectiveness of advertising cam
 
 Web advertisers were able to measure key metrics like reach (how many people saw an ad),
 frequency (how often each person saw an ad),
-and conversions (how many people saw the ad then later took the action that the ad was supposed to motivate).
+and [=conversions=] (how many people saw the ad then later took the action that the ad was supposed to motivate).
 In comparison, these measurements were far more timely and accurate than for any other medium.
 
 The cost of measurement performance was privacy.
@@ -65,7 +117,7 @@ with multiple purveyors of personal information that is traded for various purpo
 
 ## Goals ## {#goals}
 
-The goal of this document is to define an means of performing attribution
+The goal of this document is to define a means of performing attribution
 that does not enable tracking.
 
 The primary challenge with attribution is in maintaining privacy.
@@ -95,29 +147,106 @@ New additions to the
 
 ## Attribution Using Histograms ## {#histograms}
 
-TODO explain why we use histograms
+[=Attribution=] attempts to measure correlation
+between one or more ad placements ([=impressions=])
+and the [=outcomes=] that an advertiser desires.
+
+When considered in the aggregate,
+information about individuals is not useful.
+Actions and outcomes need to be grouped.
+
+The simplest form of attribution splits impressions into a number of groupings
+according to the attributes of the advertisement
+and counts the number of conversions.
+Groupings might be formed from attributes such as
+where the ad is shown,
+what was shown (the "creative"),
+when the ad was shown,
+or to whom.
+
+These groupings
+and the tallies of conversions attributed to each
+form a histogram.
+Each bucket of the histogram counts the conversions
+for a group of ads.
+
+<figure>
+<pre class=include-raw>
+path:images/histogram.svg
+</pre>
+<figcaption>Sample histogram for conversion counts,
+  grouped by the site where the impressions were shown</figcaption>
+</figure>
+
+Different groupings might be used for different purposes.
+For instance, grouping by creative (the content of an ad)
+might be used to learn which creative works best.
+
+Adding a value greater than one at each conversion
+enables more than simple counts.
+Histograms can also aggregate values,
+which might be used to differentiate between different outcomes.
+A higher value might be used for larger purchases
+or any outcome that is more highly-valued.
+A conversion value might also be split between multiple impressions
+to split credit,
+though this capability is not presently supported in the API.
+
+* Compatibility with privacy-preserving aggregation systems
+* Flexibility to assign buckets
+
+* As histogram size increases, noise becomes a problem
 
 
 # Overview of Operation # {#overview}
 
-<!-- TODO: remove -->
-<dfn>impression</dfn>
-<dfn>conversion</dfn>
+The private attribution API provides aggregate information about the
+association between two classes of events: [=impressions=] and [=conversions=].
 
-At impression time, information about an advertisement is saved by the browser in a write-only store.
-This includes an identifier for the ad and some metadata about the ad,
-such as whether the impression was an ad view or an ad click.
+An [=impression=] is any action that an advertiser takes on any website.
+The API does not constrain what can be recorded as an impression.
+Typical actions that an advertiser might seek to measure include:
 
-At conversion time, information for aggregation is created based on the impressions that were previously stored.
-A site can request that the browser select impressions based on a simple query.
+*   Displaying an advertisement.
+*   Having a user interact with an advertisement in some way.
+*   Not displaying an advertisement (especially for controlled experiments that seek to confirm whether an advertising campaign is effective).
 
-*   If there was no matching impression,
+For the API, a [=conversion=] is an [=outcome=] that is being measured.
+The API does not constrain what might be considered to be an outcome.
+Typical outcomes that advertisers might seek to measure include:
+
+*   Making a purchase.
+*   Signing up for an account.
+*   Visiting a webpage.
+
+When an [=impression=] occurs,
+the <a method for=PrivateAttribution>saveImpression()</a> method can be used
+to request that the browser save information.
+This includes an identifier for the impression
+and some additional information about the impression.
+For instance, advertisers might use additional information
+to record whether the impression was an ad view or an ad click.
+
+At [=conversion=] time, a [=conversion report=] is created.
+A <dfn>conversion report</dfn> is an encrypted histogram contribution
+that includes information from any [=impressions=] that the browser previously stored.
+
+The <a method for=PrivateAttribution>measureConversion</a> method accepts a simple query that is used
+to tell the browser how to construct a [=conversion report=].
+That includes a simple query that selects from the [=impressions=]
+that the browser has stored,
+a value to attribute to the selected impression(s),
+and other information needed to construct the [=conversion report=].
+
+The histogram created by the [=conversion report=] is constructed as follows:
+
+*   If the query found no impressions,
     or the [=privacy budget=] for the site is exhausted,
     a histogram consisting entirely of zeros (0) is constructed.
 
 *   If a matching impression is found,
-    the specified value is added to a histogram
-    at the bucket that was specified for the ad at the time of the impression.
+    the provided value is added to a histogram
+    at the bucket that was specified at the time of the impression.
     All other buckets are set to zero.
 
 The resulting histogram is prepared for aggregation according to the requirements
@@ -146,12 +275,152 @@ The aggregation service:
 
 # API Details # {#api}
 
-<!-- TODO fixup -->
-A <dfn>conversion report</dfn> is generated when querying impressions.
-Conversion reports are encrypted toward the identified aggregation service.
+Open questions:
+*   Filter/query language
+*   Reports are sent to aggregation system directly, or via conversion site? Or
+    option of either? => via conversion site
+*   Epochs
 
-TODO
 
+## ListAggregationSystems API ## {#list-aggregation-systems-api}
+
+navigator.privateAttribution.listAggregationSystems()
+
+TODO: add whatever else is needed in this struct
+
+<xmp class=idl>
+dictionary PrivateAttributionAggregationSystem {
+  // Name of the aggregation system. This is passed as the `aggregator` parameter to
+  // other APIs.
+  required DOMString name;
+};
+</xmp>
+
+## Saving Impressions ## {#save-impression-api}
+
+The <dfn method for=PrivateAttribution>saveImpression()</dfn> method does something or other.
+
+<pre>
+navigator.privateAttribution.saveImpression({
+  aggregator: "aggregator.example", // the name of the aggregation system
+  index: 3,                         // the histogram index for counting this impression
+  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
+  target: "advertiser.example",     // the advertiser site where a conversion will occur
+});
+</pre>
+
+Add:
+* TTL
+
+<xmp class=idl>
+dictionary PrivateAttributionImpressionOptions {
+  required DOMString aggregator;
+  required unsigned long histogramIndex;
+  required DOMString ad;
+  required DOMString target;
+};
+
+[SecureContext, Exposed=Window]
+interface PrivateAttribution {
+  [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
+};
+</xmp>
+
+Implicit saveImpression API inputs:
+* Timestamp (epoch?)
+* Source site
+
+
+### Operation ### {#save-impression-api-operation}
+
+1. Validate inputs
+2. If the private attribution API is enabled, save the impression to the store.
+
+
+## MeasureConversion API ## {#measure-conversion-api}
+
+The <dfn method for=PrivateAttribution>measureConversion()</dfn> method is used to do stuff.
+
+TODO:
+* Change filter data
+
+<pre>
+navigator.privateAttribution.measureConversion({
+  // name of the aggregation system
+  aggregator: "aggregator.example",
+
+  // the number of buckets in the histogram
+  histogramSize: 20,
+
+  // the value to assign to the histogram index of the impression
+  value: 3,
+
+  // only consider impressions within the last N days
+  lookbackDays: 30,
+  // a list of possible ad identifiers that can be attributed
+  ads: ["sample-campaign-eijb"],
+  // a list of sites where impressions might have been registered
+  source: ["publisher.example"]
+});
+</pre>
+
+// TODO clarify "Infinity"
+
+<xmp class=idl>
+dictionary PrivateAttributionConversionOptions {
+  required DOMString aggregator;
+
+  required unsigned long histogramSize;
+  unsigned long value = 1;
+
+  unsigned long lookbackDays = Infinity;
+  sequence<DOMString> ads = [];
+  sequence<DOMString> sources = [];
+};
+
+[SecureContext, Exposed=Window]
+partial interface PrivateAttribution {
+  [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
+};
+</xmp>
+
+
+Implicit MeasureConversion API inputs:
+* Timestamp (epoch?)
+* Target site
+
+### Operation ### {#measure-conversion-api-operation}
+
+1. Validate inputs
+2. Set |reportedConversionValue| to 0.
+3. If the private attribution API is enabled, search for a matching impression.
+4. If a matching impression was found:
+    1. Set |histogramIndex| to the value from the matching impression
+    2. Set |reportedConversionValue| to the smaller of the following:
+        1. The conversion value passed to the MeasureConversion API.
+        2. The limit on conversion value determined by the remaining privacy budget.
+5. Update the privacy budget store to reflect the reported conversion value.
+6. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
+7. Encrypt the report.
+8. Return the encrypted report.
+
+
+## Impression database ## {#impression-database}
+
+
+
+## User control and visibility ## {#user-control}
+
+* Users should be able to opt out. Opt out should be undetectable.
+* User ability to view the impression store.
+
+# Implementation Considerations # {#implementation-considerations}
+
+* Management and distribution of values for the following:
+    * Histogram size
+    * Target site for impressions
+    * Source site for conversions
+    * Ad IDs
 
 # Aggregation # {#aggregation}
 
@@ -450,6 +719,17 @@ depend on the type of [=aggregation service=].
 # Security # {#security}
 
 TODO
+
+* Browser security
+    * Clearing of impression store
+    * Partitioning of impression store
+    * Interaction with private browsing modes
+    * Interaction with telemetry opt-outs
+    * Timing attacks on APIs
+
+* Aggregation system security
+
+* Fraud and abuse
 
 
 # Acknowledgements # {#ack}
