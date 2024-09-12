@@ -147,7 +147,7 @@ New additions to the
 
 ## Attribution Using Histograms ## {#histograms}
 
-Attribution attempts to measure correlation
+[=Attribution=] attempts to measure correlation
 between one or more ad placements ([=impressions=])
 and the [=outcomes=] that an advertiser desires.
 
@@ -203,36 +203,49 @@ though this capability is not presently supported in the API.
 The private attribution API provides aggregate information about the
 association between two classes of events: [=impressions=] and [=conversions=].
 
-An <dfn>impression</dfn> is the
-event to which [=conversion=]s are being attributed. Selection of impression
-events is left to the consumer of the API. Examples include:
+An [=impression=] is any action that an advertiser takes on any website.
+The API does not constrain what can be recorded as an impression.
+Typical actions that an advertiser might seek to measure include:
 
-*   Displaying an advertisement to a user.
-*   Viewing a particular web page.
+*   Displaying an advertisement.
+*   Having a user interact with an advertisement in some way.
+*   Not displaying an advertisement (especially for controlled experiments that seek to confirm whether an advertising campaign is effective).
 
-A <dfn>conversion</dfn> is the
-event being attributed to [=impression=]s. Selection of conversion events
-is again left to the consumer of the API. Examples include:
+For the API, a [=conversion=] is an [=outcome=] that is being measured.
+The API does not constrain what might be considered to be an outcome.
+Typical outcomes that advertisers might seek to measure include:
 
-*   Signing up for an account.
 *   Making a purchase.
+*   Signing up for an account.
 *   Visiting a webpage.
 
-When an [=impression=] occurs, information about the impression is saved by the
-browser. This includes an identifier for the impression
-and some metadata about the impression, such as whether the impression was an
-ad view or an ad click.
+When an [=impression=] occurs,
+the <a method for=PrivateAttribution>saveImpression()</a> method can be used
+to request that the browser save information.
+This includes an identifier for the impression
+and some additional information about the impression.
+For instance, advertisers might use additional information
+to record whether the impression was an ad view or an ad click.
 
-At [=conversion=] time, information for aggregation is created based on the
-impressions that were previously stored.  A site can request that the browser
-select impressions based on a simple query.
+At [=conversion=] time, a [=conversion report=] is created.
+A <dfn>conversion report</dfn> is an encrypted histogram contribution
+that includes information from any [=impressions=] that the browser previously stored.
 
-*   If there was no matching impression,
+The <a method for=PrivateAttribution>measureConversion</a> method accepts a simple query that is used
+to tell the browser how to construct a [=conversion report=].
+That includes a simple query that selects from the [=impressions=]
+that the browser has stored,
+a value to attribute to the selected impression(s),
+and other information needed to construct the [=conversion report=].
+
+The histogram created by the [=conversion report=] is constructed as follows:
+
+*   If the query found no impressions,
     or the [=privacy budget=] for the site is exhausted,
     a histogram consisting entirely of zeros (0) is constructed.
 
 *   If a matching impression is found,
-    the specified value is added to a histogram
+    the provided value is added to a histogram
     at the bucket that was specified at the time of the impression.
     All other buckets are set to zero.
 
@@ -284,7 +297,9 @@ dictionary PrivateAttributionAggregationSystem {
 };
 </xmp>
 
-## SaveImpression API ## {#save-impression-api}
+## Saving Impressions ## {#save-impression-api}
+
+The <dfn method for=PrivateAttribution>saveImpression()</dfn> method does something or other.
 
 <pre>
 navigator.privateAttribution.saveImpression({
@@ -325,9 +340,12 @@ Implicit saveImpression API inputs:
 
 ## MeasureConversion API ## {#measure-conversion-api}
 
+The <dfn method for=PrivateAttribution>measureConversion()</dfn> method is used to do stuff.
+
 TODO:
 * Change filter data
 
+<pre>
 navigator.privateAttribution.measureConversion({
   // name of the aggregation system
   aggregator: "aggregator.example",
@@ -345,6 +363,7 @@ navigator.privateAttribution.measureConversion({
   // a list of sites where impressions might have been registered
   source: ["publisher.example"]
 });
+</pre>
 
 // TODO clarify "Infinity"
 
