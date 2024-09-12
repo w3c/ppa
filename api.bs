@@ -186,7 +186,9 @@ Adding a value greater than one at each conversion
 enables more than simple counts.
 Histograms can also aggregate values,
 which might be used to differentiate between different outcomes.
-A higher value might be used for larger purchases
+The value that is allocated to impressions
+is called a <dfn>conversion value</dfn>.
+A higher conversion value might be used for larger purchases
 or any outcome that is more highly-valued.
 A conversion value might also be split between multiple impressions
 to split credit,
@@ -235,7 +237,7 @@ The <a method for=PrivateAttribution>measureConversion</a> method accepts a simp
 to tell the browser how to construct a [=conversion report=].
 That includes a simple query that selects from the [=impressions=]
 that the browser has stored,
-a value to attribute to the selected impression(s),
+a [=conversion value=] that is allocated to the selected impression(s),
 and other information needed to construct the [=conversion report=].
 
 The histogram created by the [=conversion report=] is constructed as follows:
@@ -371,6 +373,9 @@ dictionary PrivateAttributionConversionOptions {
   required DOMString aggregator;
 
   required unsigned long histogramSize;
+  double epsilon = 1.0;
+
+  PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
 
   unsigned long lookbackDays = Infinity;
@@ -383,6 +388,23 @@ partial interface PrivateAttribution {
   [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
 };
 </xmp>
+
+The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as follows:
+
+<dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
+  <dt><dfn>aggregator</dfn></dt>
+  <dd>A selection from the [=aggregation services=]
+      that can be listed using aggregationServices <!-- TODO link -->
+
+  <dt><dfn>histogramSize</dfn></dt>
+  <dt><dfn>epsilon</dfn></dt>
+  <dt><dfn>logic</dfn></dt>
+  <dt><dfn>value</dfn></dt>
+  <dd>The conversion value</dd>
+  <dt><dfn>lookbackDays</dfn></dt>
+  <dt><dfn>ads</dfn></dt>
+  <dt><dfn>sources</dfn></dt>
+</dl>
 
 
 Implicit MeasureConversion API inputs:
@@ -406,6 +428,41 @@ Implicit MeasureConversion API inputs:
 
 
 ## Impression database ## {#impression-database}
+
+
+## Attribution Logic ## {#s-logic}
+
+A site that measures conversions can specify <dfn>attribution logic</dfn>,
+which determines how the [=conversion value=] is allocated to histogram buckets.
+The <a method for=PrivateAttribution>measureConversion()</a> function
+accepts a <a dict-member for=PrivateAttributionConversionOptions>logic</a> parameter
+that specifies the [=attribution logic=].
+
+<xmp class=idl>
+enum PrivateAttributionLogic {
+  "last-touch",
+};
+</xmp>
+
+Each attribution logic specifies a process for allocating values to histogram buckets.
+This logic includes how to select impressions,
+how to handle weeks in which the [=privacy budget=] is insufficient,
+and (optionally) how to process any additional parameters that might be used.
+
+
+### Last Touch Attribution ## {#logic-last-touch}
+
+The <dfn enum-value for=PrivateAttributionLogic>last-touch</dfn> [=attribution logic=]
+indicates that the browser should select
+the last impression that matches the [[#logic-matching|common matching logic]].
+The entire [=conversion value=] is allocated to the histogram bucket
+that was saved with the impression.
+
+
+### Common Matching Logic ### {#logic-matching}
+
+TODO specify how to match using "lookbackDays", "ads" and "sources".
+
 
 
 
@@ -478,7 +535,7 @@ To apply differential privacy,
 it is necessary to define what information is protected.
 In this system, the protected information is
 the [=impressions=] of a single user profile,
-on a single user agent,
+on a single [=user agent=],
 over a single week,
 for a single website that registers [=conversions=].
 [[#dp-unit]] describes the implications of this design
@@ -607,7 +664,17 @@ A finite number of queries can be made of each database,
 as determined by the [=privacy budget=]
 associated with that database.
 
-The goal is to set a value that is as large as feasible.
+Having a [=conversion report=] produced from impressions
+that span multiple weeks has privacy consequences.
+A single visit to a website can give that site information
+about activities across many weeks.
+This only requires that
+the conversion site is identified as the destination
+for impressions over that entire period.
+The number of weeks that can be queried are limited by [=user agents=].
+
+The goal is to set a refresh interval value
+that is as large as feasible.
 A longer period of time allows for a better privacy/utility balance
 because sites can be allocated a larger overall budget
 at any point in time,
@@ -645,7 +712,7 @@ that the report consumes.
 
 When searching for impressions for the conversion report,
 the user agent deducts the specified &epsilon; value from
-the budget for the week in which those impressions fall.
+the budget for the week in which those impressions were saved.
 If the privacy budget for that week is not sufficient,
 the impressions from that week are not used.
 
@@ -671,8 +738,8 @@ the impressions from that week are not used.
     so no budget is deducted from that week.
 </div>
 
-
-TODO
+How a [=user agent=] manages exhaustion of a privacy budget
+depends on the [=attribution logic=] that was specified.
 
 
 ### Safety Limits ### {#dp-safety}
@@ -741,6 +808,7 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 <pre class=link-defaults>
 spec:html; type:dfn; text:site
+spec:infra; type:dfn; text:user agent
 </pre>
 <pre class=biblio>
 {
