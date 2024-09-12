@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="192" width="264" viewBox="0 0 264 192" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<text class="ascii" display="none"><![CDATA[
+|
++------+
+|      | example.com
++------+----------+
+|                 | news.example
++---------+-------+
+|         | classified.example
++-+-------+
+| | search.example
++-+
+|
+]]></text>
+<path d="M 8,16 L 8,176" fill="none" stroke="black"/>
+<path d="M 24,128 L 24,160" fill="none" stroke="black"/>
+<path d="M 64,32 L 64,64" fill="none" stroke="black"/>
+<path d="M 88,96 L 88,128" fill="none" stroke="black"/>
+<path d="M 152,64 L 152,96" fill="none" stroke="black"/>
+<path d="M 8,32 L 64,32" fill="none" stroke="black"/>
+<path d="M 8,64 L 152,64" fill="none" stroke="black"/>
+<path d="M 8,96 L 152,96" fill="none" stroke="black"/>
+<path d="M 8,128 L 88,128" fill="none" stroke="black"/>
+<path d="M 8,160 L 24,160" fill="none" stroke="black"/>
+<g class="text">
+<text x="120" y="52">example.com</text>
+<text x="212" y="84">news.example</text>
+<text x="172" y="116">classified.example</text>
+<text x="92" y="148">search.example</text>
+</g>
+</svg>
