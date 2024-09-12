@@ -27,11 +27,11 @@ The primary goal of this API is to enable attribution for advertising.
 
 ## Attribution ## {#s-attribution}
 
-<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+In advertising, <dfn lt=attribution|attributed>attribution</dfn> is the process of identifying [=actions=]
 that precede an [=outcome=] of interest,
 and allocating value to those [=actions=].
 
-For advertising, <dfn>actions</dfn> that are of interest
+<dfn>Actions</dfn> that are of interest to advertisers
 are primarily the showing of advertisements
 (also referred to as <dfn>impressions</dfn>).
 Other actions include ad clicks (or other interactions)
@@ -118,49 +118,8 @@ with multiple purveyors of personal information that is traded for various purpo
 ## Goals ## {#goals}
 
 The goal of this document is to define an means of performing [=attribution=]
+for advertising
 that does not enable tracking.
-
-## Attribution ## {#s-attribution}
-
-<dfn>Attribution</dfn> is the process of identifying [=actions=]
-that precede an [=outcome=] of interest,
-and allocating value to those [=actions=].
-
-For advertising, <dfn>actions</dfn> that are of interest
-are primarily the showing of advertisements
-(also referred to as impressions).
-Other actions include ad clicks (or other interactions)
-and opportunities to show ads that were not taken.
-
-Desired <dfn>outcomes</dfn> for advertising are more diverse,
-as they include any result that an advertiser seeks to improve
-through the showing of ads.
-This might be sales, subscriptions, page visits, enquiries,
-or any other event.
-
-For this API, [=actions=] and [=outcomes=] are both
-events: things that happen once.
-What is unique about attribution for advertising
-is that these events might not occur on the same [=site=].
-
-The primary challenge with attribution is in maintaining privacy.
-Attribution involves connecting activity on different sites.
-If that information were directly revealed,
-it would enable unwanted
-[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
-thereby enabling tracking.
-
-This document avoids cross context recognition by ensuring that
-attribution information is aggregated using an [=aggregation service=].
-The aggregation service is trusted to compute an aggregate
-without revealing the values that each person contributes to that aggregate.
-
-Strict limits are placed on the amount of information that each browser instance
-contributes to the aggregates for a given site.
-Differential privacy is used to provide additional privacy protection for each contribution.
-
-Details of aggregation service operation is included in [[#aggregation]].
-The differential privacy design used is outlined in [[#dp]].
 
 
 ## End-User Benefit ## {#user-benefit}
@@ -189,7 +148,7 @@ path:images/value.svg
 </figure>
 
 Participation in an [=attribution=] measurement system
-would comprise a second cost element.
+would comprise a secondary cost to Web users.
 
 Support for attribution enables more effective advertising,
 largely by informing advertisers about what ads perform best,
