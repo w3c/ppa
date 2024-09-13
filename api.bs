@@ -27,13 +27,13 @@ The primary goal of this API is to enable attribution for advertising.
 
 ## Attribution ## {#s-attribution}
 
-<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+In advertising, <dfn lt=attribution|attributed>attribution</dfn> is the process of identifying [=actions=]
 that precede an [=outcome=] of interest,
 and allocating value to those [=actions=].
 
-For advertising, <dfn>actions</dfn> that are of interest
+<dfn>Actions</dfn> that are of interest to advertisers
 are primarily the showing of advertisements
-(also referred to as <dfn>impressions</dfn>).
+(also referred to as <dfn lt=impression>impressions</dfn>).
 Other actions include ad clicks (or other interactions)
 and opportunities to show ads that were not taken.
 
@@ -117,32 +117,108 @@ with multiple purveyors of personal information that is traded for various purpo
 
 ## Goals ## {#goals}
 
-The goal of this document is to define a means of performing attribution
+The goal of this document is to define an means of performing [=attribution=]
+for advertising
 that does not enable tracking.
-
-The primary challenge with attribution is in maintaining privacy.
-Attribution involves connecting activity on different sites.
-If that information were directly revealed,
-it would enable unwanted
-[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition cross-context recognition]],
-thereby enabling tracking.
-
-This document avoids cross context recognition by ensuring that
-attribution information is aggregated using an [=aggregation service=].
-The aggregation service is trusted to compute an aggregate
-without revealing the values that each person contributes to that aggregate.
-
-Strict limits are placed on the amount of information that each browser instance
-contributes to the aggregates for a given site.
-Differential privacy is used to provide additional privacy protection for each contribution.
-
-Details of aggregation service operation is included in [[#aggregation]].
-The differential privacy design used is outlined in [[#dp]].
 
 
 ## End-User Benefit ## {#user-benefit}
 
-New additions to the
+The measurement of advertising performance creates new cross-site flows of information.
+That information flow creates a privacy risk or cost--
+of [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]]--
+that needs to be justified in terms of benefits to end users.
+
+Any benefits realized by end users through the use of [=attribution=] is indirect.
+
+End users that visit a website
+pay for "free" content or services
+primarily through their attention
+to any advertisements the site shows them.
+This "value" accrues to the advertiser,
+who in turn pays the site.
+The site is expected to use this money to
+support the provision of their content or services.
+
+<figure>
+<pre class=include-raw>
+path:images/value.svg
+</pre>
+<figcaption>Value exchange for advertising-supported content and services</figcaption>
+</figure>
+
+Participation in an [=attribution=] measurement system
+would comprise a secondary cost to Web users.
+
+Support for attribution enables more effective advertising,
+largely by informing advertisers about what ads perform best,
+and in what circumstances.
+Those circumstances might include
+the time and place that the ad is shown,
+the person to whom the ad is presented, and
+the details of the ad itself.
+
+Connecting that information to outcomes
+allows an advertiser to learn what circumstances most often lead
+to the outcomes they most value.
+That allows advertisers to spend more on effective advertising
+and less on ineffective advertising.
+This lowers the overall cost of advertising
+relative to the value obtained. [[ONLINE-ADVERTISING]]
+
+Sites that provide advertising inventory,
+such as content publishers and service providers,
+indirectly benefit from more efficient advertising.
+Venues for advertising that are better able to
+show ads that result in
+the outcomes that advertisers seek
+can charge more for ad placements.
+
+Sites that obtain support through the placement of advertisements
+are better able to provide quality content or services.
+Importantly, that support is derived unevenly from their audience.
+This can be more equitable than other forms of financial support.
+Those with a lower tendency or ability to spend on advertised goods
+obtain the same ad-supported content and services
+as those who can afford to pay. [[EU-AD]][[COPPACALYPSE]]
+
+The ability to supply "free" services
+supported by advertising
+has measurable economic benefit
+that derives from the value of those services. [[FREE-GDP]]
+
+
+## Collective Privacy Effect ## {#collective}
+
+The use of aggregation--
+if properly implemented--
+ensures that information provided to sites is about groups and not individuals.
+
+The introduction of this mechanism therefore represents collective decision-making,
+as described in [[PRIVACY-PRINCIPLES#collective-privacy]].
+
+Participation in attribution measurement carries a lower privacy cost
+when the group that participates is larger.
+This is due to the effect of aggregation on
+the ability of sites to
+extract information about individuals from aggregates.
+This is especially true for central [[#dp|differential privacy]],
+which is the mathematical basis for the privacy design used
+in this specification.
+
+Larger cohorts of participants also produce more representative--
+and therefore more useful--
+statistics about the advertising that is being measured.
+
+If attribution is justified,
+both these factors motivate the enablement of attribution for all users.
+
+Acting to enable attribution measurement by user agents
+will not be positively received by some people.
+Different people perceive the costs and benefits
+that come from engaging with advertising differently.
+The proposed design allows people the option of appearing to participate in attribution
+without revealing that choice to sites; see [[#opt-out]].
 
 
 ## Attribution Using Histograms ## {#histograms}
@@ -194,7 +270,7 @@ A conversion value might also be split between multiple impressions
 to split credit,
 though this capability is not presently supported in the API.
 
-* Compatibility with privacy-preserving aggregation systems
+* Compatibility with privacy-preserving aggregation services
 * Flexibility to assign buckets
 
 * As histogram size increases, noise becomes a problem
@@ -261,14 +337,14 @@ As a result, sites learn nothing about what happened on other sites from this in
 The site can collect the encrypted histograms it receives from calls to this API
 and submit them to the aggregation service.
 
-The aggregation service:
+Upon receiving a set of encrypted histograms from a site, the aggregation service:
 
 1.  confirms that it has not
     previously computed an aggregate
     from the provided inputs
     and that there are enough conversion reports,
 
-2.  adds the histograms including sufficient [[#dp noise]]
+2.  adds the histograms including sufficient [[#dp|noise]]
     to produce a differentially-private aggregate histogram, and
 
 3.  returns the aggregate to the site.
@@ -277,78 +353,125 @@ The aggregation service:
 
 # API Details # {#api}
 
-Open questions:
-*   Filter/query language
-*   Reports are sent to aggregation system directly, or via conversion site? Or
-    option of either? => via conversion site
-*   Epochs
+Before using the other Private Attribution APIs, a site must
+[[#list-aggregation-services-api|list aggregation services]] to discover the aggregation services
+that are supported.
+The page may select any of the supported services returned by
+<a method for=PrivateAttribution>listAggregationServices()</a>.
+The name of the selected service must be supplied as
+the `aggregator` member of the
+{{PrivateAttributionConversionOptions}} dictionary when calling the
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
+## Finding a Supported Aggregation Service ## {#list-aggregation-services-api}
 
-## ListAggregationSystems API ## {#list-aggregation-systems-api}
+<p class=issue>Is any additional information required in the
+{{PrivateAttributionAggregationService}} dictionary? Do we want
+to rename `apiVersion` to `protocol`? And we should definitely
+define an enum for it.
 
-navigator.privateAttribution.listAggregationSystems()
-
-TODO: add whatever else is needed in this struct
+The <dfn method for=PrivateAttribution>listAggregationServices()</dfn> method
+returns a list of aggregation services supported by the [=user agent=]. The page
+must select and specify one of these services when calling the
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
 <xmp class=idl>
-dictionary PrivateAttributionAggregationSystem {
-  // Name of the aggregation system. This is passed as the `aggregator` parameter to
-  // other APIs.
+dictionary PrivateAttributionAggregationService {
   required DOMString name;
-};
-</xmp>
-
-## Saving Impressions ## {#save-impression-api}
-
-The <dfn method for=PrivateAttribution>saveImpression()</dfn> method does something or other.
-
-<pre>
-navigator.privateAttribution.saveImpression({
-  aggregator: "aggregator.example", // the name of the aggregation system
-  index: 3,                         // the histogram index for counting this impression
-  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
-  target: "advertiser.example",     // the advertiser site where a conversion will occur
-});
-</pre>
-
-Add:
-* TTL
-
-<xmp class=idl>
-dictionary PrivateAttributionImpressionOptions {
-  required DOMString aggregator;
-  required unsigned long histogramIndex;
-  required DOMString ad;
-  required DOMString target;
+  required DOMString apiVersion;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
+  attribute FrozenArray<PrivateAttributionAggregationService> aggregationServices;
+};
+</xmp>
+
+The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> are as follows:
+
+<dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
+  <dt><dfn>name</dfn></dt>
+  <dd>
+    Name of the aggregation service. This is passed as the `aggregator`
+    parameter to <a method for=PrivateAttribution>measureConversion()</a>.
+  </dd>
+  <dt><dfn>apiVersion</dfn></dt>
+  <dd>
+    Version of the Private Attribution API supported by this aggregator. Even if
+    an aggregator supports multiple versions of the API, it is expected to
+    assign a unique aggregation service name for each supported version.
+    Thus, the API version is implicit in the aggregator selection
+    and does not need to be passed to <a method for=PrivateAttribution>measureConversion()</a>.
+  </dd>
+</dl>
+
+## Saving Impressions ## {#save-impression-api}
+
+The <a method for=PrivateAttribution>saveImpression()</a> method requests
+that the [=user agent=] record an [=impression=] in the [=impression store=].
+
+<pre>
+navigator.privateAttribution.saveImpression({
+  histogramIndex: 3,
+  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
+  conversionSite: "advertiser.example",     // the advertiser site where a conversion will occur
+});
+</pre>
+
+<xmp class=idl>
+dictionary PrivateAttributionImpressionOptions {
+  required unsigned long histogramIndex;
+  required DOMString ad;
+  required DOMString conversionSite;
+  unsigned long lifetimeDays;
+};
+
+[SecureContext, Exposed=Window]
+partial interface PrivateAttribution {
   [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
-Implicit saveImpression API inputs:
-* Timestamp (epoch?)
-* Source site
+The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as follows:
 
+<dl dfn-for=PrivateAttributionImpressionOptions dfn-type=dict-member>
+  <dt><dfn>histogramIndex</dfn></dt>
+  <dd>
+    If <a method for=PrivateAttribution>measureConversion()</a> matches this
+    [=impression=] with a subsequent [=conversion=], the [=conversion value=]
+    will be added to the histogram bucket identified by this index.
+  </dd>
+  <dt><dfn>lifetimeDays</dfn></dt>
+  <dd>
+    A "time to live" (in days) after which the [=impression=] can no longer
+    receive attribution. The [=user agent=] should impose an upper limit on the
+    lifetime, and silently reduce the value specified here if it exceeds that
+    limit.
+  </dd>
+</dl>
 
 ### Operation ### {#save-impression-api-operation}
 
-1. Validate inputs
-2. If the private attribution API is enabled, save the impression to the store.
+1. Validate the page-supplied API inputs
+2. Collect the implict API inputs:
+    1. The current timestamp
+    2. The impression site domain
+3. If the private attribution API is enabled, save the impression to the store.
 
 
-## MeasureConversion API ## {#measure-conversion-api}
+## Requesting Attribution for a Conversion ## {#measure-conversion}
 
-The <dfn method for=PrivateAttribution>measureConversion()</dfn> method is used to do stuff.
+The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
+requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
+and return a [=conversion report=].
 
-TODO:
-* Change filter data
+The <a method for=PrivateAttribution>measureConversion()</a> method
+always returns a conversion report,
+regardless of whether matching [=impression|impression(s)=] were found.
 
 <pre>
 navigator.privateAttribution.measureConversion({
-  // name of the aggregation system
+  // name of the aggregation service
   aggregator: "aggregator.example",
 
   // the number of buckets in the histogram
@@ -366,11 +489,9 @@ navigator.privateAttribution.measureConversion({
   // a list of possible ad identifiers that can be attributed
   ads: ["sample-campaign-eijb"],
   // a list of sites where impressions might have been registered
-  source: ["publisher.example"]
+  impressionSites: ["publisher.example"]
 });
 </pre>
-
-// TODO clarify "Infinity"
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
@@ -382,7 +503,7 @@ dictionary PrivateAttributionConversionOptions {
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
 
-  unsigned long lookbackDays = Infinity;
+  unsigned long lookbackDays;
   sequence<DOMString> ads = [];
   sequence<DOMString> impressionSites = [];
 };
@@ -397,42 +518,76 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 <dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
   <dt><dfn>aggregator</dfn></dt>
-  <dd>A selection from the [=aggregation services=]
-      that can be listed using aggregationServices <!-- TODO link -->
-
+  <dd>
+    A selection from the [=aggregation services=] that can be listed using <a
+    method for=PrivateAttribution>listAggregationServices()</a>.
+  </dd>
   <dt><dfn>histogramSize</dfn></dt>
   <dt><dfn>epsilon</dfn></dt>
   <dt><dfn>logic</dfn></dt>
   <dt><dfn>value</dfn></dt>
-  <dd>The conversion value</dd>
+  <dd>The [=conversion value=]</dd>
   <dt><dfn>lookbackDays</dfn></dt>
+  <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
   <dt><dfn>ads</dfn></dt>
+  <dd>A list of [=ad identifiers=]. Only [=impressions=] having one of the listed identifiers may match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
+  <dd>A list of impression sites. Only [=impressions=] recorded by one of the impression sites are eligible to match this [=conversion=].</dd>
 </dl>
 
 
-Implicit MeasureConversion API inputs:
-* Timestamp (epoch?)
-* Target site
-
 ### Operation ### {#measure-conversion-api-operation}
 
-1. Validate inputs
-2. Set |reportedConversionValue| to 0.
-3. If the private attribution API is enabled, search for a matching impression.
-4. If a matching impression was found:
+1. Validate the page-supplied API inputs
+2. Collect the implicit API inputs
+    1. The current timestamp
+    2. The conversion site domain
+3. Set |reportedConversionValue| to 0.
+4. If the private attribution API is enabled, search for a matching impression using the [[#logic-matching|common matching logic]].
+5. If a matching impression was found:
     1. Set |histogramIndex| to the value from the matching impression
     2. Set |reportedConversionValue| to the smaller of the following:
-        1. The conversion value passed to the MeasureConversion API.
-        2. The limit on conversion value determined by the remaining privacy budget.
-5. Update the privacy budget store to reflect the reported conversion value.
-6. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
-7. Encrypt the report.
-8. Return the encrypted report.
+        1.  The conversion value passed to the MeasureConversion API.
+        2.  The limit on conversion value determined by the remaining privacy budget.
+6. Update the privacy budget store to reflect the reported conversion value.
+7. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
+8. Encrypt the report.
+9. Return the encrypted report.
 
 
-## Impression database ## {#impression-database}
+## Impression store ## {#s-impression-store}
 
+The <dfn>impression store</dfn> is used by the <a method
+for=PrivateAttribution>measureConversion()</a> method to find matching
+[=impressions=].
+
+### Contents ### {#impression-store-contents}
+
+The [=impression store=] must store the following information:
+
+<div link-for=PrivateAttribution>
+<pre class=simpledef>
+Ad: The [=/ad identifier=] passed to <a>saveImpression()</a>.
+Impression Site: The site that called <a>saveImpression()</a>.
+Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
+Timestamp: The time at which <a>saveImpression()</a> was called.
+Lifetime: The number of days an [=/impression=] remains eligible for attribution,
+Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
+Histogram Index: The histogram index passed to <a>saveImpression()</a>.
+</pre>
+</div>
+
+### Periodic Maintenance ### {#impression-store-maintenance}
+
+The [=user agent=] should periodically use
+the timestamp and lifetime values
+to identify and delete any [=impressions=] in the [=impression store=]
+that have expired.
+
+It is not necessary to remove [=impressions=] immediately upon expiry,
+as long as <a method for=PrivateAttribution>measureConversion()</a>
+excludes expired [=impressions=] from [=attribution=]. However, the
+[=user agent=] should not retain expired [=impressions=] indefinitely.
 
 ## Attribution Logic ## {#s-logic}
 
@@ -456,11 +611,11 @@ and (optionally) how to process any additional parameters that might be used.
 
 ### Last Touch Attribution ### {#logic-last-touch}
 
-The <dfn enum-value for=PrivateAttributionLogic>last-touch</dfn> [=attribution logic=]
+The <dfn enum-value for=PrivateAttributionLogic>"last-touch"</dfn> [=attribution logic=]
 indicates that the browser should select
-the last impression that matches the [[#logic-matching|common matching logic]].
-The entire [=conversion value=] is allocated to the histogram bucket
-that was saved with the impression.
+the last (most recent) impression that matches the [[#logic-matching|common matching logic]].
+The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|privacy budget]])
+is allocated to the histogram bucket that was saved with the impression.
 
 Last touch attribution does not select any impression
 that was saved during a week
@@ -520,7 +675,11 @@ given |options|:
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
-TODO specify how to match using "lookbackDays", "ads" and "sources".
+TODO specify how to match using "lookbackDays", "ads" and "impressionSites".
+
+Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
+
+<dfn>ad identifier</dfn>
 
 To perform <dfn>common matching logic</dfn>,
 given |options|, |week|, and [=moment=] |now|:
@@ -551,14 +710,14 @@ given |options|, |week|, and [=moment=] |now|:
 ## User control and visibility ## {#user-control}
 
 * Users should be able to opt out. Opt out should be undetectable.
-* User ability to view the impression store.
+* User ability to view the impression store and past report submissions.
 
 # Implementation Considerations # {#implementation-considerations}
 
 * Management and distribution of values for the following:
     * Histogram size
-    * Target site for impressions
-    * Source site for conversions
+    * Conversion site for impressions
+    * Impression site for conversions
     * Ad IDs
 
 # Aggregation # {#aggregation}
@@ -585,8 +744,7 @@ TODO
 
 ## Anti-Replay Requirements ## {#anti-replay}
 
-<!-- TODO link to definition of "conversion report" -->
-Conversion reports generated by browsers are bound
+[=Conversion reports=] generated by browsers are bound
 to the amount of [=privacy budget=]
 that was expended by the site that requested the report.
 
@@ -869,6 +1027,11 @@ depend on the type of [=aggregation service=].
 
 
 
+## Optional Participation ## {#opt-out}
+
+TODO
+
+
 # Security # {#security}
 
 TODO
@@ -880,7 +1043,7 @@ TODO
     * Interaction with telemetry opt-outs
     * Timing attacks on APIs
 
-* Aggregation system security
+* Aggregation service security
 
 * Fraud and abuse
 
@@ -898,6 +1061,17 @@ spec:infra; type:dfn; text:user agent
 </pre>
 <pre class=biblio>
 {
+  "coppacalypse": {
+    "authors": [
+      "Garrett Johnson",
+      "Tesary Lin",
+      "James C. Cooper",
+      "Liang Zhong"
+    ],
+    "title": "COPPAcalypse? The Youtube Settlement's Impact on Kids Content",
+    "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4430334",
+    "date": "2024-03-14"
+  },
   "dp": {
     "authors": [
       "Cynthia Dwork",
@@ -907,6 +1081,47 @@ spec:infra; type:dfn; text:user agent
     "href": "https://doi.org/10.1561/0400000042",
     "title": "The Algorithmic Foundations of Differential Privacy",
     "publisher": "now, Foundations and Trends in Theoretical Computer Science, Vol. 9, Nos. 3–4"
+  },
+  "eu-ad": {
+    "authors": [
+      "Niklas FOURBERG",
+      "Serpil TAŞ",
+      "Lukas WIEWIORRA",
+      "Ilsa GODLOVITCH",
+      "Alexandre DE STREEL",
+      "Hervé JACQUEMIN",
+      "Jordan HILL",
+      "Madalina NUNU",
+      "Camille BOURGUIGON",
+      "Florian JACQUES",
+      "Michèle LEDGER",
+      "Michael LOGNOUL"
+    ],
+    "title": "Online advertising: the impact of targeted advertising on advertisers, market access and consumer choice",
+    "href": "https://www.europarl.europa.eu/thinktank/en/document/IPOL_STU(2021)662913",
+    "publisher": "European Parliament",
+    "date": "2021-06"
+  },
+  "free-gdp": {
+    "authors": [
+      "Leonard Nakamura",
+      "Jon D. Samuels",
+      "Rachel Soloveichik"
+    ],
+    "title": "Measuring the \"Free\" Digital Economy within the GDP and Productivity Accounts",
+    "href": "https://www.bea.gov/research/papers/2017/measuring-free-digital-economy-within-gdp-and-productivity-accounts",
+    "publisher": "Bureau of Economic Analysis",
+    "date": "2017-10"
+  },
+  "online-advertising": {
+    "authors": [
+      "Avi Goldfarb",
+      "Catherine Tucker"
+    ],
+    "title": "Online Advertising",
+    "href": "https://doi.org/10.1016/B978-0-12-385514-5.00006-9",
+    "edDraft": "http://www-2.rotman.utoronto.ca/~agoldfarb/OnlineAdvertising.pdf",
+    "publisher": "Elsevier"
   },
   "ppa-dp": {
     "authors": [
