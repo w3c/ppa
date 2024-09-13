@@ -353,7 +353,11 @@ navigator.privateAttribution.measureConversion({
 
   // the number of buckets in the histogram
   histogramSize: 20,
+  // the amount of privacy budget to use
+  epsilon: 1,
 
+  // the attribution logic to use
+  logic: "last-touch",
   // the value to assign to the histogram index of the impression
   value: 3,
 
@@ -371,16 +375,16 @@ navigator.privateAttribution.measureConversion({
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
   required DOMString aggregator;
+  double epsilon = 1.0;
 
   required unsigned long histogramSize;
-  double epsilon = 1.0;
 
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
 
   unsigned long lookbackDays = Infinity;
   sequence<DOMString> ads = [];
-  sequence<DOMString> sources = [];
+  sequence<DOMString> impressionSites = [];
 };
 
 [SecureContext, Exposed=Window]
@@ -403,7 +407,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>The conversion value</dd>
   <dt><dfn>lookbackDays</dfn></dt>
   <dt><dfn>ads</dfn></dt>
-  <dt><dfn>sources</dfn></dt>
+  <dt><dfn>impressionSites</dfn></dt>
 </dl>
 
 
@@ -450,7 +454,7 @@ how to handle weeks in which the [=privacy budget=] is insufficient,
 and (optionally) how to process any additional parameters that might be used.
 
 
-### Last Touch Attribution ## {#logic-last-touch}
+### Last Touch Attribution ### {#logic-last-touch}
 
 The <dfn enum-value for=PrivateAttributionLogic>last-touch</dfn> [=attribution logic=]
 indicates that the browser should select
@@ -458,12 +462,90 @@ the last impression that matches the [[#logic-matching|common matching logic]].
 The entire [=conversion value=] is allocated to the histogram bucket
 that was saved with the impression.
 
+Last touch attribution does not select any impression
+that was saved during a week
+that does not have sufficient [=privacy budget=].
+If impressions match from a week
+that does not have enough [=privacy budget=],
+impressions are not matched for any preceding weeks.
+That is, once a week has a matching impression
+and insufficient budget,
+the process will set a value of zero for all histogram buckets.
 
-### Common Matching Logic ### {#logic-matching}
+To <dfn ignore>fill a histogram using last-touch attribution</dfn>,
+given |options|:
+
+1.  Initialize |impression| to a null value.
+
+1.  Initialize |value| to |options|.|value|.
+
+1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
+
+1.  For each |week| starting from the current week
+    to the oldest week supported by the [=user agent=]:
+
+    1.  Let |impressions| be the result of invoking [=common matching logic=]
+        with |options|, |week|, and |now|.
+
+    1.  If |impressions| is not empty:
+
+        1.  Retain the value of |week|.
+
+        1.  Set |impression| to the value in |impressions|
+            with the most recent |impression|.timestamp.
+            <!-- TODO define a type for stored impressions -->
+
+        1.  Exit the loop.
+
+1.  If |impression| is null, let |budgetOk| be false.
+
+1.  Otherwise, let |budgetOk| be the result of [=deduct privacy budget=]
+    with |week| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
+
+1.  If |budgetOk| is false, set |value| to 0.
+
+1.  If |impression|.|histogramIndex|
+    is |options|.{{PrivateAttributionConversionOptions/histogramSize}} or greater,
+    set |value| to 0.
+
+1.  If |value| is not 0, set |index|
+    to |impression|.{{PrivateAttributionImpressionOptions/histogramIndex}}.
+
+1.  Otherwise, set |index| to 0.
+
+1.  Return a histogram containing |options|.{{PrivateAttributionConversionOptions/histogramSize}} values,
+    with a value of |value| at an index of |index|
+    and a value of zero at all other indices.
+
+
+### Common Impression Matching Logic ### {#logic-matching}
 
 TODO specify how to match using "lookbackDays", "ads" and "sources".
 
+To perform <dfn>common matching logic</dfn>,
+given |options|, |week|, and [=moment=] |now|:
 
+1.  If number of days since the end of |week| exceeds |lookbackDays|,
+    return an empty set.
+
+1.  Initialize |matching| to an empty set.
+
+1.  For each |impression| in the saved impressions for the |week|:
+
+    1.  If |now| - |lookbackDays| is after |impression|.timestamp,
+        continue the loop.
+
+    1.  If |options|.{{PrivateAttributionConversionOptions/ads}}
+        does not contain |impression|.ad,
+        continue the loop.
+
+    1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
+        does not contain |impression|.source,
+        continue the loop.
+
+    1.  Add |impression| to |matching|.
+
+1.  Return |matching|.
 
 
 ## User control and visibility ## {#user-control}
@@ -773,6 +855,10 @@ it is critical that sites be unable to determine
 whether their request for a [=conversion report=] has caused
 a safety limit to be exceeded.
 
+
+### Privacy Budget Deduction ### {#dp-deduction}
+
+To <dfn>deduct privacy budget</dfn>, do this...
 
 
 
