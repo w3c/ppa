@@ -15,6 +15,11 @@ Group: patcg
 Status: CG-DRAFT
 Level: None
 </pre>
+<style>
+@media (prefers-color-scheme: dark) {
+  figure svg { background: white }
+}
+</style>
 
 
 # Introduction # {#intro}
