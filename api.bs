@@ -284,18 +284,20 @@ The page may select any of the supported services returned by
 <a method for=PrivateAttribution>listAggregationServices()</a>.
 The name of the selected service must be supplied as
 the `aggregator` member of the
-{{PrivateAttributionConversionOptions}} dictionaries when calling the
-<a method for=PrivateAttribution>measureConversion()</a> API.
+{{PrivateAttributionConversionOptions}} dictionary when calling the
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
 ## Finding a Supported Aggregation Service ## {#list-aggregation-services-api}
 
 <p class=issue>Is any additional information required in the
-{{PrivateAttributionAggregationService}} dictionary?
+{{PrivateAttributionAggregationService}} dictionary? Do we want
+to rename `apiVersion` to `protocol`? And we should definitely
+define an enum for it.
 
 The <dfn method for=PrivateAttribution>listAggregationServices()</dfn> method
 returns a list of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
-<a method for=PrivateAttribution>measureConversion()</a> API.
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
 <xmp class=idl>
 dictionary PrivateAttributionAggregationService {
@@ -315,7 +317,7 @@ The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> 
   <dt><dfn>name</dfn></dt>
   <dd>
     Name of the aggregation service. This is passed as the `aggregator`
-    parameter to other APIs.
+    parameter to <a method for=PrivateAttribution>measureConversion()</a>.
   </dd>
   <dt><dfn>apiVersion</dfn></dt>
   <dd>
@@ -323,7 +325,7 @@ The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> 
     an aggregator supports multiple versions of the API, it is expected to
     assign a unique aggregation service name for each supported version.
     Thus, the API version is implicit in the aggregator selection
-    and does not need to be passed to other APIs.
+    and does not need to be passed to <a method for=PrivateAttribution>measureConversion()</a>.
   </dd>
 </dl>
 
@@ -334,7 +336,6 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 
 <pre>
 navigator.privateAttribution.saveImpression({
-  aggregator: "aggregator.example",
   histogramIndex: 3,
   ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
   conversionSite: "advertiser.example",     // the advertiser site where a conversion will occur
@@ -343,11 +344,10 @@ navigator.privateAttribution.saveImpression({
 
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
-  required DOMString aggregator;
   required unsigned long histogramIndex;
   required DOMString ad;
   required DOMString conversionSite;
-  unsigned long expiration;
+  unsigned long lifetimeDays;
 };
 
 [SecureContext, Exposed=Window]
@@ -359,32 +359,20 @@ partial interface PrivateAttribution {
 The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as follows:
 
 <dl dfn-for=PrivateAttributionImpressionOptions dfn-type=dict-member>
-  <dt><dfn>aggregator</dfn></dt>
-  <dd>
-    A selection from the [=aggregation services=] that can be listed using <a
-    method for=PrivateAttribution>listAggregationServices</a>.
-  </dd>
   <dt><dfn>histogramIndex</dfn></dt>
   <dd>
     If <a method for=PrivateAttribution>measureConversion()</a> matches this
     [=impression=] with a subsequent [=conversion=], the [=conversion value=]
     will be added to the histogram bucket identified by this index.
   </dd>
-  <dt><dfn>expiration</dfn></dt>
+  <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
-    A "time to live" (in seconds) after which the [=impression=] can no longer
+    A "time to live" (in days) after which the [=impression=] can no longer
     receive attribution. The [=user agent=] should impose an upper limit on the
-    expiration, and silently reduce the value specified here if it exceeds that
+    lifetime, and silently reduce the value specified here if it exceeds that
     limit.
   </dd>
 </dl>
-
-<p class=issue>In the early-binding attribution model, it is not necessary to
-identify the aggregation service when recording impressions. Thus, the <a
-dict-member for=PrivateAttributionImpressionOptions>aggregator</a> member could
-be removed from {{PrivateAttributionImpressionOptions}} and the [=impression store=].
-However, identifying the aggregation service when recording impressions will be
-required if we adopt the late-binding attribution model in the future.
 
 ### Operation ### {#save-impression-api-operation}
 
@@ -500,13 +488,11 @@ The [=impression store=] must store the following information:
 <div link-for=PrivateAttribution>
 <pre class=simpledef>
 Ad: The [=/ad identifier=] passed to <a>saveImpression()</a>.
-Aggregation Service: The [=/aggregation service=] passed to <a>saveImpression()</a>.
-Aggregation Service: Attribution can only occur between [=/impressions=] and [=/conversions=] specifying the same [=/aggregation service=].
 Impression Site: The site that called <a>saveImpression()</a>.
 Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
 Timestamp: The time at which <a>saveImpression()</a> was called.
-Expiration: The number of seconds an [=/impression=] remains eligible for attribution,
-Expiration: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
+Lifetime: The number of days an [=/impression=] remains eligible for attribution,
+Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 Histogram Index: The histogram index passed to <a>saveImpression()</a>.
 </pre>
 </div>
@@ -514,7 +500,7 @@ Histogram Index: The histogram index passed to <a>saveImpression()</a>.
 ### Periodic Maintenance ### {#impression-store-maintenance}
 
 The [=user agent=] should periodically use
-the timestamp and expiration values
+the timestamp and lifetime values
 to identify and delete any [=impressions=] in the [=impression store=]
 that have expired.
 
