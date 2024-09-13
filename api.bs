@@ -27,11 +27,11 @@ The primary goal of this API is to enable attribution for advertising.
 
 ## Attribution ## {#s-attribution}
 
-<dfn lt=attribution|attributed>Attribution</dfn> is the process of identifying [=actions=]
+In advertising, <dfn lt=attribution|attributed>attribution</dfn> is the process of identifying [=actions=]
 that precede an [=outcome=] of interest,
 and allocating value to those [=actions=].
 
-For advertising, <dfn>actions</dfn> that are of interest
+<dfn>Actions</dfn> that are of interest to advertisers
 are primarily the showing of advertisements
 (also referred to as <dfn>impressions</dfn>).
 Other actions include ad clicks (or other interactions)
@@ -117,32 +117,108 @@ with multiple purveyors of personal information that is traded for various purpo
 
 ## Goals ## {#goals}
 
-The goal of this document is to define a means of performing attribution
+The goal of this document is to define an means of performing [=attribution=]
+for advertising
 that does not enable tracking.
-
-The primary challenge with attribution is in maintaining privacy.
-Attribution involves connecting activity on different sites.
-If that information were directly revealed,
-it would enable unwanted
-[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition cross-context recognition]],
-thereby enabling tracking.
-
-This document avoids cross context recognition by ensuring that
-attribution information is aggregated using an [=aggregation service=].
-The aggregation service is trusted to compute an aggregate
-without revealing the values that each person contributes to that aggregate.
-
-Strict limits are placed on the amount of information that each browser instance
-contributes to the aggregates for a given site.
-Differential privacy is used to provide additional privacy protection for each contribution.
-
-Details of aggregation service operation is included in [[#aggregation]].
-The differential privacy design used is outlined in [[#dp]].
 
 
 ## End-User Benefit ## {#user-benefit}
 
-New additions to the
+The measurement of advertising performance creates new cross-site flows of information.
+That information flow creates a privacy risk or cost--
+of [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]]--
+that needs to be justified in terms of benefits to end users.
+
+Any benefits realized by end users through the use of [=attribution=] is indirect.
+
+End users that visit a website
+pay for "free" content or services
+primarily through their attention
+to any advertisements the site shows them.
+This "value" accrues to the advertiser,
+who in turn pays the site.
+The site is expected to use this money to
+support the provision of their content or services.
+
+<figure>
+<pre class=include-raw>
+path:images/value.svg
+</pre>
+<figcaption>Value exchange for advertising-supported content and services</figcaption>
+</figure>
+
+Participation in an [=attribution=] measurement system
+would comprise a secondary cost to Web users.
+
+Support for attribution enables more effective advertising,
+largely by informing advertisers about what ads perform best,
+and in what circumstances.
+Those circumstances might include
+the time and place that the ad is shown,
+the person to whom the ad is presented, and
+the details of the ad itself.
+
+Connecting that information to outcomes
+allows an advertiser to learn what circumstances most often lead
+to the outcomes they most value.
+That allows advertisers to spend more on effective advertising
+and less on ineffective advertising.
+This lowers the overall cost of advertising
+relative to the value obtained. [[ONLINE-ADVERTISING]]
+
+Sites that provide advertising inventory,
+such as content publishers and service providers,
+indirectly benefit from more efficient advertising.
+Venues for advertising that are better able to
+show ads that result in
+the outcomes that advertisers seek
+can charge more for ad placements.
+
+Sites that obtain support through the placement of advertisements
+are better able to provide quality content or services.
+Importantly, that support is derived unevenly from their audience.
+This can be more equitable than other forms of financial support.
+Those with a lower tendency or ability to spend on advertised goods
+obtain the same ad-supported content and services
+as those who can afford to pay. [[EU-AD]][[COPPACALYPSE]]
+
+The ability to supply "free" services
+supported by advertising
+has measurable economic benefit
+that derives from the value of those services. [[FREE-GDP]]
+
+
+## Collective Privacy Effect ## {#collective}
+
+The use of aggregation--
+if properly implemented--
+ensures that information provided to sites is about groups and not individuals.
+
+The introduction of this mechanism therefore represents collective decision-making,
+as described in [[PRIVACY-PRINCIPLES#collective-privacy]].
+
+Participation in attribution measurement carries a lower privacy cost
+when the group that participates is larger.
+This is due to the effect of aggregation on
+the ability of sites to
+extract information about individuals from aggregates.
+This is especially true for central [[#dp|differential privacy]],
+which is the mathematical basis for the privacy design used
+in this specification.
+
+Larger cohorts of participants also produce more representative--
+and therefore more useful--
+statistics about the advertising that is being measured.
+
+If attribution is justified,
+both these factors motivate the enablement of attribution for all users.
+
+Acting to enable attribution measurement by user agents
+will not be positively received by some people.
+Different people perceive the costs and benefits
+that come from engaging with advertising differently.
+The proposed design allows people the option of appearing to participate in attribution
+without revealing that choice to sites; see [[#opt-out]].
 
 
 ## Attribution Using Histograms ## {#histograms}
@@ -268,7 +344,7 @@ The aggregation service:
     from the provided inputs
     and that there are enough conversion reports,
 
-2.  adds the histograms including sufficient [[#dp noise]]
+2.  adds the histograms including sufficient [[#dp|noise]]
     to produce a differentially-private aggregate histogram, and
 
 3.  returns the aggregate to the site.
@@ -783,6 +859,11 @@ depend on the type of [=aggregation service=].
 
 
 
+## Optional Participation ## {#opt-out}
+
+TODO
+
+
 # Security # {#security}
 
 TODO
@@ -812,6 +893,17 @@ spec:infra; type:dfn; text:user agent
 </pre>
 <pre class=biblio>
 {
+  "coppacalypse": {
+    "authors": [
+      "Garrett Johnson",
+      "Tesary Lin",
+      "James C. Cooper",
+      "Liang Zhong"
+    ],
+    "title": "COPPAcalypse? The Youtube Settlement's Impact on Kids Content",
+    "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4430334",
+    "date": "2024-03-14"
+  },
   "dp": {
     "authors": [
       "Cynthia Dwork",
@@ -821,6 +913,47 @@ spec:infra; type:dfn; text:user agent
     "href": "https://doi.org/10.1561/0400000042",
     "title": "The Algorithmic Foundations of Differential Privacy",
     "publisher": "now, Foundations and Trends in Theoretical Computer Science, Vol. 9, Nos. 3–4"
+  },
+  "eu-ad": {
+    "authors": [
+      "Niklas FOURBERG",
+      "Serpil TAŞ",
+      "Lukas WIEWIORRA",
+      "Ilsa GODLOVITCH",
+      "Alexandre DE STREEL",
+      "Hervé JACQUEMIN",
+      "Jordan HILL",
+      "Madalina NUNU",
+      "Camille BOURGUIGON",
+      "Florian JACQUES",
+      "Michèle LEDGER",
+      "Michael LOGNOUL"
+    ],
+    "title": "Online advertising: the impact of targeted advertising on advertisers, market access and consumer choice",
+    "href": "https://www.europarl.europa.eu/thinktank/en/document/IPOL_STU(2021)662913",
+    "publisher": "European Parliament",
+    "date": "2021-06"
+  },
+  "free-gdp": {
+    "authors": [
+      "Leonard Nakamura",
+      "Jon D. Samuels",
+      "Rachel Soloveichik"
+    ],
+    "title": "Measuring the \"Free\" Digital Economy within the GDP and Productivity Accounts",
+    "href": "https://www.bea.gov/research/papers/2017/measuring-free-digital-economy-within-gdp-and-productivity-accounts",
+    "publisher": "Bureau of Economic Analysis",
+    "date": "2017-10"
+  },
+  "online-advertising": {
+    "authors": [
+      "Avi Goldfarb",
+      "Catherine Tucker"
+    ],
+    "title": "Online Advertising",
+    "href": "https://doi.org/10.1016/B978-0-12-385514-5.00006-9",
+    "edDraft": "http://www-2.rotman.utoronto.ca/~agoldfarb/OnlineAdvertising.pdf",
+    "publisher": "Elsevier"
   },
   "ppa-dp": {
     "authors": [
