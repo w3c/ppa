@@ -277,15 +277,15 @@ Upon receiving a set of encrypted histograms from a site, the aggregation servic
 
 # API Details # {#api}
 
-Before using the other Private Attribution APIs, a page must call the
-[[#list-aggregation-services-api]] to query the supported aggregation services.
-The page may select any of the supported systems returned by
+Before using the other Private Attribution APIs, a site must
+[[#list-aggregation-services-api|list aggregation services]] to discover the aggregation services
+that are supported.
+The page may select any of the supported services returned by
 <a method for=PrivateAttribution>listAggregationServices()</a>.
-The name of the selected system must be supplied as
-the `aggregator` member of the {{PrivateAttributionImpressionOptions}} or
+The name of the selected service must be supplied as
+the `aggregator` member of the
 {{PrivateAttributionConversionOptions}} dictionaries when calling the
-<a method for=PrivateAttribution>saveImpression()</a> or
-<a method for=PrivateAttribution>measureConversion()</a> APIs, respectively.
+<a method for=PrivateAttribution>measureConversion()</a> API.
 
 ## Finding a Supported Aggregation Service ## {#list-aggregation-services-api}
 
@@ -295,8 +295,7 @@ the `aggregator` member of the {{PrivateAttributionImpressionOptions}} or
 The <dfn method for=PrivateAttribution>listAggregationServices()</dfn> method
 returns a list of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
-<a method for=PrivateAttribution>saveImpression()</a> and
-<a method for=PrivateAttribution>measureConversion()</a> APIs.
+<a method for=PrivateAttribution>measureConversion()</a> API.
 
 <xmp class=idl>
 dictionary PrivateAttributionAggregationService {
@@ -306,7 +305,7 @@ dictionary PrivateAttributionAggregationService {
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  sequence<PrivateAttributionAggregationService> listAggregationServices();
+  attribute FrozenArray<PrivateAttributionAggregationService> aggregationServices;
 };
 </xmp>
 
