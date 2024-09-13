@@ -33,7 +33,7 @@ and allocating value to those [=actions=].
 
 <dfn>Actions</dfn> that are of interest to advertisers
 are primarily the showing of advertisements
-(also referred to as <dfn>impressions</dfn>).
+(also referred to as <dfn lt=impression>impressions</dfn>).
 Other actions include ad clicks (or other interactions)
 and opportunities to show ads that were not taken.
 
@@ -270,7 +270,7 @@ A conversion value might also be split between multiple impressions
 to split credit,
 though this capability is not presently supported in the API.
 
-* Compatibility with privacy-preserving aggregation systems
+* Compatibility with privacy-preserving aggregation services
 * Flexibility to assign buckets
 
 * As histogram size increases, noise becomes a problem
@@ -337,7 +337,7 @@ As a result, sites learn nothing about what happened on other sites from this in
 The site can collect the encrypted histograms it receives from calls to this API
 and submit them to the aggregation service.
 
-The aggregation service:
+Upon receiving a set of encrypted histograms from a site, the aggregation service:
 
 1.  confirms that it has not
     previously computed an aggregate
@@ -353,78 +353,125 @@ The aggregation service:
 
 # API Details # {#api}
 
-Open questions:
-*   Filter/query language
-*   Reports are sent to aggregation system directly, or via conversion site? Or
-    option of either? => via conversion site
-*   Epochs
+Before using the other Private Attribution APIs, a site must
+[[#list-aggregation-services-api|list aggregation services]] to discover the aggregation services
+that are supported.
+The page may select any of the supported services returned by
+<a method for=PrivateAttribution>listAggregationServices()</a>.
+The name of the selected service must be supplied as
+the `aggregator` member of the
+{{PrivateAttributionConversionOptions}} dictionary when calling the
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
+## Finding a Supported Aggregation Service ## {#list-aggregation-services-api}
 
-## ListAggregationSystems API ## {#list-aggregation-systems-api}
+<p class=issue>Is any additional information required in the
+{{PrivateAttributionAggregationService}} dictionary? Do we want
+to rename `apiVersion` to `protocol`? And we should definitely
+define an enum for it.
 
-navigator.privateAttribution.listAggregationSystems()
-
-TODO: add whatever else is needed in this struct
+The <dfn method for=PrivateAttribution>listAggregationServices()</dfn> method
+returns a list of aggregation services supported by the [=user agent=]. The page
+must select and specify one of these services when calling the
+<a method for=PrivateAttribution>measureConversion()</a> method.
 
 <xmp class=idl>
-dictionary PrivateAttributionAggregationSystem {
-  // Name of the aggregation system. This is passed as the `aggregator` parameter to
-  // other APIs.
+dictionary PrivateAttributionAggregationService {
   required DOMString name;
-};
-</xmp>
-
-## Saving Impressions ## {#save-impression-api}
-
-The <dfn method for=PrivateAttribution>saveImpression()</dfn> method does something or other.
-
-<pre>
-navigator.privateAttribution.saveImpression({
-  aggregator: "aggregator.example", // the name of the aggregation system
-  index: 3,                         // the histogram index for counting this impression
-  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
-  target: "advertiser.example",     // the advertiser site where a conversion will occur
-});
-</pre>
-
-Add:
-* TTL
-
-<xmp class=idl>
-dictionary PrivateAttributionImpressionOptions {
-  required DOMString aggregator;
-  required unsigned long histogramIndex;
-  required DOMString ad;
-  required DOMString target;
+  required DOMString apiVersion;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
+  attribute FrozenArray<PrivateAttributionAggregationService> aggregationServices;
+};
+</xmp>
+
+The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> are as follows:
+
+<dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
+  <dt><dfn>name</dfn></dt>
+  <dd>
+    Name of the aggregation service. This is passed as the `aggregator`
+    parameter to <a method for=PrivateAttribution>measureConversion()</a>.
+  </dd>
+  <dt><dfn>apiVersion</dfn></dt>
+  <dd>
+    Version of the Private Attribution API supported by this aggregator. Even if
+    an aggregator supports multiple versions of the API, it is expected to
+    assign a unique aggregation service name for each supported version.
+    Thus, the API version is implicit in the aggregator selection
+    and does not need to be passed to <a method for=PrivateAttribution>measureConversion()</a>.
+  </dd>
+</dl>
+
+## Saving Impressions ## {#save-impression-api}
+
+The <a method for=PrivateAttribution>saveImpression()</a> method requests
+that the [=user agent=] record an [=impression=] in the [=impression store=].
+
+<pre>
+navigator.privateAttribution.saveImpression({
+  histogramIndex: 3,
+  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
+  conversionSite: "advertiser.example",     // the advertiser site where a conversion will occur
+});
+</pre>
+
+<xmp class=idl>
+dictionary PrivateAttributionImpressionOptions {
+  required unsigned long histogramIndex;
+  required DOMString ad;
+  required DOMString conversionSite;
+  unsigned long lifetimeDays;
+};
+
+[SecureContext, Exposed=Window]
+partial interface PrivateAttribution {
   [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
-Implicit saveImpression API inputs:
-* Timestamp (epoch?)
-* Source site
+The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as follows:
 
+<dl dfn-for=PrivateAttributionImpressionOptions dfn-type=dict-member>
+  <dt><dfn>histogramIndex</dfn></dt>
+  <dd>
+    If <a method for=PrivateAttribution>measureConversion()</a> matches this
+    [=impression=] with a subsequent [=conversion=], the [=conversion value=]
+    will be added to the histogram bucket identified by this index.
+  </dd>
+  <dt><dfn>lifetimeDays</dfn></dt>
+  <dd>
+    A "time to live" (in days) after which the [=impression=] can no longer
+    receive attribution. The [=user agent=] should impose an upper limit on the
+    lifetime, and silently reduce the value specified here if it exceeds that
+    limit.
+  </dd>
+</dl>
 
 ### Operation ### {#save-impression-api-operation}
 
-1. Validate inputs
-2. If the private attribution API is enabled, save the impression to the store.
+1. Validate the page-supplied API inputs
+2. Collect the implict API inputs:
+    1. The current timestamp
+    2. The impression site domain
+3. If the private attribution API is enabled, save the impression to the store.
 
 
-## MeasureConversion API ## {#measure-conversion-api}
+## Requesting Attribution for a Conversion ## {#measure-conversion}
 
-The <dfn method for=PrivateAttribution>measureConversion()</dfn> method is used to do stuff.
+The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
+requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
+and return a [=conversion report=].
 
-TODO:
-* Change filter data
+The <a method for=PrivateAttribution>measureConversion()</a> method
+always returns a conversion report,
+regardless of whether matching [=impression|impression(s)=] were found.
 
 <pre>
 navigator.privateAttribution.measureConversion({
-  // name of the aggregation system
+  // name of the aggregation service
   aggregator: "aggregator.example",
 
   // the number of buckets in the histogram
@@ -438,11 +485,9 @@ navigator.privateAttribution.measureConversion({
   // a list of possible ad identifiers that can be attributed
   ads: ["sample-campaign-eijb"],
   // a list of sites where impressions might have been registered
-  source: ["publisher.example"]
+  impressionSites: ["publisher.example"]
 });
 </pre>
-
-// TODO clarify "Infinity"
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
@@ -454,9 +499,9 @@ dictionary PrivateAttributionConversionOptions {
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
 
-  unsigned long lookbackDays = Infinity;
+  unsigned long lookbackDays;
   sequence<DOMString> ads = [];
-  sequence<DOMString> sources = [];
+  sequence<DOMString> impressionSites = [];
 };
 
 [SecureContext, Exposed=Window]
@@ -469,42 +514,76 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 <dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
   <dt><dfn>aggregator</dfn></dt>
-  <dd>A selection from the [=aggregation services=]
-      that can be listed using aggregationServices <!-- TODO link -->
-
+  <dd>
+    A selection from the [=aggregation services=] that can be listed using <a
+    method for=PrivateAttribution>listAggregationServices()</a>.
+  </dd>
   <dt><dfn>histogramSize</dfn></dt>
   <dt><dfn>epsilon</dfn></dt>
   <dt><dfn>logic</dfn></dt>
   <dt><dfn>value</dfn></dt>
-  <dd>The conversion value</dd>
+  <dd>The [=conversion value=]</dd>
   <dt><dfn>lookbackDays</dfn></dt>
+  <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
   <dt><dfn>ads</dfn></dt>
-  <dt><dfn>sources</dfn></dt>
+  <dd>A list of [=ad identifiers=]. Only [=impressions=] having one of the listed identifiers may match this [=conversion=].</dd>
+  <dt><dfn>impressionSites</dfn></dt>
+  <dd>A list of impression sites. Only [=impressions=] recorded by one of the impression sites are eligible to match this [=conversion=].</dd>
 </dl>
 
 
-Implicit MeasureConversion API inputs:
-* Timestamp (epoch?)
-* Target site
-
 ### Operation ### {#measure-conversion-api-operation}
 
-1. Validate inputs
-2. Set |reportedConversionValue| to 0.
-3. If the private attribution API is enabled, search for a matching impression.
-4. If a matching impression was found:
+1. Validate the page-supplied API inputs
+2. Collect the implicit API inputs
+    1. The current timestamp
+    2. The conversion site domain
+3. Set |reportedConversionValue| to 0.
+4. If the private attribution API is enabled, search for a matching impression using the [[#logic-matching|common matching logic]].
+5. If a matching impression was found:
     1. Set |histogramIndex| to the value from the matching impression
     2. Set |reportedConversionValue| to the smaller of the following:
-        1. The conversion value passed to the MeasureConversion API.
-        2. The limit on conversion value determined by the remaining privacy budget.
-5. Update the privacy budget store to reflect the reported conversion value.
-6. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
-7. Encrypt the report.
-8. Return the encrypted report.
+        1.  The conversion value passed to the MeasureConversion API.
+        2.  The limit on conversion value determined by the remaining privacy budget.
+6. Update the privacy budget store to reflect the reported conversion value.
+7. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
+8. Encrypt the report.
+9. Return the encrypted report.
 
 
-## Impression database ## {#impression-database}
+## Impression store ## {#s-impression-store}
 
+The <dfn>impression store</dfn> is used by the <a method
+for=PrivateAttribution>measureConversion()</a> method to find matching
+[=impressions=].
+
+### Contents ### {#impression-store-contents}
+
+The [=impression store=] must store the following information:
+
+<div link-for=PrivateAttribution>
+<pre class=simpledef>
+Ad: The [=/ad identifier=] passed to <a>saveImpression()</a>.
+Impression Site: The site that called <a>saveImpression()</a>.
+Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
+Timestamp: The time at which <a>saveImpression()</a> was called.
+Lifetime: The number of days an [=/impression=] remains eligible for attribution,
+Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
+Histogram Index: The histogram index passed to <a>saveImpression()</a>.
+</pre>
+</div>
+
+### Periodic Maintenance ### {#impression-store-maintenance}
+
+The [=user agent=] should periodically use
+the timestamp and lifetime values
+to identify and delete any [=impressions=] in the [=impression store=]
+that have expired.
+
+It is not necessary to remove [=impressions=] immediately upon expiry,
+as long as <a method for=PrivateAttribution>measureConversion()</a>
+excludes expired [=impressions=] from [=attribution=]. However, the
+[=user agent=] should not retain expired [=impressions=] indefinitely.
 
 ## Attribution Logic ## {#s-logic}
 
@@ -526,33 +605,35 @@ how to handle weeks in which the [=privacy budget=] is insufficient,
 and (optionally) how to process any additional parameters that might be used.
 
 
-### Last Touch Attribution ## {#logic-last-touch}
+### Last Touch Attribution ### {#logic-last-touch}
 
-The <dfn enum-value for=PrivateAttributionLogic>last-touch</dfn> [=attribution logic=]
+The <dfn enum-value for=PrivateAttributionLogic>"last-touch"</dfn> [=attribution logic=]
 indicates that the browser should select
-the last impression that matches the [[#logic-matching|common matching logic]].
-The entire [=conversion value=] is allocated to the histogram bucket
-that was saved with the impression.
+the last (most recent) impression that matches the [[#logic-matching|common matching logic]].
+The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|privacy budget]])
+is allocated to the histogram bucket that was saved with the impression.
 
 
 ### Common Matching Logic ### {#logic-matching}
 
-TODO specify how to match using "lookbackDays", "ads" and "sources".
+TODO specify how to match using "lookbackDays", "ads" and "impressionSites".
 
+Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
 
+<dfn>ad identifier</dfn>
 
 
 ## User control and visibility ## {#user-control}
 
 * Users should be able to opt out. Opt out should be undetectable.
-* User ability to view the impression store.
+* User ability to view the impression store and past report submissions.
 
 # Implementation Considerations # {#implementation-considerations}
 
 * Management and distribution of values for the following:
     * Histogram size
-    * Target site for impressions
-    * Source site for conversions
+    * Conversion site for impressions
+    * Impression site for conversions
     * Ad IDs
 
 # Aggregation # {#aggregation}
@@ -579,8 +660,7 @@ TODO
 
 ## Anti-Replay Requirements ## {#anti-replay}
 
-<!-- TODO link to definition of "conversion report" -->
-Conversion reports generated by browsers are bound
+[=Conversion reports=] generated by browsers are bound
 to the amount of [=privacy budget=]
 that was expended by the site that requested the report.
 
@@ -875,7 +955,7 @@ TODO
     * Interaction with telemetry opt-outs
     * Timing attacks on APIs
 
-* Aggregation system security
+* Aggregation service security
 
 * Fraud and abuse
 
