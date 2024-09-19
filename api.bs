@@ -31,7 +31,7 @@ In advertising, <dfn lt=attribution|attributed>attribution</dfn> is the process 
 that precede an [=outcome=] of interest,
 and allocating value to those [=actions=].
 
-<dfn>Actions</dfn> that are of interest to advertisers
+<dfn lt=actions>Actions</dfn> that are of interest to advertisers
 are primarily the showing of advertisements
 (also referred to as <dfn lt=impression>impressions</dfn>).
 Other actions include ad clicks (or other interactions)
@@ -375,6 +375,9 @@ the `aggregator` member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
+<p class=issue>
+This section needs to be more precise about [=site=] vs. [=origin=].
+
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
 <p class=issue>Is any additional information required in the
@@ -483,12 +486,17 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 
 ### Operation ### {#save-impression-api-operation}
 
-1. Collect the implicit API inputs:
+1.  Collect the implicit API inputs:
     1. The current timestamp
     2. The impression site domain
-1. Validate the page-supplied API inputs
+1.  Validate the page-supplied API inputs
 1.  If the private attribution API is enabled, save the impression to the
     [=impression store=].
+
+<p class=advisement><a method for=PrivateAttribution>saveImpression</a>
+does not return a status indicating whether the impression was recorded.
+This minimizes the ability to detect when the Private Attribution
+API is [[#opt-out|disabled].
 
 
 ## Requesting Attribution for a Conversion ## {#measure-conversion}
@@ -597,11 +605,12 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 1. Return the encrypted report.
 
 
-## Impression store ## {#s-impression-store}
+## Impression Store ## {#s-impression-store}
 
 The <dfn>impression store</dfn> is used by the <a method
 for=PrivateAttribution>measureConversion()</a> method to find matching
 [=impressions=].
+
 
 ### Contents ### {#impression-store-contents}
 
@@ -619,7 +628,8 @@ Histogram Index: The histogram index passed to <a>saveImpression()</a>.
 </pre>
 </div>
 
-### Periodic Maintenance ### {#impression-store-maintenance}
+
+### Maintenance ### {#impression-store-maintenance}
 
 The [=user agent=] should periodically use
 the timestamp and lifetime values
@@ -630,6 +640,36 @@ It is not necessary to remove [=impressions=] immediately upon expiry,
 as long as <a method for=PrivateAttribution>measureConversion()</a>
 excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
+
+
+### Clearing ### {#impression-store-clearing}
+
+A mechanism must be provided to clear the impression store.
+For example, the impression store could be cleared
+upon activation of the control that
+[[#opt-out|disables]] the Private Attribution API.
+It is recommended that any mechanism a user agent provides
+to clear stored browsing data (history, cookies, etc.)
+be extended to cover the impression store.
+
+
+## Privacy Budget Store ## {#s-privacy-budget-store}
+
+<!--
+Added this here for symmetry with the impression store and with the philosophy
+that "just tell me how to implement" goes in the API section. But I'd also be
+fine with putting this in the DP section.
+-->
+
+The <dfn>privacy budget store</dfn> records the state
+of the per-[=site=] [=privacy budgets=], and of any
+[=safety limits=]. It is updated by [=deduct privacy budget=].
+
+<p class=issue>
+The [=privacy budget store=] needs to be described in more detail.
+Some references to clearing the impression store may need to be
+updated to refer to the privacy budget store as well.
+
 
 ## Attribution Logic ## {#s-logic}
 
@@ -747,10 +787,30 @@ given |options|, |week|, and [=moment=] |now|:
 1.  Return |matching|.
 
 
-## User control and visibility ## {#user-control}
+## User Control and Visibility ## {#user-control}
+
+
+### Optional Participation ### {#opt-out}
 
 * Users should be able to opt out. Opt out should be undetectable.
+
+Text fragment moved from privacy section:
+
+This mechanism may be a dedicated control
+for the Private Attribution API,
+or it may be a consolidated privacy control
+that applies to multiple features,
+including private attribution.
+Further, user agent developers should consider interaction
+of other privacy modes with the Private Attribution API.
+For example, attribution might be disabled in a private browsing mode,
+or it might be disabled
+if the user has opted out of collection of diagnostic data.
+
+### Visibility ### {#visibility}
+
 * User ability to view the impression store and past report submissions.
+
 
 # Implementation Considerations # {#implementation-considerations}
 
@@ -796,7 +856,8 @@ TODO
 This design uses the concept of [=differential privacy=]
 as the basis of its privacy design. [[PPA-DP]]
 
-<dfn>Differential privacy</dfn> is a mathematical definition of privacy
+<dfn lt='differential privacy'>Differential privacy</dfn>
+is a mathematical definition of privacy
 that can guarantee the amount of private information
 that is revealed by a system. [[DP]]
 Differential privacy is not the only means
@@ -866,7 +927,7 @@ that is the combination of three values:
     are not considered.
     Those sites do not receive information from this system directly.
 
-3.  The current week.
+3.  The current <dfn>week</dfn>.
 
 A change to any of these values produces a new privacy unit,
 which results in a separate [=privacy budget=].
@@ -1067,25 +1128,247 @@ depend on the type of [=aggregation service=].
 
 
 
-## Optional Participation ## {#opt-out}
-
-TODO
+# Security Considerations # {#security}
 
 
-# Security # {#security}
+## Impression Store ## {#security-impression-store}
 
-TODO
+The [=impression store=] used by the Private Attribution API
+holds information related to browsing activity
+and persists across browsing sessions.
+Although the flow of information
+through the impression store is strictly controlled,
+it carries some amount of information across origins.
 
-* Browser security
-    * Clearing of impression store
-    * Partitioning of impression store
-    * Interaction with private browsing modes
-    * Interaction with telemetry opt-outs
-    * Timing attacks on APIs
+The following measures limit the possibility
+of harmful information flow through the impression store:
 
-* Aggregation service security
+*   Websites cannot read from the impression store.
+    Information from the impression store
+    is released only via encrypted conversion reports.
+    [[#dp|Differential privacy]], provided by a combination
+    of functionality in the user agent
+    and in the [=aggregation service=],
+    provides a rigorous bound on
+    the probability that the aggregated information
+    output by the aggregation service
+    is distinguishable from the value it would have
+    absent any user's contribution.
+*   Users can explicitly
+    [[#impression-store-clearing|clear the impression store]].
+*   It is recommended that user agents limit how long
+    data can persist in the impression store,
+    even absent expicit user action,
+    by imposing a maximum value of
+    <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>.
 
-* Fraud and abuse
+
+## API Implementation ## {#security-api-implementation}
+
+The Private Attribution APIs must be implemented carefully
+to maintain the required security and privacy properties.
+A site calling the APIs must not be able to learn:
+
+*   Whether the Private Attribution APIs are [[#opt-out|enabled]].
+*   Whether an attribution occurred.
+*   Whether the [=privacy budget=] is exhausted.
+*   Whether the [=conversion report=] reflects a non-zero
+    [=conversion value=].
+*   Which <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>
+    is assigned the conversion value.
+
+Note that explicit return values or thrown exceptions
+are not the only way that a site can learn from
+the Private Attribution APIs.
+It may be possible to infer sensitive information from
+<dfn ignore=''>side channels</dfn> like:
+
+*   Variation in the time it takes for the APIs to complete.
+*   Consumption of memory or storage by the API, if that
+    consumption is somehow observable by the site.
+
+While complete elimination of all side channels is impractical,
+implementations must make reasonable efforts to prevent
+leakage of sensitive information from the attribution APIs.
+Strategies to prevent leakage include:
+
+*   Fully validating all API inputs, even when the API
+    is disabled.
+*   Avoiding conditional logic. For example,
+    <a method for=PrivateAttribution>measureConversion</a>
+    should always go through the full process of constructing
+    a conversion report, even when the conversion value to be
+    reported is zero.
+
+
+## Aggregation Services ## {#security-aggregation-services}
+
+Although not part of the web platform,
+security of aggregation services is quite important
+to the overall security of the Private Attribution mechanism.
+[=Conversion reports=]
+produced by <a method for=PrivateAttribution>measureConversion</a>
+are encrypted to cryptographic key(s) of the aggregation service.
+Thus, much of the potential for disclosure
+of the information contained in these reports
+depends on the details of the aggregation service.
+
+[=User agent=] developers should carefully consider
+the design of an aggregation service
+and the trustworthiness of the aggregation service operator
+before adding it as a supported service for the Private Attribution API.
+Additional discussion of these issues
+may be found in [[#aggregation]] and [[#privacy]].
+
+
+## Combining Reports from Multiple Sites ## {#security-multiple-sites}
+
+The privacy mechanisms in the Private Attribution API
+operate primarily at the granularity of [=sites=].
+A malicious operator
+may attempt to register [=impressions=] for multiple sites,
+thus exceeding the amount of information that would otherwise
+be released through private attribution.
+[[#dp-safety]] discusses establishing additional cross-site
+privacy budgets to mitigate this possibility.
+
+<p class=issue>
+Rate limits on calls to the Private Attribution APIs
+could also be an effective mechanism to prevent
+harvesting information through overuse of the APIs.
+
+
+## Ad Fraud ## {#security-ad-fraud}
+
+As with many technologies,
+advertising on the web
+has been the subject of various kinds of fraud.
+
+Fraudulent registration of impressions
+is a particular concern with the Private Attribution API,
+because impressions are stored only on the device.
+It is not possible to apply server-side intelligence
+to identify fraudulent impressions and exclude them
+from attribution. Conversely, even though conversion
+reports are encrypted, because the reports are sent
+to a server, the server can make a determination that
+the conversion is likely fraudulent and exclude it from
+aggregation.
+
+An important mitigation against malicious use
+of the Private Attribution APIs is the explicit specification
+of eligible conversion sites when registering an impression,
+and of eligible impression sites and ad IDs
+when registering a conversion.
+This prevents impressions on arbitrary malicious sites
+from interfering with attribution to the intended set
+of candidate impressions.
+
+
+# Privacy Considerations # {#privacy}
+
+
+## Information Exposed by the Private Attribution API ## {#privacy-exposure}
+
+The [=impression store=] and [=privacy budget store=]
+contain information about a cross-section of browsing activity.
+As use of the API increases,
+so does the scope of this information.
+However, most of the information written to these stores
+is never disclosed.
+Because attribution is performed on the device
+(<dfn ignore=''>on-device attribution</dfn>),
+only information about attributed conversions is exposed by the
+Private Attribution API. This contrasts with other schemes in which
+information about both impressions and conversions is sent to the
+aggregation service for <dfn ignore=''>off-device attribution</dfn>.
+In the latter class of schemes, the amount of information
+that could be revealed in a compromise of the aggregation service
+(or in a compromise of communication with the aggregation service)
+is significantly larger.
+
+When the Private Attribution API makes an attribution, information
+about that attribution is released from the device
+only to the extent the [[#dp|differential privacy]] restrictions allow.
+
+While the Private Attribution API is intended to measure
+the association of relatively infrequent conversion events
+with a limited set of related impression candidates,
+it is important to consider how the API might be misused
+for larger-scale data collection.
+The requirement that impressions enumerate
+the possible conversion sites (and vice-versa)
+has an important role in preventing misuse of the API
+for mass data collection, and in making attempts
+at such misuse more visible.
+
+<p class=issue>
+It is unclear whether the [=privacy budget store=] should be cleared whenever
+the impression store is cleared. On one hand, it contains information about
+browsing activity, so is desirable to include it when clearing browsing activity.
+On the other hand, it is only possible to strictly adhere to the requirements of
+the differential privacy mechanism, if information about a fully- or partially-
+depleted privacy budget is maintained until that budget is no longer relevant
+(i.e. the end of the [=week=]).
+
+## Disabling the Private Attribution API ## {#privacy-opt-out}
+
+The Private Attribution API
+is designed to reveal only aggregate information.
+The use of [[#dp|differential privacy]]
+limits the chance of determining whether any particular user
+contributed to the aggregated output.
+However, some users may still prefer
+not to participate in attribution measurement.
+As discussed in [[#opt-out]], the user agent must provide
+a mechanism for the user to disable the Private Attribution API.
+
+To minimize the risk of fingerprinting,
+and to prevent discrimination
+against users who choose to disable the Private Attribution API,
+sites must not be able to detect that the API is disabled.
+Specifically, all calls to the Private Attribution API
+that are otherwise valid,
+must complete successfully, even when the API is disabled.
+The only difference in behavior
+is that conversion reports returned when the API is disabled
+will never report any conversion value.
+Because the reports are encrypted,
+this difference cannot be detected
+by the site receiving the conversion report.
+
+
+## Ad Identifiers ## {#privacy-ad-identifiers}
+
+It is important that the [=ad identifiers=] used by the Private Attribution
+APIs (and stored in the [=impression store=]) not be usable for arbitrary
+tracking. The following measures mitigate this risk:
+
+*   The impression store can not be read directly.
+    Thus, ad identifiers are only usable for tracking
+    to the extent information about them
+    is revealed in [=conversion reports=]
+*   Ad identifiers are scoped
+    to a specific set of impression and conversion sites.
+    It is not possible to use the ad identifier for tracking across
+    arbitrary sites.
+*   Users have the ability to [[#impression-store-clearing|clear the impression store]].
+*   Ad identifiers are not written to the impression store
+    when the Private Attribution API is [[#opt-out|disabled]].
+
+
+## Use in Third-party Contexts ## {#privacy-third-party-contexts}
+
+The Private Attribution API is available even in third-party contexts.
+In particular, a third-party iframe
+may call <a method for=PrivateAttribution>saveImpression</a>.
+Note, however, that the impression is recorded with the [=site=]
+of the top-level navigation context, not the [=origin=] of the iframe.
+
+While the availability of the API in third-party contexts
+carries some increase in privacy risk,
+this support is deemed necessary
+because iframes are commonly used to display advertisements.
 
 
 # Acknowledgements # {#ack}
