@@ -302,6 +302,19 @@ Typical outcomes that advertisers might seek to measure include:
 *   Signing up for an account.
 *   Visiting a webpage.
 
+The remainder of this section describes
+how the Private Attribution API operates
+in conjunction with an [=aggregation service=]
+to produce an aggregate attribution measurement.
+That operation is illustrated in the following figure.
+
+<figure>
+<pre class=include-raw>
+path:images/overview.svg
+</pre>
+<figcaption>Overview of Private Attribution Operation</figcaption>
+</figure>
+
 When an [=impression=] occurs,
 the <a method for=PrivateAttribution>saveImpression()</a> method can be used
 to request that the browser save information.
