@@ -371,27 +371,43 @@ Upon receiving a set of encrypted histograms from a site, the aggregation servic
 
 # API Details # {#api}
 
-Before using the other Private Attribution APIs, a site must
-[[#list-aggregation-services-api|list aggregation services]] to discover the aggregation services
-that are supported.
-The page may select any of the supported services returned by
-<a method for=PrivateAttribution>listAggregationServices()</a>.
+A site using the Private Attribution API will typically register either
+[=impressions=] or [=conversions=], but in some cases the same site may
+do both.
+
+To register an impression, a site calls
+<a method for=PrivateAttribution>saveImpression()</a>. No preparation is
+required to use this API beyond collecting parameter values, although
+it may be useful to examine the supported
+<a attribute for=PrivateAttribution>aggregationServices</a> in deciding
+whether to use the Private Attribution API.
+
+To request a conversion report, a site calls
+<a method for=PrivateAttribution>measureConversion()</a>.
+Before calling this API, a site must
+select a supported [=aggregation service=].
+The page may select any of the supported services found in
+<a attribute for=PrivateAttribution>aggregationServices</a>.
 The name of the selected service must be supplied as
 the `aggregator` member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
-## Finding a Supported Aggregation Service ## {#list-aggregation-services-api}
+## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
 <p class=issue>Is any additional information required in the
 {{PrivateAttributionAggregationService}} dictionary? Do we want
 to rename `apiVersion` to `protocol`? And we should definitely
 define an enum for it.
 
-The <dfn method for=PrivateAttribution>listAggregationServices()</dfn> method
-returns a list of aggregation services supported by the [=user agent=]. The page
+The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
+contains a list of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
+It may also be useful to query the supported services
+before registering an impression,
+but that is not required,
+and impressions are not scoped to a single aggregation service.
 
 <xmp class=idl>
 dictionary PrivateAttributionAggregationService {
@@ -405,7 +421,8 @@ interface PrivateAttribution {
 };
 </xmp>
 
-The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> are as follows:
+The <a attribute for=PrivateAttribution>aggregationServices</a> attribute
+contains the following information about each supported aggregation service:
 
 <dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
   <dt><dfn>name</dfn></dt>
@@ -425,14 +442,14 @@ The arguments to <a method for=PrivateAttribution>listAggregationServices()</a> 
 
 ## Saving Impressions ## {#save-impression-api}
 
-The <a method for=PrivateAttribution>saveImpression()</a> method requests
+The <dfn method for=PrivateAttribution>saveImpression()</dfn> method requests
 that the [=user agent=] record an [=impression=] in the [=impression store=].
 
 <pre>
 navigator.privateAttribution.saveImpression({
   histogramIndex: 3,
-  ad: "sample-campaign-eijb",       // a unique identifier for the ad placement
-  conversionSite: "advertiser.example",     // the advertiser site where a conversion will occur
+  ad: "sample-campaign-eijb",
+  conversionSite: "advertiser.example",
 });
 </pre>
 
@@ -459,6 +476,20 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     [=impression=] with a subsequent [=conversion=], the [=conversion value=]
     will be added to the histogram bucket identified by this index.
   </dd>
+  <dt><dfn>ad</dfn></dt>
+  <dd>
+    A unique <dfn for="" dfn-type=dfn>ad identifier</dfn> for the impression. The
+    ad identifier is used to identify which impressions may receive attribution
+    from a [=conversion=]. The Private Attribution API does not impose a particular
+    format on ad identifiers. If an implementation imposes a maximum ad identifer
+    length, it must be at least 64 code points.
+  </dd>
+  <dt><dfn>conversionSite</dfn></dt>
+  <dd>
+    The site where [=conversions=] for this impression may occur, identified by
+    its domain name. The <a method for=PrivateAttribution>measureConversion()</a>
+    method will only attribute to this impression when called by the indicated
+    site.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
     A "time to live" (in days) after which the [=impression=] can no longer
@@ -470,11 +501,12 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 
 ### Operation ### {#save-impression-api-operation}
 
-1. Validate the page-supplied API inputs
-2. Collect the implict API inputs:
+1. Collect the implicit API inputs:
     1. The current timestamp
     2. The impression site domain
-3. If the private attribution API is enabled, save the impression to the store.
+1. Validate the page-supplied API inputs
+1.  If the private attribution API is enabled, save the impression to the
+    [=impression store=].
 
 
 ## Requesting Attribution for a Conversion ## {#measure-conversion}
@@ -485,7 +517,10 @@ and return a [=conversion report=].
 
 The <a method for=PrivateAttribution>measureConversion()</a> method
 always returns a conversion report,
-regardless of whether matching [=impression|impression(s)=] were found.
+regardless of whether matching [=impression|impression(s)=] are found.
+If there is no match, or if [[#dp|differential privacy]] disallows
+reporting the attribution, the returned conversion report will not
+contribute to the histogram, i.e., will be uniformly zero.
 
 <pre>
 navigator.privateAttribution.measureConversion({
@@ -494,7 +529,11 @@ navigator.privateAttribution.measureConversion({
 
   // the number of buckets in the histogram
   histogramSize: 20,
+  // the amount of privacy budget to use
+  epsilon: 1,
 
+  // the attribution logic to use
+  logic: "last-touch",
   // the value to assign to the histogram index of the impression
   value: 3,
 
@@ -510,9 +549,9 @@ navigator.privateAttribution.measureConversion({
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
   required DOMString aggregator;
+  double epsilon = 1.0;
 
   required unsigned long histogramSize;
-  double epsilon = 1.0;
 
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
@@ -533,14 +572,24 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 <dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
   <dt><dfn>aggregator</dfn></dt>
   <dd>
-    A selection from the [=aggregation services=] that can be listed using <a
-    method for=PrivateAttribution>listAggregationServices()</a>.
+    A selection from the [=aggregation services=] that can be found in <a
+    attribute for=PrivateAttribution>aggregationServices</a>.
   </dd>
-  <dt><dfn>histogramSize</dfn></dt>
   <dt><dfn>epsilon</dfn></dt>
+  <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
+  <dt><dfn>histogramSize</dfn></dt>
+  <dd>The number of histogram buckets to use in the [=conversion report=].</dd>
   <dt><dfn>logic</dfn></dt>
+  <dd>
+    A selection from <a enum>PrivateAttributionLogic</a> indicating the
+    [=attribution logic=] to use.
+  </dd>
   <dt><dfn>value</dfn></dt>
-  <dd>The [=conversion value=]</dd>
+  <dd>
+    The [=conversion value=]. If an attribution is made and [[#dp|privacy]]
+    restrictions are satisfied, this value will be encoded into the [=conversion
+    report=].
+  </dd>
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
   <dt><dfn>ads</dfn></dt>
@@ -552,21 +601,18 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 ### Operation ### {#measure-conversion-api-operation}
 
-1. Validate the page-supplied API inputs
-2. Collect the implicit API inputs
+1. Collect the implicit API inputs
     1. The current timestamp
     2. The conversion site domain
-3. Set |reportedConversionValue| to 0.
-4. If the private attribution API is enabled, search for a matching impression using the [[#logic-matching|common matching logic]].
-5. If a matching impression was found:
-    1. Set |histogramIndex| to the value from the matching impression
-    2. Set |reportedConversionValue| to the smaller of the following:
-        1.  The conversion value passed to the MeasureConversion API.
-        2.  The limit on conversion value determined by the remaining privacy budget.
-6. Update the privacy budget store to reflect the reported conversion value.
-7. Construct a report from |reportedConversionValue|, |histogramIndex|, and <var ignore=''>histogramSize</var>.
-8. Encrypt the report.
-9. Return the encrypted report.
+1. Validate the page-supplied API inputs
+    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
+        is specified, and the value is anything other than
+        <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
+        return an error.
+1.  If the private attribution API is enabled,
+    invoke the routine to [=fill a histogram using last-touch attribution=].
+1. Encrypt the report.
+1. Return the encrypted report.
 
 
 ## Impression store ## {#s-impression-store}
@@ -631,14 +677,92 @@ the last (most recent) impression that matches the [[#logic-matching|common matc
 The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|privacy budget]])
 is allocated to the histogram bucket that was saved with the impression.
 
+Last touch attribution does not select any impression
+that was saved during a week
+that does not have sufficient [=privacy budget=].
+If impressions match from a week
+that does not have enough [=privacy budget=],
+impressions are not matched for any preceding weeks.
+That is, once a week has a matching impression
+and insufficient budget,
+the process will set a value of zero for all histogram buckets.
 
-### Common Matching Logic ### {#logic-matching}
+To <dfn>fill a histogram using last-touch attribution</dfn>,
+given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+
+1.  Initialize |impression| to a null value.
+
+1.  Initialize |value| to |options|.{{PrivateAttributionConversionOptions/value}}.
+
+1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
+
+1.  For each |week| starting from the current week
+    to the oldest week supported by the [=user agent=]:
+
+    1.  Let |impressions| be the result of invoking [=common matching logic=]
+        with |options|, |week|, and |now|.
+
+    1.  If |impressions| is not empty:
+
+        1.  Retain the value of |week|.
+
+        1.  Set |impression| to the value in |impressions|
+            with the most recent |impression|.timestamp.
+            <!-- TODO define a type for stored impressions -->
+
+        1.  Exit the loop.
+
+1.  If |impression| is null, let |budgetOk| be false.
+
+1.  Otherwise, let |budgetOk| be the result of [=deduct privacy budget=]
+    with |week| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
+
+1.  If |budgetOk| is false, set |value| to 0.
+
+1.  If |impression|.<var ignore=''>histogramIndex</var>
+    is |options|.{{PrivateAttributionConversionOptions/histogramSize}} or greater,
+    set |value| to 0.
+
+1.  If |value| is not 0, set |index|
+    to |impression|.{{PrivateAttributionImpressionOptions/histogramIndex}}.
+
+1.  Otherwise, set |index| to 0.
+
+1.  Return a histogram containing |options|.{{PrivateAttributionConversionOptions/histogramSize}} values,
+    with a value of |value| at an index of |index|
+    and a value of zero at all other indices.
+
+
+### Common Impression Matching Logic ### {#logic-matching}
 
 TODO specify how to match using "lookbackDays", "ads" and "impressionSites".
 
 Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
 
-<dfn>ad identifier</dfn>
+To perform <dfn>common matching logic</dfn>,
+given |options|, |week|, and [=moment=] |now|:
+
+1.  If number of days since the end of |week| exceeds |lookbackDays|,
+    return an empty set.
+
+1.  Initialize |matching| to an empty set.
+
+1.  For each |impression| in the saved impressions for the |week|:
+
+    1.  If |now| - |lookbackDays| is after |impression|.timestamp,
+        continue the loop.
+
+    1.  If |options|.{{PrivateAttributionConversionOptions/ads}}
+        does not contain |impression|.ad,
+        continue the loop.
+
+    1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
+        does not contain |impression|.impressionSite,
+        continue the loop.
+
+    1.  Add |impression| to |matching|.
+
+1.  Return |matching|.
 
 
 ## User control and visibility ## {#user-control}
@@ -947,6 +1071,10 @@ it is critical that sites be unable to determine
 whether their request for a [=conversion report=] has caused
 a safety limit to be exceeded.
 
+
+### Privacy Budget Deduction ### {#dp-deduction}
+
+To <dfn>deduct privacy budget</dfn>, do this...
 
 
 
