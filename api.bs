@@ -670,11 +670,11 @@ and insufficient budget,
 the process will set a value of zero for all histogram buckets.
 
 To <dfn>fill a histogram using last-touch attribution</dfn>,
-given |options|:
+given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
 1.  Initialize |impression| to a null value.
 
-1.  Initialize |value| to |options|.|value|.
+1.  Initialize |value| to |options|.{{PrivateAttributionConversionOptions/value}}.
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
@@ -739,7 +739,7 @@ given |options|, |week|, and [=moment=] |now|:
         continue the loop.
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
-        does not contain |impression|.source,
+        does not contain |impression|.impressionSite,
         continue the loop.
 
     1.  Add |impression| to |matching|.
