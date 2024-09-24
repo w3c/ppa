@@ -122,7 +122,7 @@ with multiple purveyors of personal information that is traded for various purpo
 
 ## Goals ## {#goals}
 
-The goal of this document is to define an means of performing [=attribution=]
+The goal of this document is to define a means of performing [=attribution=]
 for advertising
 that does not enable tracking.
 
@@ -340,10 +340,12 @@ The histogram created by the [=conversion report=] is constructed as follows:
     or the [=privacy budget=] for the site is exhausted,
     a histogram consisting entirely of zeros (0) is constructed.
 
-*   If a matching impression is found,
-    the provided value is added to a histogram
-    at the bucket that was specified at the time of the impression.
-    All other buckets are set to zero.
+*   If one or more matching impressions is found, the browser runs the attribution
+    logic (default last-touch) to select the most recent impression. The provided conversion
+    value is added to a histogram at the bucket that was specified at the time of the
+    attributed impression. All other buckets are set to zero.
+
+The browser updates the privacy budget store to reflect the reported conversion.
 
 The resulting histogram is prepared for aggregation according to the requirements
 of the chosen [=aggregation service=] and returned to the site.
@@ -453,6 +455,7 @@ navigator.privateAttribution.saveImpression({
   histogramIndex: 3,
   ad: "sample-campaign-eijb",
   conversionSite: "advertiser.example",
+  lifetimeDays: 7,
 });
 </pre>
 
