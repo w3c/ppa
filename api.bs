@@ -1081,6 +1081,8 @@ the budget for the week in which those impressions were saved.
 If the privacy budget for that week is not sufficient,
 the impressions from that week are not used.
 
+The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
+
 <div class=example id=ex-budget>
     In the following figure,
     impressions are recorded from a number of different sites,
