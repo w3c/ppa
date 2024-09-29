@@ -912,12 +912,13 @@ that is contributed.
 The [=individual differential privacy=] design of this API
 has three primary components:
 
-1.  User agents limit the number of times
-    that they use [=impressions=] in [=conversion reports=].
+1.  User agents limit (using the privacy budget) the amount of information
+    about [=impressions=] that leaves the device through [=conversion reports=].
     [[#dp-budget]] explores this in greater depth.
 
 2.  [=Aggregation services=] ensure that any given [=conversion report=] is
-    only used in accordance with the [=privacy budget=].
+    only used in accordance with the [=privacy budget=] that was accounted for it
+    by the user agent.
     [[#anti-replay]] describes requirements on aggregation services
     in more detail.
 
@@ -968,7 +969,7 @@ for a number of reasons:
     denying other sites any information.
 
 *   Advertising is an ongoing activity.
-    Without renewing the [=privacy budget=] periodically,
+    Without allocating [=privacy budget=] for new data,
     sites could exhaust their budget forever.
 
 
@@ -1010,10 +1011,10 @@ by user agents
 to protect against those attacks.
 
 
-### Refresh Interval ### {#dp-refresh}
+### Privacy Budget Epochs ### {#dp-refresh}
 
-The differential privacy budget available to a site
-is refreshed at an interval of one week.
+Sites receive a separate differential privacy budget for the data in every
+time internval called and epoch. The epoch length is one week.
 
 This budget applies to the [=impressions=]
 that are registered with the user agent
@@ -1022,9 +1023,7 @@ not conversions.
 
 From the perspective of the analysis [[PPA-DP]]
 each week of impressions forms a separate database.
-A finite number of queries can be made of each database,
-as determined by the [=privacy budget=]
-associated with that database.
+A finite [=privacy budget=] is enforced across all the queries made on each database.
 
 Having a [=conversion report=] produced from impressions
 that span multiple weeks has privacy consequences.
@@ -1035,7 +1034,7 @@ the conversion site is identified as the destination
 for impressions over that entire period.
 The number of weeks that can be queried are limited by [=user agents=].
 
-The goal is to set a refresh interval value
+The goal is to set an epoch
 that is as large as feasible.
 A longer period of time allows for a better privacy/utility balance
 because sites can be allocated a larger overall budget
@@ -1070,13 +1069,19 @@ managing privacy budgets.
 
 Each [=conversion report=] that is requested specifies an &epsilon; value
 that represents the amount of privacy budget
-that the report consumes.
+that the report consumes and a max on the value that can be returned in the
+conversion report.
+
+
+### Privacy Budget Deduction ### {#dp-deduction}
 
 When searching for impressions for the conversion report,
 the user agent deducts the specified &epsilon; value from
 the budget for the week in which those impressions were saved.
 If the privacy budget for that week is not sufficient,
 the impressions from that week are not used.
+
+The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
 
 <div class=example id=ex-budget>
     In the following figure,
@@ -1136,9 +1141,7 @@ whether their request for a [=conversion report=] has caused
 a safety limit to be exceeded.
 
 
-### Privacy Budget Deduction ### {#dp-deduction}
 
-To <dfn>deduct privacy budget</dfn>, do this...
 
 
 
