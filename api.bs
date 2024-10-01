@@ -660,7 +660,7 @@ The [=impression store=] must store the following information:
 
 <div link-for=PrivateAttribution>
 <pre class=simpledef>
-Filter Data: The filterData value passed to <a>saveImpression()</a>.
+Filter Data: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
 Impression Site: The site that called <a>saveImpression()</a>.
 Intermediary Site: The site corresponding to the script that called <a>saveImpression()</a>.
 Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
