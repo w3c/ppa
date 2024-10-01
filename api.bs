@@ -618,13 +618,14 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
   <dt><dfn>filterData</dfn></dt>
-  <dd>Only [=impressions=] having a [=filterData=] matching this value will be eligible to match this [=conversion=].</dd>
+  <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the [=saveImpression=] API. Only [=impressions=] recorded by scripts originating from one of the 
-    intermediary sites are eligible to match this [=conversion=].
+    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API. 
+    Only [=impressions=] recorded by scripts originating from one of the intermediary sites 
+    are eligible to match this [=conversion=].
   </dd>
 </dl>
 
@@ -659,7 +660,7 @@ The [=impression store=] must store the following information:
 
 <div link-for=PrivateAttribution>
 <pre class=simpledef>
-Filter Data: The [=filterData=] value passed to <a>saveImpression()</a>.
+Filter Data: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
 Impression Site: The site that called <a>saveImpression()</a>.
 Intermediary Site: The site corresponding to the script that called <a>saveImpression()</a>.
 Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
@@ -799,7 +800,7 @@ given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
-TODO specify how to match using "lookbackDays", "ads" and "impressionSites".
+TODO specify how to match using "lookbackDays", "filterData" and "impressionSites".
 
 Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
 
@@ -816,8 +817,8 @@ given |options|, |week|, and [=moment=] |now|:
     1.  If |now| - |lookbackDays| is after |impression|.timestamp,
         continue the loop.
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/ads}}
-        does not contain |impression|.ad,
+    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}}
+        does not match |impression|.filterData,
         continue the loop.
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
