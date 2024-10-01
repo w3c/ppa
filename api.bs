@@ -5,6 +5,7 @@ Repository: private-attribution/api
 URL: https://private-attribution.github.io/api/
 Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
+Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
 Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
@@ -453,7 +454,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 <pre>
 navigator.privateAttribution.saveImpression({
   histogramIndex: 3,
-  ad: "sample-campaign-eijb",
+  filterData: 2,
   conversionSite: "advertiser.example",
   lifetimeDays: 7,
 });
@@ -462,7 +463,7 @@ navigator.privateAttribution.saveImpression({
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
-  required DOMString ad;
+  required unsigned long filterData;
   required DOMString conversionSite;
   unsigned long lifetimeDays;
 };
@@ -482,13 +483,11 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     [=impression=] with a subsequent [=conversion=], the [=conversion value=]
     will be added to the histogram bucket identified by this index.
   </dd>
-  <dt><dfn>ad</dfn></dt>
+  <dt><dfn>filterData</dfn></dt>
   <dd>
-    A unique <dfn for="" dfn-type=dfn>ad identifier</dfn> for the impression. The
-    ad identifier is used to identify which impressions may receive attribution
-    from a [=conversion=]. The Private Attribution API does not impose a particular
-    format on ad identifiers. If an implementation imposes a maximum ad identifer
-    length, it must be at least 64 code points.
+    An optional piece of metadata associated with the impression. The filterData
+    can be used to identify which impressions may receive attribution
+    from a [=conversion=].
   </dd>
   <dt><dfn>conversionSite</dfn></dt>
   <dd>
@@ -510,6 +509,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 1.  Collect the implicit API inputs:
     1. The current timestamp
     2. The impression site domain
+    3. The iframe site domain
 1.  Validate the page-supplied API inputs
 1.  If the private attribution API is enabled, save the impression to the
     [=impression store=].
@@ -547,13 +547,18 @@ navigator.privateAttribution.measureConversion({
   logic: "last-touch",
   // the value to assign to the histogram index of the impression
   value: 3,
+  // the maximum value which can be generated across all reports included in the aggregation
+  // used together with epsilon to calibrate the differential privacy budget to use
+  maxValue: 5,
 
   // only consider impressions within the last N days
   lookbackDays: 30,
-  // a list of possible ad identifiers that can be attributed
-  ads: ["sample-campaign-eijb"],
-  // a list of sites where impressions might have been registered
-  impressionSites: ["publisher.example"]
+  // an optional filter to restrict the set of ads that can be attributed
+  filterData: 2,
+  // an optional list of sites where impressions might have been registered
+  impressionSites: ["publisher.example"],
+  // an optional list of sites which called the saveImpression API
+  intermediarySites: ["ad-tech.example"],
 });
 </pre>
 
@@ -566,10 +571,12 @@ dictionary PrivateAttributionConversionOptions {
 
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
+  unsigned long maxValue = 1;
 
   unsigned long lookbackDays;
-  sequence<DOMString> ads = [];
+  unsigned long filterData;
   sequence<DOMString> impressionSites = [];
+  sequence<DOMString> intermediarySites = [];
 };
 
 [SecureContext, Exposed=Window]
@@ -601,12 +608,24 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     restrictions are satisfied, this value will be encoded into the [=conversion
     report=].
   </dd>
+  <dt><dfn>maxValue</dfn></dt>
+  <dd>
+    The maximum [=conversion value=] across all contributions included in the aggregation.
+    Together with epsilon, this is used to calibrate the distribution of random noise that
+    will be added to the outcome. It is also used to determine the amount of [=privacy budget=] 
+    to expend on this [=conversion report=].
+  </dd>
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
-  <dt><dfn>ads</dfn></dt>
-  <dd>A list of [=ad identifiers=]. Only [=impressions=] having one of the listed identifiers may match this [=conversion=].</dd>
+  <dt><dfn>filterData</dfn></dt>
+  <dd>Only [=impressions=] having a [=filterData=] matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A list of impression sites. Only [=impressions=] recorded by one of the impression sites are eligible to match this [=conversion=].</dd>
+  <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
+  <dt><dfn>intermediarySites</dfn></dt>
+  <dd>
+    A list of sites which called the [=saveImpression=] API. Only [=impressions=] recorded by scripts originating from one of the 
+    intermediary sites are eligible to match this [=conversion=].
+  </dd>
 </dl>
 
 
@@ -615,6 +634,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 1. Collect the implicit API inputs
     1. The current timestamp
     2. The conversion site domain
+    3. The iframe site domain
 1. Validate the page-supplied API inputs
     1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
         is specified, and the value is anything other than
@@ -639,8 +659,9 @@ The [=impression store=] must store the following information:
 
 <div link-for=PrivateAttribution>
 <pre class=simpledef>
-Ad: The [=/ad identifier=] passed to <a>saveImpression()</a>.
+FilterData: The [=filterData=] passed to <a>saveImpression()</a>.
 Impression Site: The site that called <a>saveImpression()</a>.
+Intermediary Site: The site corresponding to the script that called <a>saveImpression()</a>.
 Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
 Timestamp: The time at which <a>saveImpression()</a> was called.
 Lifetime: The number of days an [=/impression=] remains eligible for attribution,
@@ -1360,25 +1381,6 @@ will never report any conversion value.
 Because the reports are encrypted,
 this difference cannot be detected
 by the site receiving the conversion report.
-
-
-## Ad Identifiers ## {#privacy-ad-identifiers}
-
-It is important that the [=ad identifiers=] used by the Private Attribution
-APIs (and stored in the [=impression store=]) not be usable for arbitrary
-tracking. The following measures mitigate this risk:
-
-*   The impression store can not be read directly.
-    Thus, ad identifiers are only usable for tracking
-    to the extent information about them
-    is revealed in [=conversion reports=]
-*   Ad identifiers are scoped
-    to a specific set of impression and conversion sites.
-    It is not possible to use the ad identifier for tracking across
-    arbitrary sites.
-*   Users have the ability to [[#impression-store-clearing|clear the impression store]].
-*   Ad identifiers are not written to the impression store
-    when the Private Attribution API is [[#opt-out|disabled]].
 
 
 ## Use in Third-party Contexts ## {#privacy-third-party-contexts}
