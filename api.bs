@@ -6,6 +6,7 @@ URL: https://private-attribution.github.io/api/
 Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.com
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
+Editor: Benjamin Case, w3cid 128082, Meta https://www.meta.com/, bmcase@meta.com
 Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
@@ -612,7 +613,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>
     The maximum [=conversion value=] across all contributions included in the aggregation.
     Together with epsilon, this is used to calibrate the distribution of random noise that
-    will be added to the outcome. It is also used to determine the amount of [=privacy budget=] 
+    will be added to the outcome. It is also used to determine the amount of [=privacy budget=]
     to expend on this [=conversion report=].
   </dd>
   <dt><dfn>lookbackDays</dfn></dt>
@@ -623,8 +624,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API. 
-    Only [=impressions=] recorded by scripts originating from one of the intermediary sites 
+    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    Only [=impressions=] recorded by scripts originating from one of the intermediary sites
     are eligible to match this [=conversion=].
   </dd>
 </dl>
@@ -1096,6 +1097,37 @@ conversion report.
 
 
 ### Privacy Budget Deduction ### {#dp-deduction}
+
+When a conversion requests attribution the call includes several querier-provided
+parameters:
+1. the window of epochs to search for relevant events (`epochs` parameter);
+2. the requested privacy budget (`requested_epsilon`);
+3. the `filterData` value used for selecting relevant events;
+4. the `PrivateAttributionLogic` such as last-touch or equal-credit;
+5. two sensitivity parameters: `report_global_sensitivity` which is a cap on how much attributed
+value can come from this one conversion (e.g. the conversion value) and `query_global_sensitivity`
+which is a maximum sensitivity across all reports to be processed the aggregation query.
+6. the p-norm to use when bounding the histogram contribution's sensitivity. 1-norm corresponding
+to using Laplace noise in aggregation query and 2-norm for Gaussian noise.
+
+The algorithm for deducting budget and computing the attributed report will first look across
+epochs for eligible impressions. It will deduct budget from any epoch with eligible
+impressions.  After budget has been deducted, impressions from epochs with sufficient budget will be considered for attribution.
+
+The following steps happen for every epoch in the window of epochs.
+Step 1: select relevant impressions within an epoch using the `filterData`.
+Step 2: For each epoch compute the individual privacy loss of the query following Thm 4 of (site). There are three cases
+* Case 1: If the epoch has no relevant impressions the privacy loss is 0.
+* Case 2: If the window of epochs contains only a single epoch, the `individual_sensitivity` is the p-norm of attribution function
+applied to only the impressions in this epoch. The privacy loss deducted from the epoch's budget is
+then `requested_epsilon * individual_sensitivity / query_global_sensitivity`.
+* Case 3: If multiple epochs are considered, the privacy loss deducted from the epoch's budget is
+`requested_epsilon * report_global_sensitivity / query_global_sensitivity`
+
+Step 3: Attempt to deduct the privacy of the epoch, if the filter has sufficient budget the impressions
+are added to the set to be considered for attribution; otherise, they are dropped.
+Step 4: The attribution function is applied across the eligible impression from all epochs (which had budget).
+The browser ensures that p-norm of the attribution histogram is `<= report_global_sensitivity`.
 
 When searching for impressions for the conversion report,
 the user agent deducts the specified &epsilon; value from
