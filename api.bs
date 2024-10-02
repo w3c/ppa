@@ -1105,27 +1105,29 @@ parameters:
 3. the `filterData` value used for selecting relevant events;
 4. the `PrivateAttributionLogic` such as last-touch or equal-credit;
 5. two sensitivity parameters: `report_global_sensitivity` which is a cap on how much attributed
-value can come from this one conversion (e.g. the conversion value) and `query_global_sensitivity`
-which is a maximum sensitivity across all reports to be processed the aggregation query.
+  value can come from this one conversion (e.g. the conversion value) and `query_global_sensitivity`
+  which is a maximum sensitivity across all reports to be processed the aggregation query.
 6. the p-norm to use when bounding the histogram contribution's sensitivity. 1-norm corresponding
-to using Laplace noise in aggregation query and 2-norm for Gaussian noise.
+  to using Laplace noise in aggregation query and 2-norm for Gaussian noise.
 
-The algorithm for deducting budget and computing the attributed report will first look across
+The algorithm to <dfn>deduct privacy budget</dfn> and compute the attributed histogram will first look across
 epochs for eligible impressions. It will deduct budget from any epoch with eligible
 impressions.  After budget has been deducted, impressions from epochs with sufficient budget will be considered for attribution.
 
 The following steps happen for every epoch in the window of epochs.
 Step 1: select relevant impressions within an epoch using the `filterData`.
-Step 2: For each epoch compute the individual privacy loss of the query following Thm 4 of (site). There are three cases
+Step 2: For each epoch compute the individual privacy loss of the query following Thm 4 of [[PPA-DP]]. There are three cases
 * Case 1: If the epoch has no relevant impressions the privacy loss is 0.
 * Case 2: If the window of epochs contains only a single epoch, the `individual_sensitivity` is the p-norm of attribution function
-applied to only the impressions in this epoch. The privacy loss deducted from the epoch's budget is
-then `requested_epsilon * individual_sensitivity / query_global_sensitivity`.
+  applied to only the impressions in this epoch. The privacy loss deducted from the epoch's budget is
+  then `requested_epsilon * individual_sensitivity / query_global_sensitivity`.
 * Case 3: If multiple epochs are considered, the privacy loss deducted from the epoch's budget is
-`requested_epsilon * report_global_sensitivity / query_global_sensitivity`
+  `requested_epsilon * report_global_sensitivity / query_global_sensitivity`
 
 Step 3: Attempt to deduct the privacy of the epoch, if the filter has sufficient budget the impressions
 are added to the set to be considered for attribution; otherise, they are dropped.
+
+After every epoch has been considered separately, the final step is run across all epochs.
 Step 4: The attribution function is applied across the eligible impression from all epochs (which had budget).
 The browser ensures that p-norm of the attribution histogram is `<= report_global_sensitivity`.
 
