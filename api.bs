@@ -1129,13 +1129,7 @@ are added to the set to be considered for attribution; otherise, they are droppe
 Step 4: The attribution function is applied across the eligible impression from all epochs (which had budget).
 The browser ensures that p-norm of the attribution histogram is `<= report_global_sensitivity`.
 
-When searching for impressions for the conversion report,
-the user agent deducts the specified &epsilon; value from
-the budget for the week in which those impressions were saved.
-If the privacy budget for that week is not sufficient,
-the impressions from that week are not used.
 
-The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
 
 <div class=example id=ex-budget>
     In the following figure,
