@@ -328,7 +328,7 @@ At [=conversion=] time, a [=conversion report=] is created.
 A <dfn>conversion report</dfn> is an encrypted histogram contribution
 that includes information from any [=impressions=] that the browser previously stored.
 
-The <a method for=PrivateAttribution>measureConversion</a> method accepts a simple query that is used
+The <a method for=PrivateAttribution>measureConversion()</a> method accepts a simple query that is used
 to tell the browser how to construct a [=conversion report=].
 That includes a simple query that selects from the [=impressions=]
 that the browser has stored,
@@ -392,19 +392,11 @@ select a supported [=aggregation service=].
 The page may select any of the supported services found in
 <a attribute for=PrivateAttribution>aggregationServices</a>.
 The name of the selected service must be supplied as
-the `aggregator` member of the
+the {{PrivateAttributionConversionOptions/aggregator}} member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
-<p class=issue>
-This section needs to be more precise about [=site=] vs. [=origin=].
-
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
-
-<p class=issue>Is any additional information required in the
-{{PrivateAttributionAggregationService}} dictionary? Do we want
-to rename `apiVersion` to `protocol`? And we should definitely
-define an enum for it.
 
 The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
 contains a list of aggregation services supported by the [=user agent=]. The page
@@ -416,14 +408,21 @@ but that is not required,
 and impressions are not scoped to a single aggregation service.
 
 <xmp class=idl>
+enum PrivateAttributionProtocol { "dap-11", "tee-00" };
+
 dictionary PrivateAttributionAggregationService {
-  required DOMString name;
-  required DOMString apiVersion;
+  required DOMString url;
+  required DOMString protocol;
+};
+
+[SecureContext, Exposed=Window]
+interface PrivateAttributionAggregationServices {
+  readonly setlike<PrivateAttributionAggregationService>;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  attribute FrozenArray<PrivateAttributionAggregationService> aggregationServices;
+  readonly attribute PrivateAttributionAggregationServices aggregators;
 };
 </xmp>
 
@@ -431,19 +430,31 @@ The <a attribute for=PrivateAttribution>aggregationServices</a> attribute
 contains the following information about each supported aggregation service:
 
 <dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
-  <dt><dfn>name</dfn></dt>
+  <dt><dfn>url</dfn></dt>
   <dd>
-    Name of the aggregation service. This is passed as the `aggregator`
-    parameter to <a method for=PrivateAttribution>measureConversion()</a>.
+    A URL that identifies an [=aggregation service=].
+    This value is passed as the {{PrivateAttributionConversionOptions/aggregator}} parameter
+    to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
   </dd>
-  <dt><dfn>apiVersion</dfn></dt>
+  <dt><dfn>protocol</dfn></dt>
   <dd>
-    Version of the Private Attribution API supported by this aggregator. Even if
-    an aggregator supports multiple versions of the API, it is expected to
-    assign a unique aggregation service name for each supported version.
-    Thus, the API version is implicit in the aggregator selection
-    and does not need to be passed to <a method for=PrivateAttribution>measureConversion()</a>.
+    The {{PrivateAttributionProtocol|protocol}} that the [=aggregation service=] uses.
+    Different versions of the same protocol will be use different values.
+    Even if a single service provider supports multiple protocols,
+    each needs to use a different URL.
+    This ensures that each can be uniquely identified by URL
+    without also specifying the choice of protocol.
   </dd>
+</dl>
+
+The <dfn enum>PrivateAttributionProtocol</dfn> describes the submission protocol
+used by different [=aggregation services=].  This document defines two protocols:
+
+<dl dfn-for=PrivateAttributionProtocol dfn-type=enum-value>
+  <dt><dfn>dap-11</dfn></dt>
+  <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
+  <dt><dfn>tee-00</dfn></dt>
+  <dd>A protocol for submission to a [=TEE=]; see [[#s-tee]].</dd>
 </dl>
 
 ## Saving Impressions ## {#save-impression-api}
@@ -591,7 +602,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>aggregator</dfn></dt>
   <dd>
     A selection from the [=aggregation services=] that can be found in <a
-    attribute for=PrivateAttribution>aggregationServices</a>.
+    attribute for=PrivateAttribution>aggregators</a>.
   </dd>
   <dt><dfn>epsilon</dfn></dt>
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
@@ -612,7 +623,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>
     The maximum [=conversion value=] across all contributions included in the aggregation.
     Together with epsilon, this is used to calibrate the distribution of random noise that
-    will be added to the outcome. It is also used to determine the amount of [=privacy budget=] 
+    will be added to the outcome. It is also used to determine the amount of [=privacy budget=]
     to expend on this [=conversion report=].
   </dd>
   <dt><dfn>lookbackDays</dfn></dt>
@@ -623,8 +634,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API. 
-    Only [=impressions=] recorded by scripts originating from one of the intermediary sites 
+    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    Only [=impressions=] recorded by scripts originating from one of the intermediary sites
     are eligible to match this [=conversion=].
   </dd>
 </dl>
@@ -871,12 +882,27 @@ and produces an aggregate metric.
 Each browser will have different requirements for aggregation.
 
 
-## Multi-Party Computation Aggregation ## {#mpc}
+## Multi-Party Computation Aggregation ## {#s-mpc}
+
+A <dfn lt=MPC>Multi-Party Computation (MPC)</dfn> system is one that
+involves multiple independent entities
+that cooperatively compute an agreed function.
+
+This specification uses an MPC system based on Prio [[PRIO]]
+and the <dfn lt=DAP ignore>Distributed Aggregation Protocol (DAP)</dfn> [[DAP]].
+This is a two-party MPC system that is characterized by
+its reliance on client-provided proofs of correctness for inputs.
+This allows for very efficient MPC operation
+at a modest cost in the size of submissions to the system.
 
 TODO
 
 
-## Trusted Execution Environments ## {#tee}
+## Trusted Execution Environments ## {#s-tee}
+
+A <dfn lt=TEE>Trusted Execution Environment (TEE)</dfn> uses specialized hardware
+to ensure that computation is isolated
+from other programs that run on the same hardware.
 
 TODO
 
@@ -1422,6 +1448,18 @@ spec:infra; type:dfn; text:user agent
     "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4430334",
     "date": "2024-03-14"
   },
+  "dap": {
+    "authors": [
+      "Tim Geoghegan",
+      "Christopher Patton",
+      "Brandon Pitman",
+      "Eric Rescorla",
+      "Christopher A. Wood"
+    ],
+    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-11",
+    "title": "Distributed Aggregation Protocol for Privacy Preserving Measurement",
+    "publisher": "IETF Draft"
+  },
   "dp": {
     "authors": [
       "Cynthia Dwork",
@@ -1488,6 +1526,15 @@ spec:infra; type:dfn; text:user agent
     "href": "https://arxiv.org/abs/2405.16719",
     "title": "Cookie Monster: Efficient On-device Budgeting for Differentially-Private Ad-Measurement Systems",
     "publisher": "SOSP'24"
+  },
+  "prio": {
+    "authors": [
+      "Henry Corrigan-Gibbs",
+      "Dan Boneh"
+    ],
+    "title": "Prio: Private, Robust, and Scalable Computation of Aggregate Statistics",
+    "href": "https://crypto.stanford.edu/prio/paper.pdf",
+    "date": "2017-03-17"
   }
 }
 </pre>
