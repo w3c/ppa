@@ -1187,7 +1187,7 @@ a safety limit to be exceeded.
 
  Currently the only DP mechanism supported is the Laplace mechanism.
 
- For supporting the Laplace mechanism the reports in a query will have all specified the same
+For supporting the Laplace mechanism the reports in a query will have all specified the same
 `requested_epsilon` and `query_global_sensitivity`.  This data is included in
 the authenticated data of the reports.  The aggregation service adds independent samples of Laplace noise to
 every histogram bin where the samples are take from a `Lap(query_global_sensitivity / requested_epsilon)`.
