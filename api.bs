@@ -870,20 +870,20 @@ An <dfn>aggregation service</dfn> takes multiple pieces of attribution informati
 and produces an aggregate metric.
 
 Each browser will have different requirements for aggregation.  The two aggregation service backends considered here
-are for using a two-party Multi-Party Computation (MPC) or a Trusted Execution Environment (TEE).  In either case the
-Advertiser server (or their delegate) will collect a batch of conversion reports and submit them for aggreation (e.g.
-when a sufficient number of conversion reports have been added to the batch or at a particular time when the metric is needed).
+are for using a two-party [[#mpc|Multi-Party Computation (MPC)]] or a [[#tee|Trusted Execution Environment (TEE)]].  In either case the
+Advertiser server (or their delegate) will collect a batch of conversion reports and submit them for aggreation, such as
+when a sufficient number of conversion reports have been added to the batch or at a particular time when the metric is needed.
 
 
 ## Multi-Party Computation Aggregation ## {#mpc}
 
  The aggregation service using a two-party MPC is based on [[DAP]] (Distributed Aggregation Protocol)
  with a simple [[VDAF]] (Verifiable Distributed Aggregation function)
- which enables aggregation of constant length vectors.  It also supplies a guarantee that the p-norm contribution of any one
+ which enables aggregation of constant length vectors.  It also supplies a guarantee that the L1-norm contribution of any one
  report to the histogram is bounded.
 
  The device generates additive secret shares of the histogram contribution and encrypts each set of secret shares under the public
- key of one of the two Helper Parties running the aggreation service. The device also generates a zero-knowledge proof that the p-norm
+ key of one of the two Helper Parties running the aggreation service. The device also generates a zero-knowledge proof that the L1-norm
  of the histogram contrbiution is less than the `query_global_sensitivity`.
 
 TODO: more details on how we integrate with DAP.
@@ -896,7 +896,7 @@ TODO
 ## Conversion Report Encryption ## {#encryption}
 
 In addition to encrypting the histogram contribution, some data is bound to the report as authenticated data.  The authenticated data includes
-1.  The `requested_epsilon` and the `query_global_sensitivity` and the `p-norm` used to enforced the sensitivity.
+1.  The `requested_epsilon` and the `query_global_sensitivity` which will be used to add the correct amount of noise.
 2.  TODO...
 
 
@@ -1185,11 +1185,11 @@ a safety limit to be exceeded.
 
 ## Differential Privacy Mechanisms ## {#dp-mechanism}
 
- The two main DP mechanisms support are the Laplace and Gaussian mechanisms.
+ Currently the only DP mechanism supported is the Laplace mechanism.
 
  For supporting the Laplace mechanism the reports in a query will have all specified the same
-`requested_epsilon`, `query_global_sensitivity` and have `p-norm = 1-norm`.  This data is included in
-the authenticated data (link) of the reports.  The aggregation service adds independent samples of Laplace noise to
+`requested_epsilon` and `query_global_sensitivity`.  This data is included in
+the authenticated data of the reports.  The aggregation service adds independent samples of Laplace noise to
 every histogram bin where the samples are take from a `Lap(query_global_sensitivity / requested_epsilon)`.
 
 
