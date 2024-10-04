@@ -7,7 +7,14 @@ Editor: Martin Thomson, w3cid 68503, Mozilla https://mozilla.org/, mt@mozilla.co
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
 Editor: Benjamin Case, w3cid 128082, Meta https://www.meta.com/, bmcase@meta.com
-Abstract: This specifies a browser API for the measurement of advertising performance.  The goal is to produce aggregate statistics about how advertising leads to conversions, without creating a risk to the privacy of individual web users.  This API collates information about people from multiple web origins, which could be a significant risk to their privacy.  To manage this risk, the information that is gathered is aggregated using an aggregation service that is chosen by websites and trusted to perform aggregation within strict limits.  Noise is added to the aggregates produced by this service to provide differential privacy.
+Abstract: This specifies a browser API for the measurement of advertising performance.
+The goal is to produce aggregate statistics about how advertising leads to conversions,
+ without creating a risk to the privacy of individual web users. This API collates information
+ about people from multiple web origins, which could be a significant risk to their privacy.
+  To manage this risk, the information that is gathered is aggregated using an aggregation service
+  that is trusted by the user-agent to perform aggregation within strict limits. Noise is added to
+  the aggregates produced by this service to provide differential privacy. Websites may select an
+  aggregation service from the list of approved aggregation services provided by the user-agent.
 Status Text: This specification is a proposal that is intended to be migrated to the W3C standards track. It is not a standard.
 Text Macro: LICENSE <a href=http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document>W3C Software and Document License</a>
 Complain About: accidental-2119 yes, missing-example-ids yes
