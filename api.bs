@@ -328,7 +328,7 @@ At [=conversion=] time, a [=conversion report=] is created.
 A <dfn>conversion report</dfn> is an encrypted histogram contribution
 that includes information from any [=impressions=] that the browser previously stored.
 
-The <a method for=PrivateAttribution>measureConversion</a> method accepts a simple query that is used
+The <a method for=PrivateAttribution>measureConversion()</a> method accepts a simple query that is used
 to tell the browser how to construct a [=conversion report=].
 That includes a simple query that selects from the [=impressions=]
 that the browser has stored,
@@ -514,7 +514,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 1.  If the private attribution API is enabled, save the impression to the
     [=impression store=].
 
-<p class=advisement><a method for=PrivateAttribution>saveImpression</a>
+<p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
 This minimizes the ability to detect when the Private Attribution
 API is [[#opt-out|disabled].
@@ -612,7 +612,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>
     The maximum [=conversion value=] across all contributions included in the aggregation.
     Together with epsilon, this is used to calibrate the distribution of random noise that
-    will be added to the outcome. It is also used to determine the amount of [=privacy budget=] 
+    will be added to the outcome. It is also used to determine the amount of [=privacy budget=]
     to expend on this [=conversion report=].
   </dd>
   <dt><dfn>lookbackDays</dfn></dt>
@@ -623,8 +623,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API. 
-    Only [=impressions=] recorded by scripts originating from one of the intermediary sites 
+    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    Only [=impressions=] recorded by scripts originating from one of the intermediary sites
     are eligible to match this [=conversion=].
   </dd>
 </dl>
@@ -1241,7 +1241,7 @@ Strategies to prevent leakage include:
 *   Fully validating all API inputs, even when the API
     is disabled.
 *   Avoiding conditional logic. For example,
-    <a method for=PrivateAttribution>measureConversion</a>
+    <a method for=PrivateAttribution>measureConversion()</a>
     should always go through the full process of constructing
     a conversion report, even when the conversion value to be
     reported is zero.
@@ -1253,7 +1253,7 @@ Although not part of the web platform,
 security of aggregation services is quite important
 to the overall security of the Private Attribution mechanism.
 [=Conversion reports=]
-produced by <a method for=PrivateAttribution>measureConversion</a>
+produced by <a method for=PrivateAttribution>measureConversion()</a>
 are encrypted to cryptographic key(s) of the aggregation service.
 Thus, much of the potential for disclosure
 of the information contained in these reports
@@ -1388,7 +1388,7 @@ by the site receiving the conversion report.
 
 The Private Attribution API is available even in third-party contexts.
 In particular, a third-party iframe
-may call <a method for=PrivateAttribution>saveImpression</a>.
+may call <a method for=PrivateAttribution>saveImpression()</a>.
 Note, however, that the impression is recorded with the [=site=]
 of the top-level navigation context, not the [=origin=] of the iframe.
 
