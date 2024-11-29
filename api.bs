@@ -868,12 +868,78 @@ if the user has opted out of collection of diagnostic data.
 An <dfn>aggregation service</dfn> takes multiple pieces of attribution information
 and produces an aggregate metric.
 
-Each browser will have different requirements for aggregation.
+User agent implementations will have different requirements for aggregation.
+However, the aggregation process has some common elements.
+
+Firstly, user agents will need to be configured with,
+or otherwise obtain,
+information about the aggregation service.
+This includes the aggregation methods that are supported
+and any configuration that is required.
+
+Each aggregation method needs to define
+how a histogram is:
+
+* prepared for aggregation,
+* encrypted,
+* annotated with any necessary metadata, and
+* submitted to the aggregation service for aggregation.
+
+The aggregation method also needs to define
+how the aggregated result is obtained by a site.
 
 
 ## Multi-Party Computation Aggregation ## {#mpc}
 
-TODO
+An aggregator that uses Multi-Party Computation (MPC)
+comprises two or more independent services
+that cooperate to compute a predefined function.
+
+The basic guarantee provided by MPC
+is that only the defined outputs of a function,
+plus well-defined leakage,
+is revealed to any entity.
+These guarantees hold only to the extent that
+a subset of the entities that participate are honest.
+
+### Prio and DAP ### {#prio}
+
+The "prio3" aggregation method
+uses Prio [[PRIO]]
+and the Distributed Aggregation Protocol (DAP) [[DAP]].
+Specifically, this aggregation method uses
+the Prio3L1BoundSum instantiation [[PRIO-L1]]
+of the Prio3 Verifiable Distributed Aggregation Function (VDAF) [[VDAF]].
+
+DAP and the Prio3L1BoundSum instantiation define how a report is prepared,
+encrypted, and submitted for aggregation.
+DAP also defines how an aggregate is obtained
+and what configuration is necessary
+for a user agent to obtain about the aggregation service.
+
+Several extensions to DAP [[DAP-EXT]] are necessary for this application:
+
+*   [[DAP-EXT#name-late-task-binding|Late task binding]]
+    improves the ability of a site to collect reports
+    and aggregate them as needed.
+
+*   [[DAP-EXT#name-requester-website-identity|Website identity]]
+    is critical to ensure
+    that differential privacy protections are effective.
+    This prevents a malicious actor
+    that is able to correlate user identity across multiple sites
+    from exceeding the sensitivity bounds for that user
+    by aggregating reports from multiple sites together.
+
+*   [[DAP-EXT#name-privacy-budget-consumption|Privacy budget consumption]]
+    ensures that the aggregator does not aggregate reports
+    that received less privacy budget
+    than the aggregation task was configured with.
+
+User agents need to include all of these extensions in reports
+that they generate.
+
+
 
 
 ## Trusted Execution Environments ## {#tee}
@@ -1422,6 +1488,27 @@ spec:infra; type:dfn; text:user agent
     "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4430334",
     "date": "2024-03-14"
   },
+  "dap": {
+    "authors": [
+      "Tim Geoghegan",
+      "Christopher Patton",
+      "Brandon Pitman",
+      "Eric Rescorla",
+      "Christopher A. Wood"
+    ],
+    "date": "2024-10-10",
+    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-12",
+    "title": "Distributed Aggregation Protocol for Privacy Preserving Measurement",
+    "publisher": "IETF"
+  },
+  "dap-ext": {
+    "authors": [
+      "Martin Thomson"
+    ],
+    "title": "Distributed Aggregation Protocol (DAP) Extensions for Improved Application of Differential Privacy",
+    "date": "2024-10-18",
+    "href": "https://datatracker.ietf.org/doc/draft-thomson-ppm-dap-dp-ext/"
+  },
   "dp": {
     "authors": [
       "Cynthia Dwork",
@@ -1488,6 +1575,35 @@ spec:infra; type:dfn; text:user agent
     "href": "https://arxiv.org/abs/2405.16719",
     "title": "Cookie Monster: Efficient On-device Budgeting for Differentially-Private Ad-Measurement Systems",
     "publisher": "SOSP'24"
+  },
+  "prio": {
+    "authors": [
+      "Henry Corrigan-Gibbs",
+      "Dan Boneh"
+    ],
+    "title": "Prio: Private, Robust, and Scalable Computation of Aggregate Statistics",
+    "date": "2017-03-14",
+    "href": "https://crypto.stanford.edu/prio/paper.pdf"
+  },
+  "prio-l1": {
+    "authors": [
+      "Martin Thomson",
+      "David Cook"
+    ],
+    "title": "A Prio Instantiation for Vector Sums with an L1 Norm Bound on Contributions",
+    "date": "2024-10-21",
+    "href": "https://datatracker.ietf.org/doc/draft-thomson-ppm-l1-bound-sum/"
+  },
+  "vdaf": {
+    "authors": [
+      "Richard L. Barnes",
+      "David Cook",
+      "Christopher Patton",
+      "Phillipp Schoppmann"
+    ],
+    "title": "Verifiable Distributed Aggregation Functions",
+    "date": "2024-10-04",
+    "href": "https://datatracker.ietf.org/doc/draft-irtf-cfrg-vdaf/"
   }
 }
 </pre>
