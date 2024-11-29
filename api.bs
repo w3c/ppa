@@ -525,7 +525,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 1.  If the private attribution API is enabled, save the impression to the
     [=impression store=].
 
-<p class=advisement><a method for=PrivateAttribution>saveImpression</a>
+<p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
 This minimizes the ability to detect when the Private Attribution
 API is [[#opt-out|disabled].
@@ -879,7 +879,25 @@ if the user has opted out of collection of diagnostic data.
 An <dfn>aggregation service</dfn> takes multiple pieces of attribution information
 and produces an aggregate metric.
 
-Each browser will have different requirements for aggregation.
+User agent implementations will have different requirements for aggregation.
+However, the aggregation process has some common elements.
+
+Firstly, user agents will need to be configured with,
+or otherwise obtain,
+information about the aggregation service.
+This includes the aggregation methods that are supported
+and any configuration that is required.
+
+Each aggregation method needs to define
+how a histogram is:
+
+* prepared for aggregation,
+* encrypted,
+* annotated with any necessary metadata, and
+* submitted to the aggregation service for aggregation.
+
+The aggregation method also needs to define
+how the aggregated result is obtained by a site.
 
 
 ## Multi-Party Computation Aggregation ## {#s-mpc}
@@ -895,7 +913,55 @@ its reliance on client-provided proofs of correctness for inputs.
 This allows for very efficient MPC operation
 at a modest cost in the size of submissions to the system.
 
-TODO
+An aggregator that uses Multi-Party Computation (MPC)
+comprises two or more independent services
+that cooperate to compute a predefined function.
+
+The basic guarantee provided by MPC
+is that only the defined outputs of a function,
+plus well-defined leakage,
+is revealed to any entity.
+These guarantees hold only to the extent that
+a subset of the entities that participate are honest.
+
+### Prio and DAP ### {#prio}
+
+The "prio3" aggregation method
+uses Prio [[PRIO]]
+and the Distributed Aggregation Protocol (DAP) [[DAP]].
+Specifically, this aggregation method uses
+the Prio3L1BoundSum instantiation [[PRIO-L1]]
+of the Prio3 Verifiable Distributed Aggregation Function (VDAF) [[VDAF]].
+
+DAP and the Prio3L1BoundSum instantiation define how a report is prepared,
+encrypted, and submitted for aggregation.
+DAP also defines how an aggregate is obtained
+and what configuration is necessary
+for a user agent to obtain about the aggregation service.
+
+Several extensions to DAP [[DAP-EXT]] are necessary for this application:
+
+*   [[DAP-EXT#name-late-task-binding|Late task binding]]
+    improves the ability of a site to collect reports
+    and aggregate them as needed.
+
+*   [[DAP-EXT#name-requester-website-identity|Website identity]]
+    is critical to ensure
+    that differential privacy protections are effective.
+    This prevents a malicious actor
+    that is able to correlate user identity across multiple sites
+    from exceeding the sensitivity bounds for that user
+    by aggregating reports from multiple sites together.
+
+*   [[DAP-EXT#name-privacy-budget-consumption|Privacy budget consumption]]
+    ensures that the aggregator does not aggregate reports
+    that received less privacy budget
+    than the aggregation task was configured with.
+
+User agents need to include all of these extensions in reports
+that they generate.
+
+
 
 
 ## Trusted Execution Environments ## {#s-tee}
@@ -1267,7 +1333,7 @@ Strategies to prevent leakage include:
 *   Fully validating all API inputs, even when the API
     is disabled.
 *   Avoiding conditional logic. For example,
-    <a method for=PrivateAttribution>measureConversion</a>
+    <a method for=PrivateAttribution>measureConversion()</a>
     should always go through the full process of constructing
     a conversion report, even when the conversion value to be
     reported is zero.
@@ -1279,7 +1345,7 @@ Although not part of the web platform,
 security of aggregation services is quite important
 to the overall security of the Private Attribution mechanism.
 [=Conversion reports=]
-produced by <a method for=PrivateAttribution>measureConversion</a>
+produced by <a method for=PrivateAttribution>measureConversion()</a>
 are encrypted to cryptographic key(s) of the aggregation service.
 Thus, much of the potential for disclosure
 of the information contained in these reports
@@ -1414,7 +1480,7 @@ by the site receiving the conversion report.
 
 The Private Attribution API is available even in third-party contexts.
 In particular, a third-party iframe
-may call <a method for=PrivateAttribution>saveImpression</a>.
+may call <a method for=PrivateAttribution>saveImpression()</a>.
 Note, however, that the impression is recorded with the [=site=]
 of the top-level navigation context, not the [=origin=] of the iframe.
 
@@ -1456,9 +1522,18 @@ spec:infra; type:dfn; text:user agent
       "Eric Rescorla",
       "Christopher A. Wood"
     ],
-    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-11",
+    "date": "2024-10-10",
+    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-12",
     "title": "Distributed Aggregation Protocol for Privacy Preserving Measurement",
-    "publisher": "IETF Draft"
+    "publisher": "IETF"
+  },
+  "dap-ext": {
+    "authors": [
+      "Martin Thomson"
+    ],
+    "title": "Distributed Aggregation Protocol (DAP) Extensions for Improved Application of Differential Privacy",
+    "date": "2024-10-18",
+    "href": "https://datatracker.ietf.org/doc/draft-thomson-ppm-dap-dp-ext/"
   },
   "dp": {
     "authors": [
@@ -1533,8 +1608,28 @@ spec:infra; type:dfn; text:user agent
       "Dan Boneh"
     ],
     "title": "Prio: Private, Robust, and Scalable Computation of Aggregate Statistics",
-    "href": "https://crypto.stanford.edu/prio/paper.pdf",
-    "date": "2017-03-17"
+    "date": "2017-03-14",
+    "href": "https://crypto.stanford.edu/prio/paper.pdf"
+  },
+  "prio-l1": {
+    "authors": [
+      "Martin Thomson",
+      "David Cook"
+    ],
+    "title": "A Prio Instantiation for Vector Sums with an L1 Norm Bound on Contributions",
+    "date": "2024-10-21",
+    "href": "https://datatracker.ietf.org/doc/draft-thomson-ppm-l1-bound-sum/"
+  },
+  "vdaf": {
+    "authors": [
+      "Richard L. Barnes",
+      "David Cook",
+      "Christopher Patton",
+      "Phillipp Schoppmann"
+    ],
+    "title": "Verifiable Distributed Aggregation Functions",
+    "date": "2024-10-04",
+    "href": "https://datatracker.ietf.org/doc/draft-irtf-cfrg-vdaf/"
   }
 }
 </pre>
