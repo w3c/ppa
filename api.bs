@@ -868,7 +868,7 @@ if the user has opted out of collection of diagnostic data.
 An <dfn>aggregation service</dfn> takes multiple pieces of attribution information
 and produces an aggregate metric.
 
-User agent implementation will have different requirements for aggregation.
+User agent implementations will have different requirements for aggregation.
 However, the aggregation process has some common elements.
 
 Firstly, user agents will need to be configured with,
@@ -917,7 +917,7 @@ DAP also defines how an aggregate is obtained
 and what configuration is necessary
 for a user agent to obtain about the aggregation service.
 
-Extensions to DAP [[DAP-EXT]] are necessary:
+Several extensions to DAP [[DAP-EXT]] are necessary for this application:
 
 *   [[DAP-EXT#name-late-task-binding|Late task binding]]
     improves the ability of a site to collect reports
