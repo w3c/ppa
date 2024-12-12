@@ -439,7 +439,7 @@ contains the following information about each supported aggregation service:
   <dt><dfn>protocol</dfn></dt>
   <dd>
     The {{PrivateAttributionProtocol|protocol}} that the [=aggregation service=] uses.
-    Different versions of the same protocol will be use different values.
+    Different versions of the same protocol use different values.
     Even if a single service provider supports multiple protocols,
     each needs to use a different URL.
     This ensures that each can be uniquely identified by URL
@@ -451,7 +451,7 @@ The <dfn enum>PrivateAttributionProtocol</dfn> describes the submission protocol
 used by different [=aggregation services=].  This document defines two protocols:
 
 <dl dfn-for=PrivateAttributionProtocol dfn-type=enum-value>
-  <dt><dfn>dap-11</dfn></dt>
+  <dt><dfn>dap-12-histogram</dfn></dt>
   <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
   <dt><dfn>tee-00</dfn></dt>
   <dd>A protocol for submission to a [=TEE=]; see [[#s-tee]].</dd>
