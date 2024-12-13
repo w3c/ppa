@@ -385,6 +385,10 @@ it may be useful to examine the supported
 <a attribute for=PrivateAttribution>aggregationServices</a> in deciding
 whether to use the Private Attribution API.
 
+It is also possible to register an impression by including the
+[:Save-Impression:]
+header in the HTTP response when serving a resource to the user agent.
+
 To request a conversion report, a site calls
 <a method for=PrivateAttribution>measureConversion()</a>.
 Before calling this API, a site must
@@ -755,8 +759,13 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
     A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
-    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
-    are eligible to match this [=conversion=].
+    [=Impressions=] are only eligible to match this [=conversion=] if either:
+    1.  they were registered by a call to <a method for=PrivateAttribution>saveImpression()</a>
+        in a script originating from one of the intermediary sites, or
+    2.  they were registered by a [:Save-Impression:] header associated with a resource
+        from one of the intermediary sites.
+    <!-- TODO: HTTP registration should also apply to impression sites.
+      -- Interaction between impression and intermediary sites needs to be clarified (#55). -->
   </dd>
   <dt><dfn>logic</dfn></dt>
   <dd>
@@ -1108,6 +1117,21 @@ if the user has opted out of collection of diagnostic data.
 ### Visibility ### {#visibility}
 
 * User ability to view the impression store and past report submissions.
+
+
+# HTTP API # {#http-api}
+
+\`<dfn http-header><code>Save-Impression</code></dfn>\` is a
+[=structured header/dictionary|Dictionary Structured Header=]
+set on a response requesting that the user agent invoke the
+<a method for=PrivateAttribution>saveImpression()</a> API.
+
+<pre class=example id=ex-save-impression-header>
+Save-Impression: conversionSite=advertiser.example;histogramIndex=2;\
+  filterData=12;lifetimeDays=7
+</pre>
+
+TODO need to specify in more detail when and how this header is interpreted
 
 
 # Implementation Considerations # {#implementation-considerations}
@@ -1786,6 +1810,12 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
     text: set; url: #sets
+</pre>
+<pre class=anchors>
+spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
+    text: structured header; url: #name-introduction
+    for: structured header
+        text: dictionary; url: #dictionary
 </pre>
 <pre class=biblio>
 {
