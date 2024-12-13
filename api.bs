@@ -855,6 +855,21 @@ if the user has opted out of collection of diagnostic data.
 * User ability to view the impression store and past report submissions.
 
 
+# Permissions Policy Integration # {#permission-policy}
+
+This specification defines two [=policy-controlled features=]:
+
+*   Invocation of the <a method for=PrivateAttribution>saveImpression()</a> API,
+    identified by the string "<code><dfn export for="PermissionPolicy"
+    enum-value>save-impression</dfn></code>".
+*   Invocation of the <a method for=PrivateAttribution>measureConversion()</a> API,
+    identified by the string "<code><dfn export for="PermissionPolicy"
+    enum-value>measure-conversion</dfn></code>".
+
+The [=policy-controlled feature/default allowlist=] for both of these features is
+<code><a dfn for="default allowlist">*</a></code>.
+
+
 # Implementation Considerations # {#implementation-considerations}
 
 * Management and distribution of values for the following:
