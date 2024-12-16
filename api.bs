@@ -869,6 +869,18 @@ This specification defines two [=policy-controlled features=]:
 The [=policy-controlled feature/default allowlist=] for both of these features is
 <code><a dfn for="default allowlist">*</a></code>.
 
+<p class=note>Having separate permissions for
+<a method for=PrivateAttribution>saveImpression()</a> and
+<a method for=PrivateAttribution>measureConversion()</a> might not be necessary,
+but allows pages that do both to limit resources
+to the expected kind of activity.
+
+<p class=note>Enabling permissions by default
+simplifies the task of integrating external services.
+
+<p class=note>Permissions policy provides only all-or-nothing control,
+it does not enable delegation of a portion of privacy budget.
+
 
 # Implementation Considerations # {#implementation-considerations}
 
