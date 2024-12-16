@@ -392,19 +392,11 @@ select a supported [=aggregation service=].
 The page may select any of the supported services found in
 <a attribute for=PrivateAttribution>aggregationServices</a>.
 The name of the selected service must be supplied as
-the `aggregator` member of the
+the {{PrivateAttributionConversionOptions/aggregator}} member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
-<p class=issue>
-This section needs to be more precise about [=site=] vs. [=origin=].
-
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
-
-<p class=issue>Is any additional information required in the
-{{PrivateAttributionAggregationService}} dictionary? Do we want
-to rename `apiVersion` to `protocol`? And we should definitely
-define an enum for it.
 
 The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
 contains a list of aggregation services supported by the [=user agent=]. The page
@@ -416,14 +408,21 @@ but that is not required,
 and impressions are not scoped to a single aggregation service.
 
 <xmp class=idl>
+enum PrivateAttributionProtocol { "dap-12-histogram", "tee-00" };
+
 dictionary PrivateAttributionAggregationService {
-  required DOMString name;
-  required DOMString apiVersion;
+  required DOMString url;
+  required DOMString protocol;
+};
+
+[SecureContext, Exposed=Window]
+interface PrivateAttributionAggregationServices {
+  readonly setlike<PrivateAttributionAggregationService>;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  attribute FrozenArray<PrivateAttributionAggregationService> aggregationServices;
+  readonly attribute PrivateAttributionAggregationServices aggregators;
 };
 </xmp>
 
@@ -431,19 +430,31 @@ The <a attribute for=PrivateAttribution>aggregationServices</a> attribute
 contains the following information about each supported aggregation service:
 
 <dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
-  <dt><dfn>name</dfn></dt>
+  <dt><dfn>url</dfn></dt>
   <dd>
-    Name of the aggregation service. This is passed as the `aggregator`
-    parameter to <a method for=PrivateAttribution>measureConversion()</a>.
+    A URL that identifies an [=aggregation service=].
+    This value is passed as the {{PrivateAttributionConversionOptions/aggregator}} parameter
+    to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
   </dd>
-  <dt><dfn>apiVersion</dfn></dt>
+  <dt><dfn>protocol</dfn></dt>
   <dd>
-    Version of the Private Attribution API supported by this aggregator. Even if
-    an aggregator supports multiple versions of the API, it is expected to
-    assign a unique aggregation service name for each supported version.
-    Thus, the API version is implicit in the aggregator selection
-    and does not need to be passed to <a method for=PrivateAttribution>measureConversion()</a>.
+    The {{PrivateAttributionProtocol|protocol}} that the [=aggregation service=] uses.
+    Different versions of the same protocol use different values.
+    Even if a single service provider supports multiple protocols,
+    each needs to use a different URL.
+    This ensures that each can be uniquely identified by URL
+    without also specifying the choice of protocol.
   </dd>
+</dl>
+
+The <dfn enum>PrivateAttributionProtocol</dfn> describes the submission protocol
+used by different [=aggregation services=].  This document defines two protocols:
+
+<dl dfn-for=PrivateAttributionProtocol dfn-type=enum-value>
+  <dt><dfn>dap-12-histogram</dfn></dt>
+  <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
+  <dt><dfn>tee-00</dfn></dt>
+  <dd>A protocol for submission to a [=TEE=]; see [[#s-tee]].</dd>
 </dl>
 
 ## Saving Impressions ## {#save-impression-api}
@@ -591,7 +602,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>aggregator</dfn></dt>
   <dd>
     A selection from the [=aggregation services=] that can be found in <a
-    attribute for=PrivateAttribution>aggregationServices</a>.
+    attribute for=PrivateAttribution>aggregators</a>.
   </dd>
   <dt><dfn>epsilon</dfn></dt>
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
@@ -889,7 +900,18 @@ The aggregation method also needs to define
 how the aggregated result is obtained by a site.
 
 
-## Multi-Party Computation Aggregation ## {#mpc}
+## Multi-Party Computation Aggregation ## {#s-mpc}
+
+A <dfn lt=MPC>Multi-Party Computation (MPC)</dfn> system is one that
+involves multiple independent entities
+that cooperatively compute an agreed function.
+
+This specification uses an MPC system based on Prio [[PRIO]]
+and the <dfn lt=DAP ignore>Distributed Aggregation Protocol (DAP)</dfn> [[DAP]].
+This is a two-party MPC system that is characterized by
+its reliance on client-provided proofs of correctness for inputs.
+This allows for very efficient MPC operation
+at a modest cost in the size of submissions to the system.
 
 An aggregator that uses Multi-Party Computation (MPC)
 comprises two or more independent services
@@ -904,7 +926,7 @@ a subset of the entities that participate are honest.
 
 ### Prio and DAP ### {#prio}
 
-The "prio3" aggregation method
+The "dap-12-histogram" aggregation method
 uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
@@ -940,16 +962,14 @@ User agents need to include all of these extensions in reports
 that they generate.
 
 
+## Trusted Execution Environments ## {#s-tee}
 
-
-## Trusted Execution Environments ## {#tee}
-
-TODO
-
-
-## Conversion Report Encryption ## {#encryption}
+A <dfn lt=TEE>Trusted Execution Environment (TEE)</dfn> uses specialized hardware
+to ensure that computation is isolated
+from other programs that run on the same hardware.
 
 TODO
+
 
 ## Anti-Replay Requirements ## {#anti-replay}
 
@@ -957,7 +977,8 @@ TODO
 to the amount of [=privacy budget=]
 that was expended by the site that requested the report.
 
-TODO
+An [=aggregation service=] MUST guarantee
+that it does not accept the same report more than once.
 
 
 # Differential Privacy # {#dp}
