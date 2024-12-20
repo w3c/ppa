@@ -476,7 +476,7 @@ dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
   required unsigned long filterData;
   required DOMString conversionSite;
-  unsigned long lifetimeDays;
+  unsigned long lifetimeDays = 30;
 };
 
 [SecureContext, Exposed=Window]
@@ -509,9 +509,10 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
     A "time to live" (in days) after which the [=impression=] can no longer
-    receive attribution. The [=user agent=] should impose an upper limit on the
-    lifetime, and silently reduce the value specified here if it exceeds that
-    limit.
+    receive attribution.
+    If not specified, the default is 30 days.
+    The [=user agent=] should impose an upper limit on the lifetime,
+    and silently reduce the value specified here if it exceeds that limit.
   </dd>
 </dl>
 
