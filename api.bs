@@ -871,8 +871,8 @@ The [=policy-controlled feature/default allowlist=] for both of these features i
 
 <p class=note>Having separate permissions for
 <a method for=PrivateAttribution>saveImpression()</a> and
-<a method for=PrivateAttribution>measureConversion()</a> might not be necessary,
-but allows pages that do both to limit resources
+<a method for=PrivateAttribution>measureConversion()</a>
+allows pages that do both to limit subresources
 to the expected kind of activity.
 
 <p class=note>Enabling permissions by default
