@@ -949,8 +949,17 @@ The basic guarantee provided by MPC
 is that only the defined outputs of a function,
 plus well-defined leakage,
 is revealed to any entity.
-These guarantees hold only to the extent that
+
+The MPC guarantees hold only to the extent that
 a subset of the entities that participate are honest.
+For the two-party MPC used in Prio,
+privacy--
+that is, the confidentiality of inputs--
+is maintained
+as long as either MPC operator remains honest.
+This MPC configuration does not protect
+against the corruption of the outputs
+by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
