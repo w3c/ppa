@@ -429,7 +429,7 @@ interface PrivateAttributionAggregationServices {
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  readonly attribute PrivateAttributionAggregationServices aggregators;
+  readonly attribute PrivateAttributionAggregationServices aggregationServices;
 };
 </xmp>
 
@@ -616,7 +616,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>aggregator</dfn></dt>
   <dd>
     A selection from the [=aggregation services=] that can be found in <a
-    attribute for=PrivateAttribution>aggregators</a>.
+    attribute for=PrivateAttribution>aggregationServices</a>.
   </dd>
   <dt><dfn>epsilon</dfn></dt>
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
