@@ -396,6 +396,14 @@ the {{PrivateAttributionConversionOptions/aggregator}} member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
+## Navigator Interface ## {#navigator-interface}
+
+<xmp class=idl>
+partial interface Navigator {
+  [SecureContext, SameObject] readonly attribute PrivateAttribution privateAttribution;
+};
+</xmp>
+
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
 The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
