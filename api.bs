@@ -537,7 +537,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
 This minimizes the ability to detect when the Private Attribution
-API is [[#opt-out|disabled].
+API is [[#opt-out|disabled]].
 
 
 ## Requesting Attribution for a Conversion ## {#measure-conversion}
