@@ -1112,7 +1112,7 @@ for each week.
 
 Ideally, the [=privacy unit=] is a single person.
 Though ideal, it is not possible to develop a useful system
-that guarantees perfect correspondance with a person,
+that guarantees perfect correspondence with a person,
 for a number of reasons:
 
 *   People use multiple browsers and multiple devices,
@@ -1168,7 +1168,7 @@ to protect against those attacks.
 ### Privacy Budget Epochs ### {#dp-refresh}
 
 Sites receive a separate differential privacy budget for the data in every
-time internval called and epoch. The epoch length is one week.
+time interval called and epoch. The epoch length is one week.
 
 This budget applies to the [=impressions=]
 that are registered with the user agent
@@ -1336,7 +1336,7 @@ of harmful information flow through the impression store:
     [[#impression-store-clearing|clear the impression store]].
 *   It is recommended that user agents limit how long
     data can persist in the impression store,
-    even absent expicit user action,
+    even absent explicit user action,
     by imposing a maximum value of
     <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>.
 
