@@ -1168,7 +1168,7 @@ to protect against those attacks.
 ### Privacy Budget Epochs ### {#dp-refresh}
 
 Sites receive a separate differential privacy budget for the data in every
-time interval called and epoch. The epoch length is one week.
+time interval called an epoch. The epoch length is one week.
 
 This budget applies to the [=impressions=]
 that are registered with the user agent
