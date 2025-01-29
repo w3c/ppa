@@ -750,7 +750,7 @@ enum PrivateAttributionLogic {
 
 Each attribution logic specifies a process for allocating values to histogram buckets.
 This logic includes how to select impressions,
-how to handle weeks in which the [=privacy budget=] is insufficient,
+how to handle [=privacy budget epochs=] in which the [=privacy budget=] is insufficient,
 and (optionally) how to process any additional parameters that might be used.
 
 
@@ -763,12 +763,12 @@ The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|p
 is allocated to the histogram bucket that was saved with the impression.
 
 Last touch attribution does not select any impression
-that was saved during a week
+that was saved during an [=privacy budget epoch|epoch=]
 that does not have sufficient [=privacy budget=].
-If impressions match from a week
+If impressions match from an epoch
 that does not have enough [=privacy budget=],
-impressions are not matched for any preceding weeks.
-That is, once a week has a matching impression
+impressions are not matched for any preceding epoch.
+That is, once an epoch has a matching impression
 and insufficient budget,
 the process will set a value of zero for all histogram buckets.
 
@@ -781,15 +781,15 @@ given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
-1.  For each |week| starting from the current week
-    to the oldest week supported by the [=user agent=]:
+1.  For each |epoch| starting from the current [=privacy budget epoch=]
+    to the oldest epoch supported by the [=user agent=]:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
-        with |options|, |week|, and |now|.
+        with |options|, |epoch|, and |now|.
 
     1.  If |impressions| is not empty:
 
-        1.  Retain the value of |week|.
+        1.  Retain the value of |epoch|.
 
         1.  Set |impression| to the value in |impressions|
             with the most recent |impression|.timestamp.
@@ -800,7 +800,7 @@ given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 1.  If |impression| is null, let |budgetOk| be false.
 
 1.  Otherwise, let |budgetOk| be the result of [=deduct privacy budget=]
-    with |week| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
+    with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
 
 1.  If |budgetOk| is false, set |value| to 0.
 
@@ -825,14 +825,14 @@ TODO specify how to match using "lookbackDays", "filterData" and "impressionSite
 Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
 
 To perform <dfn>common matching logic</dfn>,
-given |options|, |week|, and [=moment=] |now|:
+given |options|, |epoch|, and [=moment=] |now|:
 
-1.  If number of days since the end of |week| exceeds |lookbackDays|,
+1.  If number of days since the end of |epoch| exceeds |lookbackDays|,
     return an empty set.
 
 1.  Initialize |matching| to an empty set.
 
-1.  For each |impression| in the saved impressions for the |week|:
+1.  For each |impression| in the saved impressions for the |epoch|:
 
     1.  If |now| - |lookbackDays| is after |impression|.timestamp,
         continue the loop.
@@ -1052,7 +1052,7 @@ it is necessary to define what information is protected.
 In this system, the protected information is
 the [=impressions=] of a single user profile,
 on a single [=user agent=],
-over a single week,
+over a single [=privacy budget epoch=],
 for a single website that registers [=conversions=].
 [[#dp-unit]] describes the implications of this design
 in more detail.
@@ -1103,12 +1103,12 @@ that is the combination of three values:
     are not considered.
     Those sites do not receive information from this system directly.
 
-3.  The current <dfn>week</dfn>.
+3.  The current [=privacy budget epoch=].
 
 A change to any of these values produces a new privacy unit,
 which results in a separate [=privacy budget=].
 Each site that a person visits receives a bounded amount of information
-for each week.
+for each epoch.
 
 Ideally, the [=privacy unit=] is a single person.
 Though ideal, it is not possible to develop a useful system
@@ -1168,7 +1168,8 @@ to protect against those attacks.
 ### Privacy Budget Epochs ### {#dp-refresh}
 
 Sites receive a separate differential privacy budget for the data in every
-time internval called and epoch. The epoch length is one week.
+time internval called and epoch. The <dfn>privacy budget epoch</dfn> length is
+one week (604800 seconds).
 
 This budget applies to the [=impressions=]
 that are registered with the user agent
@@ -1176,17 +1177,17 @@ and later queried,
 not conversions.
 
 From the perspective of the analysis [[PPA-DP]]
-each week of impressions forms a separate database.
+each epoch of impressions forms a separate database.
 A finite [=privacy budget=] is enforced across all the queries made on each database.
 
 Having a [=conversion report=] produced from impressions
-that span multiple weeks has privacy consequences.
+that span multiple epochs has privacy consequences.
 A single visit to a website can give that site information
-about activities across many weeks.
+about activities across many epochs.
 This only requires that
 the conversion site is identified as the destination
 for impressions over that entire period.
-The number of weeks that can be queried are limited by [=user agents=].
+The number of epochs that can be queried is limited by [=user agents=].
 
 The goal is to set an epoch
 that is as large as feasible.
@@ -1231,9 +1232,9 @@ conversion report.
 
 When searching for impressions for the conversion report,
 the user agent deducts the specified &epsilon; value from
-the budget for the week in which those impressions were saved.
-If the privacy budget for that week is not sufficient,
-the impressions from that week are not used.
+the budget for the [=privacy budget epoch=] in which those impressions were saved.
+If the privacy budget for that [=privacy budget epoch|epoch=] is not sufficient,
+the impressions from that [=privacy budget epoch|epoch=] are not used.
 
 The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
 
@@ -1254,9 +1255,9 @@ The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
     corresponding to impressions from Site B, C, and E.
 
     As a result, privacy budgets for the querying site is deducted
-    from weeks 1, 3, 4, and 5.
-    No impressions were recorded for week 2,
-    so no budget is deducted from that week.
+    from [=privacy budget epoch|epochs=] 1, 3, 4, and 5.
+    No impressions were recorded for epoch 2,
+    so no budget is deducted from that epoch.
 </div>
 
 How a [=user agent=] manages exhaustion of a privacy budget
@@ -1487,7 +1488,7 @@ browsing activity, so is desirable to include it when clearing browsing activity
 On the other hand, it is only possible to strictly adhere to the requirements of
 the differential privacy mechanism, if information about a fully- or partially-
 depleted privacy budget is maintained until that budget is no longer relevant
-(i.e. the end of the [=week=]).
+(i.e. the end of the [=privacy budget epoch=]).
 
 ## Disabling the Private Attribution API ## {#privacy-opt-out}
 
