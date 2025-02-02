@@ -762,16 +762,6 @@ the last (most recent) impression that matches the [[#logic-matching|common matc
 The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|privacy budget]])
 is allocated to the histogram bucket that was saved with the impression.
 
-Last touch attribution does not select any impression
-that was saved during an [=privacy budget epoch|epoch=]
-that does not have sufficient [=privacy budget=].
-If impressions match from an epoch
-that does not have enough [=privacy budget=],
-impressions are not matched for any preceding epoch.
-That is, once an epoch has a matching impression
-and insufficient budget,
-the process will set a value of zero for all histogram buckets.
-
 To <dfn>fill a histogram using last-touch attribution</dfn>,
 given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
@@ -781,30 +771,22 @@ given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
-1.  For each |epoch| starting from the current [=privacy budget epoch=]
-    to the oldest epoch supported by the [=user agent=]:
+1.  For each |epoch| starting from the oldest epoch supported by the
+    [=user agent=] to the current [=privacy budget epoch=]:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
         with |options|, |epoch|, and |now|.
 
     1.  If |impressions| is not empty:
 
-        1.  Retain the value of |epoch|.
+        1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
+            with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
 
-        1.  Set |impression| to the value in |impressions|
+        1.  If |budgetOk| is true, set |impression| to the value in |impressions|
             with the most recent |impression|.timestamp.
             <!-- TODO define a type for stored impressions -->
 
-        1.  Exit the loop.
-
-1.  If |impression| is null, let |budgetOk| be false.
-
-1.  Otherwise, let |budgetOk| be the result of [=deduct privacy budget=]
-    with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
-
-1.  If |budgetOk| is false, set |value| to 0.
-
-1.  If |impression|.<var ignore=''>histogramIndex</var>
+1.  If |impression| is null, or if |impression|.<var ignore=''>histogramIndex</var>
     is |options|.{{PrivateAttributionConversionOptions/histogramSize}} or greater,
     set |value| to 0.
 
