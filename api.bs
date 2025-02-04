@@ -765,12 +765,12 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
     1.  If |impressions| is not empty:
 
-        1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
+        1.  Let |budgetOk| be the result of [=deduct privacy budget=]
             with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
-1. If |matchedImpressions| is [=set/empty=], return the all-zero histogram containing
+1. If |matchedImpressions| [=set/is empty=], return the all-zero histogram containing
     |options|.{{PrivateAttributionConversionOptions/histogramSize}} values.
 
 1. Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
@@ -786,7 +786,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
   [=impressions=] |matchedImpressions|, a |histogramSize|, and a |value|:
 
-1. [=assert=] |matchedImpressions| is not [=set/empty=].
+1. [=assert=] |matchedImpressions| is not [=set/is empty|empty=].
 
 1.  Set |impression| to the value in |matchedImpressions| with the most recent
     |impression|.timestamp.
