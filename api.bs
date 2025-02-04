@@ -662,7 +662,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
         <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
         return an error.
 1.  If the private attribution API is enabled,
-    invoke the routine to [=fill a histogram using last-touch attribution=].
+    invoke the routine to [=do attribution and fill a histogram=].
 1. Encrypt the report.
 1. Return the encrypted report.
 
@@ -748,73 +748,56 @@ enum PrivateAttributionLogic {
 };
 </xmp>
 
-Each attribution logic specifies a process for allocating values to histogram buckets.
-This logic includes how to select impressions,
-how to handle [=privacy budget epochs=] in which the [=privacy budget=] is insufficient,
-and (optionally) how to process any additional parameters that might be used.
+Each attribution logic specifies a process for allocating values to histogram buckets,
+after the [=common matching logic=] is applied, and privacy budgeting occurs.
 
 
-### Last Touch Attribution ### {#logic-last-touch}
+To <dfn>do attribution and fill a histogram</dfn>, given
+  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
-The <dfn enum-value for=PrivateAttributionLogic>"last-touch"</dfn> [=attribution logic=]
-indicates that the browser should select
-the last (most recent) impression that matches the [[#logic-matching|common matching logic]].
-The entire [=conversion value=] (up to the maximum imposed by the [[#dp-budget|privacy budget]])
-is allocated to the histogram bucket that was saved with the impression.
-
-Last touch attribution does not select any impression
-that was saved during an [=privacy budget epoch|epoch=]
-that does not have sufficient [=privacy budget=].
-If impressions match from an epoch
-that does not have enough [=privacy budget=],
-impressions are not matched for any preceding epoch.
-That is, once an epoch has a matching impression
-and insufficient budget,
-the process will set a value of zero for all histogram buckets.
-
-To <dfn>fill a histogram using last-touch attribution</dfn>,
-given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
-
-1.  Initialize |impression| to a null value.
-
-1.  Initialize |value| to |options|.{{PrivateAttributionConversionOptions/value}}.
+1.  Initialize |matchedImpressions| to the empty [=set=].
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
-1.  For each |epoch| starting from the current [=privacy budget epoch=]
-    to the oldest epoch supported by the [=user agent=]:
+1.  For each |epoch| starting from the oldest epoch supported by the
+    [=user agent=] to the current [=privacy budget epoch=]:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
         with |options|, |epoch|, and |now|.
 
     1.  If |impressions| is not empty:
 
-        1.  Retain the value of |epoch|.
+        1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
+            with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
 
-        1.  Set |impression| to the value in |impressions|
-            with the most recent |impression|.timestamp.
-            <!-- TODO define a type for stored impressions -->
+        1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
-        1.  Exit the loop.
+1. If |matchedImpressions| is [=set/empty=], return the all-zero histogram containing
+    |options|.{{PrivateAttributionConversionOptions/histogramSize}} values.
 
-1.  If |impression| is null, let |budgetOk| be false.
+1. Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
+      <dl class="switch">
+      : "`last-touch`"
+      :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
+        |options|.{{PrivateAttributionConversionOptions/histogramSize}}, and
+        |options|.{{PrivateAttributionConversionOptions/value}}.
 
-1.  Otherwise, let |budgetOk| be the result of [=deduct privacy budget=]
-    with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
+      </dl>
 
-1.  If |budgetOk| is false, set |value| to 0.
 
-1.  If |impression|.<var ignore=''>histogramIndex</var>
-    is |options|.{{PrivateAttributionConversionOptions/histogramSize}} or greater,
-    set |value| to 0.
+To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
+  [=impressions=] |matchedImpressions|, a |histogramSize|, and a |value|:
 
-1.  If |value| is not 0, set |index|
-    to |impression|.{{PrivateAttributionImpressionOptions/histogramIndex}}.
+1. [=assert=] |matchedImpressions| is not [=set/empty=].
 
-1.  Otherwise, set |index| to 0.
+1.  Set |impression| to the value in |matchedImpressions| with the most recent
+    |impression|.timestamp.
 
-1.  Return a histogram containing |options|.{{PrivateAttributionConversionOptions/histogramSize}} values,
-    with a value of |value| at an index of |index|
+1.  If |histogramSize| is less than or equal to |impression|.<var ignore=''>histogramIndex</var>,
+    return the all-zero histogram containing |histogramSize| values.
+
+1.  Return a histogram containing |histogramSize| values, with a value of |value| at an index of
+    |impression|.{{PrivateAttributionImpressionOptions/histogramIndex}},
     and a value of zero at all other indices.
 
 
