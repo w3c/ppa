@@ -731,7 +731,7 @@ It is updated by [=deduct privacy budget=].
 <p class=issue>
 The [=safety limits=] need to be described in more detail.
 Some references to clearing
-the impression store may need to be
+the [=impression store=] may need to be
 updated to refer to the privacy budget store as well.
 
 
@@ -752,16 +752,16 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 [=float=] |epsilon|, integer |sensitivity|, and integer |globalSensitivity|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
-     its value of |key| to be a user agent defined value.
+     its value of |key| to be a user-agent-defined value.
 
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
-    in the [=privacy budget store=]
+    in the [=privacy budget store=].
 
 1.  If |currentValue| is less than or equal to 0, return false.
 
-1.  Let |newValue| be |currentValue| - |epsilon| * |sensitivity| / |globalSensitivity|
+1.  Let |newValue| be |currentValue| - |epsilon| * |sensitivity| / |globalSensitivity|.
 
-1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=] to |newValue|
+1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=] to |newValue|.
 
 1.  Return whether |newValue| is greater than or equal to 0.
 
