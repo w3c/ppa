@@ -724,15 +724,46 @@ that "just tell me how to implement" goes in the API section. But I'd also be
 fine with putting this in the DP section.
 -->
 
-The <dfn>privacy budget store</dfn> records the state
-of the per-[=site=] [=privacy budgets=], and of any
-[=safety limits=]. It is updated by [=deduct privacy budget=].
+The [=privacy budget store=] records the state
+of the per-[=site=] [=privacy budgets=].
+It is updated by [=deduct privacy budget=].
 
 <p class=issue>
-The [=privacy budget store=] needs to be described in more detail.
-Some references to clearing the impression store may need to be
+The [=safety limits=] need to be described in more detail.
+Some references to clearing
+the impression store may need to be
 updated to refer to the privacy budget store as well.
 
+
+A <dfn>privacy budget key</dfn> is a [=struct=] consisting of the folowing items:
+
+<dl dfn-for="privacy budget key">
+: <dfn ignore>epoch</dfn>
+:: A [=privacy budget epoch=]
+: <dfn ignore>site</dfn>
+:: A [=site=]
+
+</dl>
+
+The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
+[=privacy budget keys=] and whose values are [=floats=].
+
+To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
+[=float=] |epsilon|, integer |sensitivity|, and integer |globalSensitivity|:
+
+1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
+     its value of |key| to be a user agent defined value.
+
+1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
+    in the [=privacy budget store=]
+
+1.  If |currentValue| is less than or equal to 0, return false.
+
+1.  Let |newValue| be |currentValue| - |epsilon| * |sensitivity| / |globalSensitivity|
+
+1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=] to |newValue|
+
+1.  Return whether |newValue| is greater than or equal to 0.
 
 ## Attribution Logic ## {#s-logic}
 
@@ -753,7 +784,8 @@ after the [=common matching logic=] is applied, and privacy budgeting occurs.
 
 
 To <dfn>do attribution and fill a histogram</dfn>, given
-  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, and
+  a [=site=] |topLevelSite|.
 
 1.  Initialize |matchedImpressions| to the empty [=set=].
 
@@ -767,8 +799,12 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
     1.  If |impressions| is not empty:
 
+        1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
+
         1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
-            with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
+            with |key|, |options|.{{PrivateAttributionConversionOptions/epsilon}},
+            |options|.{{PrivateAttributionConversionOptions/value}},
+            and |options|.{{PrivateAttributionConversionOptions/maxValue}}.
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
@@ -1193,7 +1229,7 @@ changes that might occur days or weeks in the future.
 
 ## Privacy Budgets ## {#dp-budget}
 
-Browsers maintain a <dfn>privacy budget</dfn>,
+Browsers maintain <dfn>privacy budgets</dfn>,
 which is a means of limiting the amount of privacy loss.
 
 This specification uses an individual form
@@ -1219,7 +1255,7 @@ the budget for the [=privacy budget epoch=] in which those impressions were save
 If the privacy budget for that [=privacy budget epoch|epoch=] is not sufficient,
 the impressions from that [=privacy budget epoch|epoch=] are not used.
 
-The details of how to <dfn>deduct privacy budget</dfn> is given below ... WIP
+The details of how to [=deduct privacy budget=] is given below ... WIP
 
 <div class=example id=ex-budget>
     In the following figure,
