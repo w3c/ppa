@@ -786,7 +786,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
   [=impressions=] |matchedImpressions|, a |histogramSize|, and a |value|:
 
-1. [=assert=] |matchedImpressions| is not [=set/is empty|empty=].
+1. [=assert=] |matchedImpressions| is [=set/is empty|not empty=].
 
 1.  Set |impression| to the value in |matchedImpressions| with the most recent
     |impression|.timestamp.
