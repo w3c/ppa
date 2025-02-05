@@ -10,7 +10,8 @@ Abstract: This specifies a browser API for the measurement of advertising perfor
 Complain About: accidental-2119 yes, missing-example-ids yes
 Markup Shorthands: markdown yes, css no, dfn yes
 Assume Explicit For: yes
-Group: wg/pat
+Org: W3C
+!Group: pat
 Status: ED
 Level: None
 </pre>
