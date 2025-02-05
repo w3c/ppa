@@ -10,7 +10,8 @@ Abstract: This specifies a browser API for the measurement of advertising perfor
 Complain About: accidental-2119 yes, missing-example-ids yes
 Markup Shorthands: markdown yes, css no, dfn yes
 Assume Explicit For: yes
-Group: wg/pat
+Org: W3C
+!Group: pat
 Status: ED
 Level: None
 </pre>
@@ -765,7 +766,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
     1.  If |impressions| is not empty:
 
-        1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
+        1.  Let |budgetOk| be the result of [=deduct privacy budget=]
             with |epoch| and |options|.{{PrivateAttributionConversionOptions/epsilon}}.
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
