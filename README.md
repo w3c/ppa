@@ -8,7 +8,7 @@ It is called attribution because it seeks to attribute value from
 an outcome (like someone buying stuff)
 to advertisements.
 
-This repository contains [a specification](https://patcg.github.io/ppa-api/)
+This repository contains [a specification](https://w3c.github.io/ppa/)
 that describes an API that would be presented by a browser to websites.
 
 The specification contains all of the details.  There is no explainer.
