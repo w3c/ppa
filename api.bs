@@ -732,7 +732,7 @@ It is updated by [=deduct privacy budget=].
 The [=safety limits=] need to be described in more detail.
 Some references to clearing
 the [=impression store=] may need to be
-updated to refer to the privacy budget store as well.
+updated to refer to the [=privacy budget store=] as well.
 
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the folowing items:
@@ -752,7 +752,7 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 [=float=] |epsilon|, integer |sensitivity|, and integer |globalSensitivity|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
-     its value of |key| to be a user-agent-defined value.
+     its value of |key| to be a [=user-agent=]-defined value.
 
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
@@ -784,8 +784,8 @@ after the [=common matching logic=] is applied, and privacy budgeting occurs.
 
 
 To <dfn>do attribution and fill a histogram</dfn>, given
-  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, and
-  a [=site=] |topLevelSite|.
+  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a> and
+  a [=site=] |topLevelSite|:
 
 1.  Initialize |matchedImpressions| to the empty [=set=].
 
