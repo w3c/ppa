@@ -598,9 +598,13 @@ dictionary PrivateAttributionConversionOptions {
   sequence<DOMString> intermediarySites = [];
 };
 
+dictionary PrivateAttributionConversionResult {
+  required Uint8Array report;
+};
+
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
+  [Throws] Promise<PrivateAttributionConversionResult> measureConversion(PrivateAttributionConversionOptions options);
 };
 </xmp>
 
