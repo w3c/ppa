@@ -802,7 +802,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
-1.  For each |epoch| starting from the oldest epoch supported by the
+1.  For each |epoch| starting from the oldest [=epoch=] supported by the
     [=user agent=] to the current [=privacy budget epoch=]:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
@@ -1078,7 +1078,7 @@ it is necessary to define what information is protected.
 In this system, the protected information is
 the [=impressions=] of a single user profile,
 on a single [=user agent=],
-over a single [=privacy budget epoch=],
+over a single [=epoch=],
 for a single website that registers [=conversions=].
 [[#dp-unit]] describes the implications of this design
 in more detail.
@@ -1129,12 +1129,12 @@ that is the combination of three values:
     are not considered.
     Those sites do not receive information from this system directly.
 
-3.  The current [=privacy budget epoch=].
+3.  The current [=epoch=].
 
 A change to any of these values produces a new privacy unit,
 which results in a separate [=privacy budget=].
 Each site that a person visits receives a bounded amount of information
-for each epoch.
+for each [=epoch=].
 
 Ideally, the [=privacy unit=] is a single person.
 Though ideal, it is not possible to develop a useful system
@@ -1193,17 +1193,20 @@ to protect against those attacks.
 
 ### Privacy Budget Epochs ### {#dp-refresh}
 
-Sites receive a separate differential privacy budget for the data in every
-time interval called an epoch. The <dfn local-lt=epoch>privacy budget epoch</dfn> length is
-one week (604800 seconds).
+Sites receive a separate differential privacy budget
+that is used to query [=impressions=] recorded
+in each time interval.
+This period is called a <dfn local-lt=epoch>privacy budget epoch</dfn>
+(or simply [=epoch=])
+and its duration is one week (604800 seconds).
 
 This budget applies to the [=impressions=]
-that are registered with the user agent
+that are registered with the [=user agent=]
 and later queried,
 not conversions.
 
 From the perspective of the analysis [[PPA-DP]]
-each epoch of impressions forms a separate database.
+each [=epoch=] of [=impressions=] forms a separate database.
 A finite [=privacy budget=] is enforced across all the queries made on each database.
 
 Having a [=conversion report=] produced from [=impressions=]
@@ -1212,10 +1215,10 @@ A single visit to a website can give that site information
 about activities across many [=epochs=].
 This only requires that
 the [=conversion site=] is identified as the destination
-for impressions over that entire period.
-The number of epochs that can be queried is limited by [=user agents=].
+for [=impressions=] over that entire period.
+The number of [=epochs=] that can be queried is limited by [=user agents=].
 
-The goal is to set an epoch
+The goal is to set an [=epoch=]
 that is as large as feasible.
 A longer period of time allows for a better privacy/utility balance
 because sites can be allocated a larger overall budget
@@ -1225,9 +1228,9 @@ However, a longer interval means that it is easier to
 exhaust a privacy budget completely,
 yield no information until the next refresh.
 
-The choice of a week is largely arbitrary.
+The decision to set the [=epoch=] duration to a week is largely arbitrary.
 One week is expected to be enough to allow sites
-the ability to make decisions about how to spend [=privacy budgets=]
+some flexibility to make decisions about how to spend [=privacy budgets=]
 without careful planning that needs to account for
 changes that might occur days or weeks in the future.
 
