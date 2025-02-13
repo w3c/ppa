@@ -422,7 +422,7 @@ Three types of sites are recognized:
 
 This API uses [=site=] rather than [=origin=]
 because it depends on associating all activity
-that might have privacy consequences to a single entity.
+that might have privacy consequences with a single entity.
 Features like cookies allow privacy-relevant information
 to be exchanged freely by [=same site=] [=origins=],
 which could otherwise be used to exceed [=privacy budgets=].
