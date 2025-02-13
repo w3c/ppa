@@ -415,7 +415,7 @@ Three types of sites are recognized:
 *   A <dfn>intermediary site</dfn> is the [=site=]
     derived from the [=origin=]
     of the [=relevant settings object=]
-    at the time that either  {{PrivateAttribution/saveImpression()}}
+    at the time that either {{PrivateAttribution/saveImpression()}}
     or {{PrivateAttribution/measureConversion()}} is invoked,
     unless this origin is the same as the [=impression site=]
     or [=conversion site=], respectively.
