@@ -562,10 +562,13 @@ Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 
 1.  Collect the implicit API inputs from the [=relevant settings object=]:
     1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=impression site=] is set to the [=site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to the [=site=] from [=origin=]
-        if that is not [=same site=] with the [=top-level origin=].
-        Otherwise, the value is `undefined`.
+    2.  The [=impression site=] is set to the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    3.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
 1.  Validate the page-supplied API inputs:
     1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
@@ -694,10 +697,13 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 1.  Collect the implicit API inputs from the [=relevant settings object=]:
     1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=conversion site=] is set to the [=site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to the [=site=] from [=origin=]
-        if that is not [=same site=] with the [=top-level origin=].
-        Otherwise, the value is `undefined`.
+    2.  The [=conversion site=] is set to the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    3.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
 1. Validate the page-supplied API inputs:
     1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
         is specified, and the value is anything other than
@@ -1574,7 +1580,9 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: same site
     text: site
     text: top-level origin; url: #concept-environment-top-level-origin
-urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn; text: user agent
+urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
+    text: user agent
+    text: obtain a site
 </pre>
 <pre class=biblio>
 {
