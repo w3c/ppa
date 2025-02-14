@@ -439,7 +439,7 @@ partial interface Navigator {
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
 The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
-contains a list of aggregation services supported by the [=user agent=]. The page
+contains a set of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 It may also be useful to query the supported services
@@ -618,9 +618,9 @@ navigator.privateAttribution.measureConversion({
   lookbackDays: 30,
   // an optional filter to restrict the set of ads that can be attributed
   filterData: 2,
-  // an optional list of sites where impressions might have been registered
+  // an optional set of sites where impressions might have been registered
   impressionSites: ["publisher.example"],
-  // an optional list of sites which called the saveImpression API
+  // an optional set of sites which called the saveImpression API
   intermediarySites: ["ad-tech.example"],
 });
 </pre>
@@ -683,10 +683,10 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A list of impression sites. Only [=impressions=] recorded where the [=impression site=] is on this list are eligible to match this [=conversion=].</dd>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is on this set are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
     Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
     are eligible to match this [=conversion=].
   </dd>
@@ -732,7 +732,7 @@ Filter Data: The {{PrivateAttributionConversionOptions/filterData}} value passed
 Impression Site: The [=impression site=] where <a>saveImpression()</a> was called.
 Intermediary Site: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
-Conversion Sites: The [=conversion sites=] that were passed to <a>saveImpression()</a>.
+Conversion Sites: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
 Timestamp: The time at which <a>saveImpression()</a> was called.
 Lifetime: The number of days an [=/impression=] remains eligible for attribution,
 Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
@@ -1583,6 +1583,7 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
     text: obtain a site
+    text: set; url: #sets
 </pre>
 <pre class=biblio>
 {
