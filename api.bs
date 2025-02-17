@@ -488,7 +488,7 @@ dictionary PrivateAttributionImpressionOptions {
 
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
+  undefined saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
@@ -606,7 +606,7 @@ dictionary PrivateAttributionConversionOptions {
 
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
+  Promise<Uint8Array> measureConversion(PrivateAttributionConversionOptions options);
 };
 </xmp>
 
