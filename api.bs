@@ -134,7 +134,7 @@ That information flow creates a privacy risk or cost--
 of [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]]--
 that needs to be justified in terms of benefits to end users.
 
-Any benefits realized by end users through the use of [=attribution=] is indirect.
+Any benefits realized by end users through the use of [=attribution=] are indirect.
 
 End users that visit a website
 pay for "free" content or services
@@ -391,7 +391,7 @@ select a supported [=aggregation service=].
 The page may select any of the supported services found in
 <a attribute for=PrivateAttribution>aggregationServices</a>.
 The name of the selected service must be supplied as
-the {{PrivateAttributionConversionOptions/aggregator}} member of the
+the {{PrivateAttributionConversionOptions/aggregationService}} member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
@@ -414,6 +414,33 @@ before registering an impression,
 but that is not required,
 and impressions are not scoped to a single aggregation service.
 
+<div class=example id=ex-find-service>
+
+  A site might have a preference order
+  for the aggregation services that it uses.
+  The following code iterates over a preference list
+  and finds one that the user agent supports.
+
+  <xmp highlight=js>
+  const preferredServices = [
+    "https://aggregator.example/tee",
+    "https://aggregator.example/dap",
+    "https://example.com/aggregator",
+  ];
+  const supportedServices = navigator.privateAttribution?.aggregationServices;
+  const serviceUrl = preferredServices.find(preference => {
+    supportedServices?.some(svc => svc.url === preference)
+  })?.url;
+  </xmp>
+
+  If the user agent supports the URL
+  and if it includes one of the preferred services,
+  the first preferred service is saved
+  in a variable named `serviceUrl`.
+  Otherwise, `serviceUrl` will remain `undefined`.
+
+</div>
+
 <xmp class=idl>
 enum PrivateAttributionProtocol { "dap-12-histogram", "tee-00" };
 
@@ -429,7 +456,7 @@ interface PrivateAttributionAggregationServices {
 
 [SecureContext, Exposed=Window]
 interface PrivateAttribution {
-  readonly attribute PrivateAttributionAggregationServices aggregators;
+  readonly attribute PrivateAttributionAggregationServices aggregationServices;
 };
 </xmp>
 
@@ -440,7 +467,7 @@ contains the following information about each supported aggregation service:
   <dt><dfn>url</dfn></dt>
   <dd>
     A URL that identifies an [=aggregation service=].
-    This value is passed as the {{PrivateAttributionConversionOptions/aggregator}} parameter
+    This value is passed as the {{PrivateAttributionConversionOptions/aggregationService}} parameter
     to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
   </dd>
   <dt><dfn>protocol</dfn></dt>
@@ -561,7 +588,7 @@ contribute to the histogram, i.e., will be uniformly zero.
 <pre>
 navigator.privateAttribution.measureConversion({
   // name of the aggregation service
-  aggregator: "aggregator.example",
+  aggregationService: serviceUrl,
 
   // the number of buckets in the histogram
   histogramSize: 20,
@@ -589,7 +616,7 @@ navigator.privateAttribution.measureConversion({
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
-  required DOMString aggregator;
+  required DOMString aggregationService;
   double epsilon = 1.0;
 
   required unsigned long histogramSize;
@@ -617,10 +644,10 @@ partial interface PrivateAttribution {
 The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as follows:
 
 <dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
-  <dt><dfn>aggregator</dfn></dt>
+  <dt><dfn>aggregationService</dfn></dt>
   <dd>
     A selection from the [=aggregation services=] that can be found in <a
-    attribute for=PrivateAttribution>aggregators</a>.
+    attribute for=PrivateAttribution>aggregationServices</a>.
   </dd>
   <dt><dfn>epsilon</dfn></dt>
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
@@ -941,7 +968,7 @@ its reliance on client-provided proofs of correctness for inputs.
 This allows for very efficient MPC operation
 at a modest cost in the size of submissions to the system.
 
-An aggregator that uses Multi-Party Computation (MPC)
+An aggregation service that uses Multi-Party Computation (MPC)
 comprises two or more independent services
 that cooperate to compute a predefined function.
 
@@ -991,7 +1018,7 @@ Several extensions to DAP [[DAP-EXT]] are necessary for this application:
     by aggregating reports from multiple sites together.
 
 *   [[DAP-EXT#name-privacy-budget-consumption|Privacy budget consumption]]
-    ensures that the aggregator does not aggregate reports
+    ensures that the aggregation service does not aggregate reports
     that received less privacy budget
     than the aggregation task was configured with.
 
