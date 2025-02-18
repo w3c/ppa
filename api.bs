@@ -488,7 +488,7 @@ dictionary PrivateAttributionImpressionOptions {
 
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] undefined saveImpression(PrivateAttributionImpressionOptions options);
+  undefined saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
@@ -515,8 +515,8 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     site.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
-    A "time to live" (in days) after which the [=impression=] can no longer
-    receive attribution.
+    A non-zero "time to live" (in days) after which the [=impression=] can no
+    longer receive attribution.
     If not specified, the default is 30 days.
     The [=user agent=] should impose an upper limit on the lifetime,
     and silently reduce the value specified here if it exceeds that limit.
@@ -525,11 +525,17 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 
 ### Operation ### {#save-impression-api-operation}
 
+Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
+
 1.  Collect the implicit API inputs:
     1. The current timestamp
-    2. The impression site domain
-    3. The iframe site domain
-1.  Validate the page-supplied API inputs
+    1. The impression site domain
+    1. The iframe site domain
+1.  Validate the page-supplied API inputs:
+    1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
+        throw a {{RangeError}}.
+    1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
+        the [=user agent=]'s upper limit.
 1.  If the private attribution API is enabled, save the impression to the
     [=impression store=].
 
@@ -604,7 +610,7 @@ dictionary PrivateAttributionConversionResult {
 
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  [Throws] Promise<PrivateAttributionConversionResult> measureConversion(PrivateAttributionConversionOptions options);
+  Promise<PrivateAttributionConversionResult> measureConversion(PrivateAttributionConversionOptions options);
 };
 </xmp>
 
