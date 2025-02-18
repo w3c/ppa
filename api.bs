@@ -418,7 +418,7 @@ and impressions are not scoped to a single aggregation service.
 
   A site might have a preference order
   for the aggregation services that it uses.
-  The following code iterates of a preference list
+  The following code iterates over a preference list
   and finds one that the user agent supports.
 
   <xmp highlight=js>
