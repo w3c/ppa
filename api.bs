@@ -757,19 +757,18 @@ for=PrivateAttribution>measureConversion()</a> method to find matching
 
 ### Contents ### {#impression-store-contents}
 
-The [=impression store=] must store the following information:
+The [=impression store=] is a [=set=] of [=impression|impressions=]:
 
-<div link-for-hint=PrivateAttribution>
+<div dfn-for=impression link-for-hint=PrivateAttribution>
 <pre class=simpledef>
-Filter Data: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
-Impression Site: The [=impression site=] where <a>saveImpression()</a> was called.
-Intermediary Site: The [=intermediary site=] that called <a>saveImpression()</a>,
+<dfn>Filter Data</dfn>: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
+<dfn>Impression Site</dfn>: The [=impression site=] where <a>saveImpression()</a> was called.
+<dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
-Conversion Sites: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
-Timestamp: The time at which <a>saveImpression()</a> was called.
-Lifetime: The number of days an [=/impression=] remains eligible for attribution,
-Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
-Histogram Index: The histogram index passed to <a>saveImpression()</a>.
+<dfn>Conversion Sites</dfn>: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
+<dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
+<dfn>Lifetime</dfn>: The number of days an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
+<dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
 </pre>
 </div>
 
@@ -869,17 +868,18 @@ To <dfn>do attribution and fill a histogram</dfn>, given
   <a dictionary lt=PrivateAttributionConversionOptions>|options|</a> and
   a [=site=] |topLevelSite|:
 
-1.  Initialize |matchedImpressions| to the empty [=set=].
+1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
 1.  For each |epoch| starting from the oldest [=epoch=] supported by the
     [=user agent=] to the current [=privacy budget epoch=]:
+    <!-- TODO: Clarify how epoch iteration works. -->
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
         with |options|, |epoch|, and |now|.
 
-    1.  If |impressions| is not empty:
+    1.  If |impressions| [=set/is empty|is not empty=]:
 
         1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
 
@@ -890,10 +890,11 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
-1. If |matchedImpressions| [=set/is empty=], return the all-zero histogram containing
-    |options|.{{PrivateAttributionConversionOptions/histogramSize}} values.
+1.  If |matchedImpressions| [=set/is empty=], return the the result of invoking
+    [=create an all-zero histogram=] with
+    |options|.{{PrivateAttributionConversionOptions/histogramSize}}.
 
-1. Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
+1.  Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
       <dl class="switch">
       : "`last-touch`"
       :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
@@ -904,20 +905,26 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 
 To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
-  [=impressions=] |matchedImpressions|, a |histogramSize|, and a |value|:
+  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
 
-1. [=assert=] |matchedImpressions| is [=set/is empty|not empty=].
+1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
 
-1.  Set |impression| to the value in |matchedImpressions| with the most recent
-    |impression|.timestamp.
+1.  Let |impression| be the value in |matchedImpressions| with the most recent
+    [=impression/timestamp=].
 
-1.  If |histogramSize| is less than or equal to |impression|.<var ignore=''>histogramIndex</var>,
-    return the all-zero histogram containing |histogramSize| values.
+1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
+    with |histogramSize|.
 
-1.  Return a histogram containing |histogramSize| values, with a value of |value| at an index of
-    |impression|.{{PrivateAttributionImpressionOptions/histogramIndex}},
-    and a value of zero at all other indices.
+1.  Let |index| be |impression|'s [=impression/histogram index=].
 
+1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
+
+1.  Return |histogram|.
+
+
+To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
+
+1.  Return a [=list=] of [=list/size=] |size|, whose [=list/items=] are all 0.
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
@@ -925,28 +932,32 @@ TODO specify how to match using "lookbackDays", "filterData" and "impressionSite
 
 Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
 
-To perform <dfn>common matching logic</dfn>,
-given |options|, |epoch|, and [=moment=] |now|:
+To perform <dfn>common matching logic</dfn>, given
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, |epoch|, and
+[=moment=] |now|:
 
-1.  If number of days since the end of |epoch| exceeds |lookbackDays|,
-    return an empty set.
+<!-- TODO: |lookbackDays| is used before being declared. -->
 
-1.  Initialize |matching| to an empty set.
+1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
-1.  For each |impression| in the saved impressions for the |epoch|:
+1.  If the number of days since the end of |epoch| exceeds |lookbackDays|,
+    return |matching|.<!-- TODO: Define a day -->
 
-    1.  If |now| - |lookbackDays| is after |impression|.timestamp,
-        continue the loop.
+1.  [=set/iterate|For each=] |impression| in the [=impression store=] for the |epoch|:
+<!-- TODO: Clarify "for the |epoch|" -->
+
+    1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
+        [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/filterData}}
-        does not match |impression|.filterData,
-        continue the loop.
+        does not match |impression|'s [=impression/filter data=],
+        [=iteration/continue=].<!-- TODO: Clarify "does not match" -->
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
-        does not contain |impression|.impressionSite,
-        continue the loop.
+        does not [=list/contain=] |impression|'s [=impression/impression site=],
+        [=iteration/continue=].
 
-    1.  Add |impression| to |matching|.
+    1.  [=set/Append=] |impression| to |matching|.
 
 1.  Return |matching|.
 
