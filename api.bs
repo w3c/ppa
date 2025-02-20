@@ -373,7 +373,7 @@ Upon receiving a set of encrypted histograms from a site, the aggregation servic
 
 
 
-# API Details # {#api}
+# API Usage # {#api}
 
 A site using the Private Attribution API will typically register either
 [=impressions=] or [=conversions=], but in some cases the same site may
@@ -748,6 +748,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 1. Return the encrypted report.
 
 
+# API Internals # {#api-internals}
+
 ## Impression Store ## {#s-impression-store}
 
 The <dfn>impression store</dfn> is used by the <a method
@@ -961,15 +963,15 @@ To perform <dfn>common matching logic</dfn>, given
 
 1.  Return |matching|.
 
-
 ## User Control and Visibility ## {#user-control}
 
+<p class=issue>
+Consider merging this section with [[#privacy-opt-out]].
 
 ### Optional Participation ### {#opt-out}
 
-* Users should be able to opt out. Opt out should be undetectable.
 
-Text fragment moved from privacy section:
+* Users should be able to opt out. Opt out should be undetectable.
 
 This mechanism may be a dedicated control
 for the Private Attribution API,
