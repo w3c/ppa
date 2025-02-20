@@ -1524,8 +1524,11 @@ using {{PrivateAttributionConversionOptions/filterData}}
 or other fields.
 The API does not prevent sites from encoding user identifiers
 in these fields.
-It is important that identifiers in the filter data cannot be (mis)used
-for arbitrary tracking. The following measures mitigate this risk:
+The attribution process can use this data
+when constructing a [=conversion report=],
+which implies some risk of that identifying information
+becoming available to the site that receives that report.
+The following measures mitigate this risk:
 
 *   The impression store can not be read directly.
     Thus, identifiers are only usable for tracking
