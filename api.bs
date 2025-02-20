@@ -412,12 +412,12 @@ Three types of sites are recognized:
     of the [=relevant settings object=]
     at the time that {{PrivateAttribution/measureConversion()}} is invoked.
 
-*   A <dfn>intermediary site</dfn> is the [=site=]
+*   An <dfn>intermediary site</dfn> is the [=site=]
     derived from the [=origin=]
     of the [=relevant settings object=]
     at the time that either {{PrivateAttribution/saveImpression()}}
     or {{PrivateAttribution/measureConversion()}} is invoked,
-    unless this origin is the same as the [=impression site=]
+    unless this origin is [=same site=] with the [=impression site=]
     or [=conversion site=], respectively.
 
 This API uses [=site=] rather than [=origin=]
@@ -683,7 +683,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is on this set are eligible to match this [=conversion=].</dd>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
     A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
