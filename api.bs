@@ -1632,6 +1632,31 @@ this difference cannot be detected
 by the site receiving the conversion report.
 
 
+## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
+
+Sites are able to encode some amount of data
+in impressions,
+using {{PrivateAttributionConversionOptions/filterData}}
+or other fields.
+The API does not prevent sites from encoding user identifiers
+in these fields.
+The attribution process can use this data
+when constructing a [=conversion report=],
+which implies some risk of that identifying information
+becoming available to the site that receives that report.
+The following measures mitigate this risk:
+
+*   The impression store cannot be read directly.
+    Thus, identifiers are only usable for tracking
+    to the extent information about them
+    is revealed in [=conversion reports=].
+*   The information in [=conversion reports=] is only revealed
+    after aggregation and the addition of noise.
+*   Users have the ability to [[#impression-store-clearing|clear the impression store]].
+*   No impressions are saved to the impression store
+    when the Private Attribution API is [[#opt-out|disabled]].
+
+
 ## Use in Third-party Contexts ## {#privacy-third-party-contexts}
 
 The Private Attribution API is available even in third-party contexts.
