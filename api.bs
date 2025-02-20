@@ -395,6 +395,39 @@ the {{PrivateAttributionConversionOptions/aggregationService}} member of the
 {{PrivateAttributionConversionOptions}} dictionary when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 
+## Site Identities ## {#sites}
+
+This API relies on the HTML definition of [=site=]
+as the primary scope over which it operates.
+Three types of sites are recognized:
+
+*   An <dfn>impression site</dfn> is the [=site=]
+    derived from the [=top-level origin=]
+    of the [=relevant settings object=]
+    at the time that {{PrivateAttribution/saveImpression()}}
+    is invoked to store an [=impression=].
+
+*   A <dfn>conversion site</dfn> is the [=site=]
+    derived from the [=top-level origin=]
+    of the [=relevant settings object=]
+    at the time that {{PrivateAttribution/measureConversion()}} is invoked.
+
+*   An <dfn>intermediary site</dfn> is the [=site=]
+    derived from the [=origin=]
+    of the [=relevant settings object=]
+    at the time that either {{PrivateAttribution/saveImpression()}}
+    or {{PrivateAttribution/measureConversion()}} is invoked,
+    unless this origin is [=same site=] with the [=impression site=]
+    or [=conversion site=], respectively.
+
+This API uses [=site=] rather than [=origin=]
+because it depends on associating all activity
+that might have privacy consequences with a single entity.
+Features like cookies allow privacy-relevant information
+to be exchanged freely by [=same site=] [=origins=],
+which could otherwise be used to exceed [=privacy budgets=].
+
+
 ## Navigator Interface ## {#navigator-interface}
 
 <xmp class=idl>
@@ -406,7 +439,7 @@ partial interface Navigator {
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
 The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
-contains a list of aggregation services supported by the [=user agent=]. The page
+contains a set of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
 <a method for=PrivateAttribution>measureConversion()</a> method.
 It may also be useful to query the supported services
@@ -554,10 +587,15 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 
 Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 
-1.  Collect the implicit API inputs:
-    1. The current timestamp
-    1. The impression site domain
-    1. The iframe site domain
+1.  Collect the implicit API inputs from the [=relevant settings object=]:
+    1.  The timestamp is set to the [=current high resolution time=].
+    2.  The [=impression site=] is set to the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    3.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
 1.  Validate the page-supplied API inputs:
     1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
@@ -607,9 +645,9 @@ navigator.privateAttribution.measureConversion({
   lookbackDays: 30,
   // an optional filter to restrict the set of ads that can be attributed
   filterData: 2,
-  // an optional list of sites where impressions might have been registered
+  // an optional set of sites where impressions might have been registered
   impressionSites: ["publisher.example"],
-  // an optional list of sites which called the saveImpression API
+  // an optional set of sites which called the saveImpression API
   intermediarySites: ["ad-tech.example"],
 });
 </pre>
@@ -676,11 +714,11 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A list of impression sites. Only [=impressions=] recorded where the top-level site is on this list are eligible to match this [=conversion=].</dd>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A list of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
-    Only [=impressions=] recorded by scripts originating from one of the intermediary sites
+    A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
     are eligible to match this [=conversion=].
   </dd>
 </dl>
@@ -688,11 +726,16 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 ### Operation ### {#measure-conversion-api-operation}
 
-1. Collect the implicit API inputs
-    1. The current timestamp
-    2. The conversion site domain
-    3. The iframe site domain
-1. Validate the page-supplied API inputs
+1.  Collect the implicit API inputs from the [=relevant settings object=]:
+    1.  The timestamp is set to the [=current high resolution time=].
+    2.  The [=conversion site=] is set to the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    3.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
+1. Validate the page-supplied API inputs:
     1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
         is specified, and the value is anything other than
         <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
@@ -714,12 +757,13 @@ for=PrivateAttribution>measureConversion()</a> method to find matching
 
 The [=impression store=] must store the following information:
 
-<div link-for=PrivateAttribution>
+<div link-for-hint=PrivateAttribution>
 <pre class=simpledef>
 Filter Data: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
-Impression Site: The site that called <a>saveImpression()</a>.
-Intermediary Site: The site corresponding to the script that called <a>saveImpression()</a>.
-Conversion Sites: The conversion site(s) that were passed to <a>saveImpression()</a>.
+Impression Site: The [=impression site=] where <a>saveImpression()</a> was called.
+Intermediary Site: The [=intermediary site=] that called <a>saveImpression()</a>,
+    or `undefined` if the API was invoked by the [=impression site=].
+Conversion Sites: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
 Timestamp: The time at which <a>saveImpression()</a> was called.
 Lifetime: The number of days an [=/impression=] remains eligible for attribution,
 Lifetime: either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
@@ -795,7 +839,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
-1.  For each |epoch| starting from the oldest epoch supported by the
+1.  For each |epoch| starting from the oldest [=epoch=] supported by the
     [=user agent=] to the current [=privacy budget epoch=]:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
@@ -925,8 +969,8 @@ it does not enable delegation of a portion of privacy budget.
 
 * Management and distribution of values for the following:
     * Histogram size
-    * Conversion site for impressions
-    * Impression site for conversions
+    * [=Conversion site=] for [=impressions=]
+    * [=Impression site=] for [=conversions=]
     * Ad IDs
 
 # Aggregation # {#aggregation}
@@ -1071,7 +1115,7 @@ it is necessary to define what information is protected.
 In this system, the protected information is
 the [=impressions=] of a single user profile,
 on a single [=user agent=],
-over a single [=privacy budget epoch=],
+over a single [=epoch=],
 for a single website that registers [=conversions=].
 [[#dp-unit]] describes the implications of this design
 in more detail.
@@ -1122,12 +1166,12 @@ that is the combination of three values:
     are not considered.
     Those sites do not receive information from this system directly.
 
-3.  The current [=privacy budget epoch=].
+3.  The current [=epoch=].
 
 A change to any of these values produces a new privacy unit,
 which results in a separate [=privacy budget=].
 Each site that a person visits receives a bounded amount of information
-for each epoch.
+for each [=epoch=].
 
 Ideally, the [=privacy unit=] is a single person.
 Though ideal, it is not possible to develop a useful system
@@ -1186,29 +1230,32 @@ to protect against those attacks.
 
 ### Privacy Budget Epochs ### {#dp-refresh}
 
-Sites receive a separate differential privacy budget for the data in every
-time interval called an epoch. The <dfn>privacy budget epoch</dfn> length is
-one week (604800 seconds).
+Sites receive a separate differential privacy budget
+that is used to query [=impressions=] recorded
+in each time interval.
+This period is called a <dfn local-lt=epoch>privacy budget epoch</dfn>
+(or simply [=epoch=])
+and its duration is one week (604800 seconds).
 
 This budget applies to the [=impressions=]
-that are registered with the user agent
+that are registered with the [=user agent=]
 and later queried,
 not conversions.
 
 From the perspective of the analysis [[PPA-DP]]
-each epoch of impressions forms a separate database.
+each [=epoch=] of [=impressions=] forms a separate database.
 A finite [=privacy budget=] is enforced across all the queries made on each database.
 
-Having a [=conversion report=] produced from impressions
-that span multiple epochs has privacy consequences.
+Having a [=conversion report=] produced from [=impressions=]
+that span multiple [=epochs=] has privacy consequences.
 A single visit to a website can give that site information
-about activities across many epochs.
+about activities across many [=epochs=].
 This only requires that
-the conversion site is identified as the destination
-for impressions over that entire period.
-The number of epochs that can be queried is limited by [=user agents=].
+the [=conversion site=] is identified as the destination
+for [=impressions=] over that entire period.
+The number of [=epochs=] that can be queried is limited by [=user agents=].
 
-The goal is to set an epoch
+The goal is to set an [=epoch=]
 that is as large as feasible.
 A longer period of time allows for a better privacy/utility balance
 because sites can be allocated a larger overall budget
@@ -1218,9 +1265,9 @@ However, a longer interval means that it is easier to
 exhaust a privacy budget completely,
 yield no information until the next refresh.
 
-The choice of a week is largely arbitrary.
+The decision to set the [=epoch=] duration to a week is largely arbitrary.
 One week is expected to be enough to allow sites
-the ability to make decisions about how to spend [=privacy budgets=]
+some flexibility to make decisions about how to spend [=privacy budgets=]
 without careful planning that needs to account for
 changes that might occur days or weeks in the future.
 
@@ -1557,9 +1604,17 @@ The broad shape of this level of the API is based on an idea from Luke Winstrom.
 The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 
-<pre class=link-defaults>
-spec:html; type:dfn; text:site
-spec:infra; type:dfn; text:user agent
+<pre class=anchors>
+urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
+    text: origin; url: #concept-origin
+    text: relevant settings object
+    text: same site
+    text: site
+    text: top-level origin; url: #concept-environment-top-level-origin
+urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
+    text: user agent
+    text: obtain a site
+    text: set; url: #sets
 </pre>
 <pre class=biblio>
 {
