@@ -1516,24 +1516,25 @@ this difference cannot be detected
 by the site receiving the conversion report.
 
 
-## Placing Identifiers in Filter Data ## {#privacy-filter-data}
+## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
 
-Because {{PrivateAttributionConversionOptions/filterData}}
-may contain arbitrary information, it is possible to place identifiers
-(e.g. of a user or an advertisement) in this field.
+Sites are able to encode some amount of data
+in impressions,
+using {{PrivateAttributionConversionOptions/filterData}}
+or other fields.
+The API does not prevent sites from encoding user identifiers
+in these fields.
 It is important that identifiers in the filter data cannot be (mis)used
 for arbitrary tracking. The following measures mitigate this risk:
 
 *   The impression store can not be read directly.
-    Thus, identifiers in filter data are only usable for tracking
+    Thus, identifiers are only usable for tracking
     to the extent information about them
     is revealed in [=conversion reports=].
-*   Filter data are scoped
-    to a specific set of impression and conversion sites.
-    It is not possible to use the filter data for tracking across
-    arbitrary sites.
+*   The information in [=conversion reports=] is only revealed
+    after aggregation and the addition of noise.
 *   Users have the ability to [[#impression-store-clearing|clear the impression store]].
-*   Filter data are not written to the impression store
+*   No impressions are saved to the impression store
     when the Private Attribution API is [[#opt-out|disabled]].
 
 
