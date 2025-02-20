@@ -543,7 +543,7 @@ navigator.privateAttribution.saveImpression({
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
-  required unsigned long filterData;
+  unsigned long filterData = 0;
   required DOMString conversionSite;
   unsigned long lifetimeDays = 30;
 };
