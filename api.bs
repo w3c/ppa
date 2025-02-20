@@ -834,7 +834,7 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 [=float=] |epsilon|, integer |sensitivity|, and integer |globalSensitivity|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
-     its value of |key| to be a [=user-agent=]-defined value.
+     its value of |key| to be a [=user agent=]-defined value.
 
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
