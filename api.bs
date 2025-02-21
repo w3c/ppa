@@ -13,7 +13,6 @@ Complain About: accidental-2119 yes, missing-example-ids yes
 Markup Shorthands: markdown yes, css no, dfn yes
 Assume Explicit For: yes
 Org: W3C
-!Group: pat
 Status: ED
 Level: None
 </pre>
@@ -885,7 +884,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
         1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
 
-        1.  Let |budgetOk| be the result of [=deduct privacy budget=] 
+        1.  Let |budgetOk| be the result of [=deduct privacy budget=]
             with |key|, |options|.{{PrivateAttributionConversionOptions/epsilon}},
             |options|.{{PrivateAttributionConversionOptions/value}},
             and |options|.{{PrivateAttributionConversionOptions/maxValue}}.
