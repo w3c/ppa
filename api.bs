@@ -747,6 +747,33 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 1. Return the encrypted report.
 
 
+## Permissions Policy Integration ## {#permission-policy}
+
+This specification defines two [=policy-controlled features=]:
+
+*   Invocation of the <a method for=PrivateAttribution>saveImpression()</a> API,
+    identified by the string "<code><dfn export for="PermissionPolicy"
+    enum-value>save-impression</dfn></code>".
+*   Invocation of the <a method for=PrivateAttribution>measureConversion()</a> API,
+    identified by the string "<code><dfn export for="PermissionPolicy"
+    enum-value>measure-conversion</dfn></code>".
+
+The [=policy-controlled feature/default allowlist=] for both of these features is
+<code><a dfn for="default allowlist">*</a></code>.
+
+<p class=note>Having separate permissions for
+<a method for=PrivateAttribution>saveImpression()</a> and
+<a method for=PrivateAttribution>measureConversion()</a>
+allows pages that do both to limit subresources
+to the expected kind of activity.
+
+<p class=note>Enabling permissions by default
+simplifies the task of integrating external services.
+
+<p class=note>Permissions policy provides only all-or-nothing control,
+it does not enable delegation of a portion of privacy budget.
+
+
 # API Internals # {#api-internals}
 
 ## Impression Store ## {#s-impression-store}
@@ -986,33 +1013,6 @@ if the user has opted out of collection of diagnostic data.
 ### Visibility ### {#visibility}
 
 * User ability to view the impression store and past report submissions.
-
-
-# Permissions Policy Integration # {#permission-policy}
-
-This specification defines two [=policy-controlled features=]:
-
-*   Invocation of the <a method for=PrivateAttribution>saveImpression()</a> API,
-    identified by the string "<code><dfn export for="PermissionPolicy"
-    enum-value>save-impression</dfn></code>".
-*   Invocation of the <a method for=PrivateAttribution>measureConversion()</a> API,
-    identified by the string "<code><dfn export for="PermissionPolicy"
-    enum-value>measure-conversion</dfn></code>".
-
-The [=policy-controlled feature/default allowlist=] for both of these features is
-<code><a dfn for="default allowlist">*</a></code>.
-
-<p class=note>Having separate permissions for
-<a method for=PrivateAttribution>saveImpression()</a> and
-<a method for=PrivateAttribution>measureConversion()</a>
-allows pages that do both to limit subresources
-to the expected kind of activity.
-
-<p class=note>Enabling permissions by default
-simplifies the task of integrating external services.
-
-<p class=note>Permissions policy provides only all-or-nothing control,
-it does not enable delegation of a portion of privacy budget.
 
 
 # Implementation Considerations # {#implementation-considerations}
