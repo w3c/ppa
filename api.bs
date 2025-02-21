@@ -950,9 +950,9 @@ To perform <dfn>common matching logic</dfn>, given
     1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
         [=iteration/continue=].
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}}
-        does not match |impression|'s [=impression/filter data=],
-        [=iteration/continue=].<!-- TODO: Clarify "does not match" -->
+    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=map/exists=],
+        and it is not equal to |impression|'s [=impression/filter data=],
+        [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
         does not [=list/contain=] |impression|'s [=impression/impression site=],
