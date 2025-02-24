@@ -576,7 +576,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     site.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
-    A non-zero "time to live" (in days) after which the [=impression=] can no
+    A positive "time to live" (in days) after which the [=impression=] can no
     longer receive attribution.
     If not specified, the default is 30 days.
     The [=user agent=] should impose an upper limit on the lifetime,
@@ -590,9 +590,9 @@ Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 
 1.  Collect the implicit API inputs from the [=relevant settings object=]:
     1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=impression site=] is set to the result of
+    1.  The [=impression site=] is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to
+    1.  The [=intermediary site=] is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
@@ -602,8 +602,8 @@ Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
         throw a {{RangeError}}.
     1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
-1.  If the private attribution API is enabled, save the impression to the
-    [=impression store=].
+1.  If the private attribution API is [[#opt-out|enabled]], save the impression
+    to the [=impression store=].
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
@@ -711,7 +711,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     to expend on this [=conversion report=].
   </dd>
   <dt><dfn>lookbackDays</dfn></dt>
-  <dd>An integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=].</dd>
+  <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to infinity.</dd>
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
@@ -727,22 +727,28 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 ### Operation ### {#measure-conversion-api-operation}
 
+Given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+
 1.  Collect the implicit API inputs from the [=relevant settings object=]:
-    1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=conversion site=] is set to the result of
+    1.  Let |now| be the [=current high resolution time=].
+    1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to
+    1.  The [=intermediary site=] is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
              [=obtain a site|obtaining a site=] from the [=origin=].
+        <!-- TODO: the intermediate site is currently unused -->
 1. Validate the page-supplied API inputs:
     1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
         is specified, and the value is anything other than
         <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
-        return an error.
-1.  If the private attribution API is enabled,
-    invoke the routine to [=do attribution and fill a histogram=].
+        throw a {{TypeError}}.
+    1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
+        throw a {{RangeError}}.
+1.  If the private attribution API is [[#opt-out|enabled]],
+    invoke the routine to [=do attribution and fill a histogram=] with
+    |options|, |topLevelSite|, and |now|.
 1. Encrypt the report.
 1. Return the encrypted report.
 
@@ -893,12 +899,10 @@ after the [=common matching logic=] is applied, and privacy budgeting occurs.
 
 
 To <dfn>do attribution and fill a histogram</dfn>, given
-  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a> and
-  a [=site=] |topLevelSite|:
+  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
+  [=site=] |topLevelSite|, and [=moment=] |now|:
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
-
-1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
 1.  For each |epoch| starting from the oldest [=epoch=] supported by the
     [=user agent=] to the current [=privacy budget epoch=]:
@@ -956,20 +960,17 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
-TODO specify how to match using "lookbackDays", "filterData" and "impressionSites".
-
-Discuss "infinite" lookbackDays. Clarify when it apples. When field is missing? Zero?
-
 To perform <dfn>common matching logic</dfn>, given
 <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, |epoch|, and
 [=moment=] |now|:
 
-<!-- TODO: |lookbackDays| is used before being declared. -->
-
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
-1.  If the number of days since the end of |epoch| exceeds |lookbackDays|,
-    return |matching|.<!-- TODO: Define a day -->
+1.  Let |lookbackDays| be |options|.{{PrivateAttributionConversionOptions/lookbackDays}}
+    if it [=map/exists=], infinity otherwise.
+
+1.  If the number of [=days=] since the end of |epoch| exceeds |lookbackDays|,
+    return |matching|.
 
 1.  [=set/iterate|For each=] |impression| in the [=impression store=] for the |epoch|:
 <!-- TODO: Clarify "for the |epoch|" -->
@@ -1285,7 +1286,7 @@ that is used to query [=impressions=] recorded
 in each time interval.
 This period is called a <dfn local-lt=epoch>privacy budget epoch</dfn>
 (or simply [=epoch=])
-and its duration is one week (604800 seconds).
+and its duration is one week (7 days), where a <dfn>day</dfn> is 86400 seconds.
 
 This budget applies to the [=impressions=]
 that are registered with the [=user agent=]
