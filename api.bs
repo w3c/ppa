@@ -738,7 +738,7 @@ Given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
              with the [=top-level origin=],
         1.   otherwise, the result of
              [=obtain a site|obtaining a site=] from the [=origin=].
-        <!-- TODO: the intermediate site is currently unused -->
+        <!-- TODO: the intermediary site is currently unused -->
 1. Validate the page-supplied API inputs:
     1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
         is specified, and the value is anything other than
