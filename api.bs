@@ -1681,6 +1681,7 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 <pre class=anchors>
 urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
+    text: obtain a site
     text: origin; url: #concept-origin
     text: relevant settings object
     text: same site
@@ -1688,7 +1689,6 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: top-level origin; url: #concept-environment-top-level-origin
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
-    text: obtain a site
     text: set; url: #sets
 </pre>
 <pre class=biblio>
