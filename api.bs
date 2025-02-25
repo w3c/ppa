@@ -479,7 +479,7 @@ and impressions are not scoped to a single aggregation service.
 enum PrivateAttributionProtocol { "dap-12-histogram", "tee-00" };
 
 dictionary PrivateAttributionAggregationService {
-  required DOMString url;
+  required USVString url;
   required DOMString protocol;
 };
 
@@ -543,7 +543,7 @@ navigator.privateAttribution.saveImpression({
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long filterData = 0;
-  required DOMString conversionSite;
+  required USVString conversionSite;
   unsigned long lifetimeDays = 30;
 };
 
@@ -685,7 +685,7 @@ contribute to the histogram, i.e., will be uniformly zero.
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
-  required DOMString aggregationService;
+  required USVString aggregationService;
   double epsilon = 1.0;
 
   required unsigned long histogramSize;
