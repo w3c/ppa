@@ -711,7 +711,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     to expend on this [=conversion report=].
   </dd>
   <dt><dfn>lookbackDays</dfn></dt>
-  <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to infinity.</dd>
+  <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
@@ -967,7 +967,7 @@ To perform <dfn>common matching logic</dfn>, given
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
 1.  Let |lookbackDays| be |options|.{{PrivateAttributionConversionOptions/lookbackDays}}
-    if it [=map/exists=], infinity otherwise.
+    if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 
 1.  If the number of [=days=] since the end of |epoch| exceeds |lookbackDays|,
     return |matching|.
