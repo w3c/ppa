@@ -746,11 +746,13 @@ Given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
         throw a {{TypeError}}.
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
-1.  If the private attribution API is [[#opt-out|enabled]],
-    invoke the routine to [=do attribution and fill a histogram=] with
-    |options|, |topLevelSite|, and |now|.
-1. Encrypt the report.
-1. Return the encrypted report.
+1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
+1.  If the private attribution API is [[#opt-out|enabled]], set |report| to the
+    result of [=do attribution and fill a histogram=] with |options|,
+    |topLevelSite|, and |now|.
+1. Let |encryptedReport| be the result of encrypting |report|.
+<!-- TODO: Define "encrypting" -->
+1. Return |encryptedReport|.
 
 
 ## Permissions Policy Integration ## {#permission-policy}
