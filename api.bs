@@ -543,7 +543,7 @@ navigator.privateAttribution.saveImpression({
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long filterData = 0;
-  required DOMString conversionSite;
+  required sequence<DOMString> conversionSites;
   unsigned long lifetimeDays = 30;
 };
 
@@ -568,10 +568,10 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     can be used to identify which impressions may receive attribution
     from a [=conversion=].
   </dd>
-  <dt><dfn>conversionSite</dfn></dt>
+  <dt><dfn>conversionSites</dfn></dt>
   <dd>
-    The site where [=conversions=] for this impression may occur, identified by
-    its domain name. The <a method for=PrivateAttribution>measureConversion()</a>
+    The sites where [=conversions=] for this impression may occur, identified by
+    domain name. The <a method for=PrivateAttribution>measureConversion()</a>
     method will only attribute to this impression when called by the indicated
     site.
   <dt><dfn>lifetimeDays</dfn></dt>
@@ -584,26 +584,35 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   </dd>
 </dl>
 
-### Operation ### {#save-impression-api-operation}
+The <dfn for=PrivateAttribution method>saveImpression(|options|)</dfn> method steps are:
 
-Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
-
-1.  Collect the implicit API inputs from the [=relevant settings object=]:
-    1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=impression site=] is set to the result of
-        [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to
-        1.   a value of `undefined` if the [=origin=] is [=same site=]
-             with the [=top-level origin=],
-        1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
+1.  Let |settings| be [=this=]'s [=relevant settings object=].
+1.  Let |origin| be |settings|'s [=origin=].
+1.  Let |topLevelOrigin| be |settings|'s [=top-level origin=].
 1.  Validate the page-supplied API inputs:
     1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
-    1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
-        the [=user agent=]'s upper limit.
-1.  If the private attribution API is enabled, save the impression to the
-    [=impression store=].
+1.  Let |impression| be a new [=impression=] with the following items:
+    : filter data
+    :: |options|.{{PrivateAttributionImpressionOptions/filterData}}
+    : impression site
+    :: The result of [=obtain a site|obtaining a site=] from |topLevelOrigin|.
+    : intermediary site
+    :: A value of `undefined` if |origin| is [=same site=] with |topLevelOrigin|.
+        Otherwise, the result of [=obtain a site|obtaining a site=] from |origin|.
+    : conversion sites
+    :: The [=set=] resulting from applying [=obtain a site|obtaining a site=] to each element of
+        |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
+    : timestamp
+    :: |settings|'s [=current high resolution time=].
+    : lifetime
+    :: The minimum of |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}}
+        and a [=user agent=] defined limit.
+    : histogram index
+    :: |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}
+
+
+1.  If the private attribution API is enabled, [=set/append=] |impression| to the [=impression store=].
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
@@ -725,26 +734,20 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 </dl>
 
 
-### Operation ### {#measure-conversion-api-operation}
+The <dfn for=PrivateAttribution method>measureConversion(|options|)</dfn> method steps are:
 
 1.  Collect the implicit API inputs from the [=relevant settings object=]:
-    1.  The timestamp is set to the [=current high resolution time=].
-    2.  The [=conversion site=] is set to the result of
+    1.  Let |now| be the [=current high resolution time=].
+    1.  Let |conversionSite| be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    3.  The [=intermediary site=] is set to
-        1.   a value of `undefined` if the [=origin=] is [=same site=]
-             with the [=top-level origin=],
-        1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
-1. Validate the page-supplied API inputs:
-    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
-        is specified, and the value is anything other than
+1.  Validate the page-supplied API inputs:
+    1.  If |options|.{{PrivateAttributionConversionOptions/logic}} has value anything other than
         <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
         return an error.
-1.  If the private attribution API is enabled,
-    invoke the routine to [=do attribution and fill a histogram=].
-1. Encrypt the report.
-1. Return the encrypted report.
+1.  Let |hist| be the [=create an all-zero histogram|all-zero histogram=].
+1.  If the private attribution API is enabled, set |hist| to the
+    result of [=do attribution and fill a histogram=] with |options|, |conversionSite|, and |now|.
+1. Return the result of encrypting |hist|.
 
 
 ## Permissions Policy Integration ## {#permission-policy}
@@ -893,12 +896,10 @@ after the [=common matching logic=] is applied, and privacy budgeting occurs.
 
 
 To <dfn>do attribution and fill a histogram</dfn>, given
-  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a> and
-  a [=site=] |topLevelSite|:
+  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
+  a [=site=] |topLevelSite|, and a [=moment=] |now|:
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
-
-1.  Let |now| be the current time.<!-- TODO: cite HRTIME spec -->
 
 1.  For each |epoch| starting from the oldest [=epoch=] supported by the
     [=user agent=] to the current [=privacy budget epoch=]:
