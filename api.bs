@@ -530,14 +530,37 @@ used by different [=aggregation services=].  This document defines two protocols
 The <dfn method for=PrivateAttribution>saveImpression()</dfn> method requests
 that the [=user agent=] record an [=impression=] in the [=impression store=].
 
-<pre>
-navigator.privateAttribution.saveImpression({
-  histogramIndex: 3,
-  filterData: 2,
-  conversionSite: "advertiser.example",
-  lifetimeDays: 7,
-});
-</pre>
+<div class=example id=ex-save-impression>
+  A site that shows an advertisement for an advertiser
+  can save an impression.
+
+  In this case, the site saves the impression directly,
+  identifying the advertiser (`advertiser.example`)
+  and including information that is negotiated by the advertiser.
+  In the following example,
+  this includes the {{PrivateAttributionImpressionOptions/filterData}} value (2)
+  that the advertiser might later use to select this advertisement,
+  the index of the histogram ({{PrivateAttributionImpressionOptions/histogramIndex}} = 3)
+  into which to include any attributed value,
+  and a retention period ({{PrivateAttributionImpressionOptions/lifetimeDays}} = 7)
+  that is at least as long as the advertiser requires.
+
+  <xmp highlight=js>
+    navigator.privateAttribution.saveImpression({
+      histogramIndex: 3,
+      filterData: 2,
+      conversionSite: "advertiser.example",
+      lifetimeDays: 7,
+    });
+  </xmp>
+
+  Alternatively, an intermediary,
+  such as a Supply-Side Platform (SSP) or Demand-Side Platform (DSP),
+  might call the same API from an [=child navigable|iframe=].
+  Making The same API call from a frame
+  results in saving the [=intermediary site=] identity with the impression.
+
+</div>
 
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
@@ -1690,6 +1713,7 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: same site
     text: site
     text: top-level origin; url: #concept-environment-top-level-origin
+    text: iframe; url: #child-navigable
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
     text: set; url: #sets
