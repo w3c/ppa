@@ -584,33 +584,6 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   </dd>
 </dl>
 
-### Operation ### {#save-impression-api-operation}
-
-Given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
-
-1.  Collect the implicit API inputs from the [=relevant settings object=]:
-    1.  The timestamp is set to the [=current high resolution time=].
-    1.  The [=impression site=] is set to the result of
-        [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    1.  The [=intermediary site=] is set to
-        1.   a value of `undefined` if the [=origin=] is [=same site=]
-             with the [=top-level origin=],
-        1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
-1.  Validate the page-supplied API inputs:
-    1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
-        throw a {{RangeError}}.
-    1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
-        the [=user agent=]'s upper limit.
-1.  If the private attribution API is [[#opt-out|enabled]], save the impression
-    to the [=impression store=].
-
-<p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
-does not return a status indicating whether the impression was recorded.
-This minimizes the ability to detect when the Private Attribution
-API is [[#opt-out|disabled]].
-
-
 ## Requesting Attribution for a Conversion ## {#measure-conversion}
 
 The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
@@ -723,36 +696,6 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     are eligible to match this [=conversion=].
   </dd>
 </dl>
-
-
-### Operation ### {#measure-conversion-api-operation}
-
-Given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
-
-1.  Collect the implicit API inputs from the [=relevant settings object=]:
-    1.  Let |now| be the [=current high resolution time=].
-    1.  Let |topLevelSite| (the [=conversion site=]) be the result of
-        [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    1.  The [=intermediary site=] is set to
-        1.   a value of `undefined` if the [=origin=] is [=same site=]
-             with the [=top-level origin=],
-        1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
-        <!-- TODO: the intermediary site is currently unused -->
-1. Validate the page-supplied API inputs:
-    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
-        is specified, and the value is anything other than
-        <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
-        throw a {{TypeError}}.
-    1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
-        throw a {{RangeError}}.
-1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
-1.  If the private attribution API is [[#opt-out|enabled]], set |report| to the
-    result of [=do attribution and fill a histogram=] with |options|,
-    |topLevelSite|, and |now|.
-1. Let |encryptedReport| be the result of encrypting |report|.
-<!-- TODO: Define "encrypting" -->
-1. Return |encryptedReport|.
 
 
 ## Permissions Policy Integration ## {#permission-policy}
@@ -882,7 +825,68 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 
 1.  Return whether |newValue| is greater than or equal to 0.
 
-## Attribution Logic ## {#s-logic}
+
+
+## Save Impression Algorithm ## {#save-impression-api-operation}
+
+To <dfn>save an impression</dfn>,
+given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
+
+1.  Collect the implicit API inputs from the [=relevant settings object=]:
+    1.  The timestamp is set to the [=current high resolution time=].
+    1.  The [=impression site=] is set to the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    1.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
+1.  Validate the page-supplied API inputs:
+    1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
+        throw a {{RangeError}}.
+    1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
+        the [=user agent=]'s upper limit.
+1.  If the private attribution API is [[#opt-out|enabled]], save the impression
+    to the [=impression store=].
+
+<p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
+does not return a status indicating whether the impression was recorded.
+This minimizes the ability to detect when the Private Attribution
+API is [[#opt-out|disabled]].
+
+
+## Measure Conversion Algorithm ## {#measure-conversion-api-operation}
+
+To <dfn>measure a conversion</dfn>,
+given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+
+1.  Collect the implicit API inputs from the [=relevant settings object=]:
+    1.  Let |now| be the [=current high resolution time=].
+    1.  Let |topLevelSite| (the [=conversion site=]) be the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    1.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=] from the [=origin=].
+        <!-- TODO: the intermediary site is currently unused -->
+1. Validate the page-supplied API inputs:
+    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
+        is specified, and the value is anything other than
+        <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
+        throw a {{TypeError}}.
+    1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
+        throw a {{RangeError}}.
+1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
+1.  If the private attribution API is [[#opt-out|enabled]], set |report| to the
+    result of [=do attribution and fill a histogram=] with |options|,
+    |topLevelSite|, and |now|.
+1. Let |encryptedReport| be the result of encrypting |report|.
+<!-- TODO: Define "encrypting" -->
+1. Return |encryptedReport|.
+
+
+### Attribution Logic ### {#s-logic}
 
 A site that measures conversions can specify <dfn>attribution logic</dfn>,
 which determines how the [=conversion value=] is allocated to histogram buckets.
