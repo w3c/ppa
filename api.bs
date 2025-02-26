@@ -624,34 +624,91 @@ If there is no match, or if [[#dp|differential privacy]] disallows
 reporting the attribution, the returned conversion report will not
 contribute to the histogram, i.e., will be uniformly zero.
 
-<pre>
-navigator.privateAttribution.measureConversion({
-  // name of the aggregation service
-  aggregationService: serviceUrl,
+<div class=example id=ex-measure-conversion>
+  A site that observes a [=conversion=]
+  might choose to request the measurement
+  of the effect of different [=impression store|stored=] [=impressions=].
 
-  // the number of buckets in the histogram
-  histogramSize: 20,
-  // the amount of privacy budget to use
-  epsilon: 1,
+  To request the creation of an encrypted measurement,
+  the site invokes the {{PrivateAttribution/measureConversion()}} method.
 
-  // the attribution logic to use
-  logic: "last-touch",
-  // the value to assign to the histogram index of the impression
-  value: 3,
-  // the maximum value which can be generated across all reports included in the aggregation
-  // used together with epsilon to calibrate the differential privacy budget to use
-  maxValue: 5,
+  This function takes four different types of input:
 
-  // only consider impressions within the last N days
-  lookbackDays: 30,
-  // an optional filter to restrict the set of ads that can be attributed
-  filterData: 2,
-  // an optional set of sites where impressions might have been registered
-  impressionSites: ["publisher.example"],
-  // an optional set of sites which called the saveImpression API
-  intermediarySites: ["ad-tech.example"],
-});
-</pre>
+  1.  The selected aggregation service,
+      which is identified using a URL.
+      The <a href=#ex-find-service>example process for selecting an aggregation service</a>
+      shows how to select a service that the browser supports.
+
+      <xmp highlight=js>
+        const serviceDetails = {
+          aggregationService: serviceUrl,
+        };
+      </xmp>
+
+  1.  Details of the aggregated measurement.
+      These values will be consistent for all invocations of the API
+      across multiple browsers.
+      This includes the size of the histogram
+      and the amount of [=privacy budget=] that might have been expended.
+
+      <xmp highlight=js>
+        const aggregatedMeasurementDetails = {
+          histogramSize: 20,
+          epsilon: 1,
+        };
+      </xmp>
+
+  1.  A set of attributes,
+      all <span class=allow-2119>optional</span>,
+      that select the [=impressions=] to consider.
+      This includes how old impressions can be
+      ({{PrivateAttributionConversionOptions/lookbackDays}}),
+      the [=impression sites=] that might have saved impressions
+      ({{PrivateAttributionConversionOptions/impressionSites}}),
+      the [=intermediary sites=] that might have saved impressions
+      ({{PrivateAttributionConversionOptions/intermediarySites}}),
+      and the choice of {{PrivateAttributionConversionOptions/filterData}}.
+
+      <xmp highlight=js>
+        const selectionDetails = {
+          lookbackDays: 14,
+          impressionSites: ["publisher.example", "other.example"],
+          intermediarySites: ["ad-tech.example"],
+          filterData: 2,
+        };
+      </xmp>
+
+  1.  The choice of [=attribution logic=]
+      that the browser will apply,
+      plus any parameters that the logic needs.
+
+      <xmp highlight=js>
+        const attributionDetails = {
+          logic: "last-touch",
+          value: 3,
+          maxValue: 7,
+        };
+      </xmp>
+
+  Once these values are decided,
+  the site invokes the API to obtain an encrypted [=conversion report=].
+
+  <xmp highlight=js>
+    const measurement = await navigator.privateAttribution.measureConversion({
+      ...serviceDetails,
+      ...aggregatedMeasurementDetails,
+      ...selectionDetails,
+      ...attributionDetails,
+    });
+    sendReportToServer(measurement.report);
+  </xmp>
+
+  This [=conversion report|report=] can be collected,
+  along with other reports from this browser and other browsers.
+  Collected reports can then all be submitted to an [=aggregation service=]
+  to obtain an [[#histograms|aggregate histogram]].
+
+</div>
 
 <xmp class=idl>
 dictionary PrivateAttributionConversionOptions {
@@ -660,14 +717,14 @@ dictionary PrivateAttributionConversionOptions {
 
   required unsigned long histogramSize;
 
-  PrivateAttributionLogic logic = "last-touch";
-  unsigned long value = 1;
-  unsigned long maxValue = 1;
-
   unsigned long lookbackDays;
   unsigned long filterData;
   sequence<DOMString> impressionSites = [];
   sequence<DOMString> intermediarySites = [];
+
+  PrivateAttributionLogic logic = "last-touch";
+  unsigned long value = 1;
+  unsigned long maxValue = 1;
 };
 
 dictionary PrivateAttributionConversionResult {
@@ -692,6 +749,18 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
   <dt><dfn>histogramSize</dfn></dt>
   <dd>The number of histogram buckets to use in the [=conversion report=].</dd>
+  <dt><dfn>lookbackDays</dfn></dt>
+  <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
+  <dt><dfn>filterData</dfn></dt>
+  <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
+  <dt><dfn>impressionSites</dfn></dt>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
+  <dt><dfn>intermediarySites</dfn></dt>
+  <dd>
+    A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
+    are eligible to match this [=conversion=].
+  </dd>
   <dt><dfn>logic</dfn></dt>
   <dd>
     A selection from <a enum>PrivateAttributionLogic</a> indicating the
@@ -709,18 +778,6 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     Together with epsilon, this is used to calibrate the distribution of random noise that
     will be added to the outcome. It is also used to determine the amount of [=privacy budget=]
     to expend on this [=conversion report=].
-  </dd>
-  <dt><dfn>lookbackDays</dfn></dt>
-  <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
-  <dt><dfn>filterData</dfn></dt>
-  <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
-  <dt><dfn>impressionSites</dfn></dt>
-  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
-  <dt><dfn>intermediarySites</dfn></dt>
-  <dd>
-    A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
-    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
-    are eligible to match this [=conversion=].
   </dd>
 </dl>
 
