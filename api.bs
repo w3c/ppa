@@ -607,6 +607,12 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   </dd>
 </dl>
 
+The <dfn for=PrivateAttribution method>saveImpression(|options|)</dfn> method
+causes the user agent to invoke the [=save an impression=] algorithm
+with [=this=]'s [=relevant settings object=]
+and the provided |options|.
+
+
 ## Requesting Attribution for a Conversion ## {#measure-conversion}
 
 The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
@@ -776,6 +782,11 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     to expend on this [=conversion report=].
   </dd>
 </dl>
+
+The <dfn for=PrivateAttribution method>measureConversion(|options|)</dfn> method
+causes the user agent to invoke the [=measure a conversion=] algorithm
+with [=this=]'s [=relevant settings object=]
+and the provided |options|.
 
 
 ## Permissions Policy Integration ## {#permission-policy}
@@ -954,9 +965,10 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 ## Save Impression Algorithm ## {#save-impression-api-operation}
 
 To <dfn>save an impression</dfn>,
-given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
+given an [=environment settings object=] |settings|
+and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 
-1.  Collect the implicit API inputs from the [=relevant settings object=]:
+1.  Collect the implicit API inputs from |settings|:
     1.  The timestamp is set to the [=current high resolution time=].
     1.  The [=impression site=] is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
@@ -982,9 +994,10 @@ API is [[#opt-out|disabled]].
 ## Measure Conversion Algorithm ## {#measure-conversion-api-operation}
 
 To <dfn>measure a conversion</dfn>,
-given <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+given a [=environment settings object=] |settings|
+and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 
-1.  Collect the implicit API inputs from the [=relevant settings object=]:
+1.  Collect the implicit API inputs from |settings|:
     1.  Let |now| be the [=current high resolution time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
