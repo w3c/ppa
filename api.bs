@@ -896,7 +896,7 @@ the [=impression store=] may need to be
 updated to refer to the [=privacy budget store=] as well.
 
 
-A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the folowing items:
+A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
 <dl dfn-for="privacy budget key">
 : <dfn ignore>epoch</dfn>
