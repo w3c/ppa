@@ -797,16 +797,16 @@ using just the [=host=] part of the tuple.
 </p>
 
 To <dfn>parse a site</dfn>,
-returning either |site| or failure,
+returning either [=site=] or failure,
 given a [=string=] |input|,
 run these steps:
 
-1.  Assign |host| to the value returned by invoking [=host parser=],
+1.  Let |host| be the value returned by invoking [=host parser=],
     passing |input|.
 
 1.  If |host| is failure, return failure.
 
-1.  Assign |site| to the value returned by [=registrable domain|obtain a registrable domain=],
+1.  Let |site| be the value returned by [=registrable domain|obtain a registrable domain=],
     passing |host|.
 
 1.  If |site| is null, return failure.
