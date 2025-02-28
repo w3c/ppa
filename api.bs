@@ -867,6 +867,50 @@ to clear stored browsing data (history, cookies, etc.)
 be extended to cover the impression store.
 
 
+### Site Names ### {#site-name-algorithm}
+
+The [=impression store=] saves information
+about three types of [=site=]:
+the [=impression/impression site=],
+an optional [=impression/intermediary site=],
+and a [=set=] of [=impression/conversion sites=].
+
+These [=sites=] MUST all be in [=scheme-and-host=] form,
+with a [=scheme=] of "`https`".
+This means that a simple string serialization of a [=host=]
+is sufficient to identify the site.
+The API is therefore able to use a simple [=string=]
+to represent [=sites=].
+
+<p class=note>
+It is also possible for an implementation to internally represent sites
+using just the [=host=] part of the tuple.
+</p>
+
+To <dfn>parse a site</dfn>,
+returning either [=site=] or failure,
+given a [=string=] |input|,
+run these steps:
+
+1.  Let |host| be the value returned by invoking [=host parser=],
+    passing |input|.
+
+1.  If |host| is failure, return failure.
+
+1.  Let |site| be the value returned by [=registrable domain|obtain a registrable domain=],
+    passing |host|.
+
+1.  If |site| is null, return failure.
+
+1.  Return a [=scheme-and-host=] tuple of ("`https`", |site|).
+
+<p class=note>
+This algorithm successfully produces a site from strings
+that contain more [=domain labels=] than the [=registrable domain=].
+For example, "`extra.example.com`" is parsed as "`example.com`".
+</p>
+
+
 ## Privacy Budget Store ## {#s-privacy-budget-store}
 
 <!--
@@ -1057,6 +1101,7 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 1.  Return a [=list=] of [=list/size=] |size|, whose [=list/items=] are all 0.
 
+
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
@@ -1088,6 +1133,7 @@ To perform <dfn>common matching logic</dfn>, given
     1.  [=set/Append=] |impression| to |matching|.
 
 1.  Return |matching|.
+
 
 ## User Control and Visibility ## {#user-control}
 
@@ -1781,16 +1827,24 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 <pre class=anchors>
 urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
+    text: host; url: #concept-origin-host
     text: obtain a site
     text: origin; url: #concept-origin
     text: relevant settings object
     text: same site
+    text: scheme; url: #concept-origin-scheme
+    text: scheme-and-host
     text: site
     text: top-level origin; url: #concept-environment-top-level-origin
     text: iframe; url: #child-navigable
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
-    text: user agent
     text: set; url: #sets
+    text: string
+    text: user agent
+urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
+    text: domain label
+    text: host parser; url: #concept-host-parser
+    text: registrable domain; url: #host-registrable-domain
 </pre>
 <pre class=biblio>
 {
