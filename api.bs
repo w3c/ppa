@@ -1071,7 +1071,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
       <dl class="switch">
-      : "`last-touch`"
+      : <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
       :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
         |options|.{{PrivateAttributionConversionOptions/histogramSize}}, and
         |options|.{{PrivateAttributionConversionOptions/value}}.
@@ -1230,8 +1230,8 @@ by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
-The "dap-12-histogram" aggregation method
-uses Prio [[PRIO]]
+The <a enum-value for=PrivateAttributionProtocol>"dap-12-histogram"</a>
+aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
 the Prio3L1BoundSum instantiation [[PRIO-L1]]
