@@ -461,9 +461,9 @@ and impressions are not scoped to a single aggregation service.
     "https://aggregator.example/dap",
     "https://example.com/aggregator",
   ];
-  const supportedServices = navigator.privateAttribution?.aggregationServices;
+  const supportedServices = navigator.privateAttribution?.aggregationServices?.values();
   const serviceUrl = preferredServices.find(preference => {
-    supportedServices?.some(svc => svc.url === preference)
+    supportedServices.some(svc => svc.url === preference)
   })?.url;
   </xmp>
 
