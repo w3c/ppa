@@ -461,10 +461,8 @@ and impressions are not scoped to a single aggregation service.
     "https://aggregator.example/dap",
     "https://example.com/aggregator",
   ];
-  const supportedServices = navigator.privateAttribution?.aggregationServices?.values();
-  const serviceUrl = preferredServices.find(preference => {
-    supportedServices.some(svc => svc.url === preference)
-  })?.url;
+  const supportedServices = navigator.privateAttribution?.aggregationServices;
+  const serviceUrl = preferredServices.find(url => supportedServices?.has(url));
   </xmp>
 
   If the user agent supports the URL
@@ -479,13 +477,12 @@ and impressions are not scoped to a single aggregation service.
 enum PrivateAttributionProtocol { "dap-12-histogram", "tee-00" };
 
 dictionary PrivateAttributionAggregationService {
-  required USVString url;
   required DOMString protocol;
 };
 
 [SecureContext, Exposed=Window]
 interface PrivateAttributionAggregationServices {
-  readonly setlike<PrivateAttributionAggregationService>;
+  readonly maplike<USVString, PrivateAttributionAggregationService>;
 };
 
 [SecureContext, Exposed=Window]
@@ -494,16 +491,11 @@ interface PrivateAttribution {
 };
 </xmp>
 
-The <a attribute for=PrivateAttribution>aggregationServices</a> attribute
-contains the following information about each supported aggregation service:
+The <a attribute for=PrivateAttribution>aggregationServices</a> attribute is
+a mapping from URLs that identify an [=aggregation service=] to metadata about
+that service:
 
 <dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
-  <dt><dfn>url</dfn></dt>
-  <dd>
-    A URL that identifies an [=aggregation service=].
-    This value is passed as the {{PrivateAttributionConversionOptions/aggregationService}} parameter
-    to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
-  </dd>
   <dt><dfn>protocol</dfn></dt>
   <dd>
     The {{PrivateAttributionProtocol|protocol}} that the [=aggregation service=] uses.
@@ -514,6 +506,9 @@ contains the following information about each supported aggregation service:
     without also specifying the choice of protocol.
   </dd>
 </dl>
+
+The URL is passed as the {{PrivateAttributionConversionOptions/aggregationService}} parameter
+to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
 
 The <dfn enum>PrivateAttributionProtocol</dfn> describes the submission protocol
 used by different [=aggregation services=].  This document defines two protocols:
