@@ -7,3 +7,5 @@ Attribution is the name given to the measurement system used in advertising. It 
 This repository contains [a specification](https://w3c.github.io/ppa/) that describes an API that would be presented by a browser to websites.
 
 The specification contains all of the details. There is no [explainer](https://tag.w3.org/explainers/). All the explanation can be found up front, before it gets into the gory details.
+
+The WG will use the process outline [here](process.md) to develop this specification. Nothing contained therein is intended to override other W3C process and procedures.
