@@ -1,4 +1,4 @@
-The PAT working group will use a process to similar to others that have employed a GitHub-centric mode of work. The process summary is as follows, and we should note that this is subject to change as we get closer to a final specification:
+The PAT working group will use a process similar to others that have employed a GitHub-centric mode of work. The process summary is as follows, and we should note that this is subject to change as we get closer to a final specification:
 
 * To access GitHub, you choose an interface, e.g., [command line interface](https://docs.github.com/en/github-cli), [GitHub mobile](https://docs.github.com/en/get-started/using-github/github-mobile), [GitHub desktop](https://docs.github.com/en/desktop), [VSCode](https://code.visualstudio.com/docs/sourcecontrol/github), or Browser.
 * To start a discussion, you generate an [Issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue). Most of the discussion happen on/in an Issue.
