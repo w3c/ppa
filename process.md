@@ -1,7 +1,7 @@
 The PAT working group will use a process similar to others that have employed a GitHub-centric mode of work. The process summary is as follows, and we should note that this is subject to change as we get closer to a final specification:
 
 * To access GitHub, you choose an interface, e.g., [command line interface](https://docs.github.com/en/github-cli), [GitHub mobile](https://docs.github.com/en/get-started/using-github/github-mobile), [GitHub desktop](https://docs.github.com/en/desktop), [VSCode](https://code.visualstudio.com/docs/sourcecontrol/github), or Browser.
-* To start a discussion, you generate an [Issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue). Most of the discussion happen on/in an Issue.
+* To start a discussion, you generate an [Issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue). Most of the discussion happens on/in an Issue.
 * To suggest a change, you generate a [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).  “Discussions” about specific wording changes for a Pull Request occur on/in the PR.
 * To make a change, editors and, in rare circumstances, Chairs “merge” the Pull Request; PRs related to issues will be autoclosed with [link](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue).
 * To publish a new version of the specification, GitHub plus some [W3C Tooling](https://github.com/w3c/echidna?tab=readme-ov-file) takes care of this [within minutes](https://www.w3.org/2021/03/18-echidna/?full#1) of the PR being merged.
