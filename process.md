@@ -8,7 +8,7 @@ The PAT working group will use a process similar to others that have employed a 
 * To track what has happened, you can consult the GitHub logs; GitHub logs everything -- all issues, discussions about issues, labels, label changes, and specification changes, etc.
 * To stay informed, you can either “watch” the [PPA repo](https://github.com/w3c/ppa) or check your email: the repo’s notifications are copied to the [PAT working group mailing list](https://lists.w3.org/Archives/Public/public-patwg/).
 
-What follows is a more detail explanation of the process.
+What follows is a more detailed explanation of the process.
 
 Not all Issues are created equal. Some Issues are editorial; some are noncontroversial, non-editorial; and some are controversial. More process is required for controversial Issues than for noncontroversial Issues.
 
