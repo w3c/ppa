@@ -21,7 +21,7 @@ Editorial issues need to be dispatched quickly, and the process is as follows:
 * Editors will merge the Pull Request when appropriate
   * If the editors or chairs disagree with the `editorial` label, they will apply the `discuss` Label.
 
-For noncontroverisal, non-editorial issues:
+For noncontroversial, non-editorial issues:
   * You file an Issue.
   * You add one or more Assignee(s) or one or more Assignee(s) will be selected during the discussion.
     * If at some point during the discussion, the Issue ceases to be noncontroversial, non-editorial the `discuss` Label will be applied.
