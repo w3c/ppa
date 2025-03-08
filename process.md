@@ -6,7 +6,7 @@ The PAT working group will use a process similar to others that have employed a 
 * To make a change, editors and, in rare circumstances, Chairs “merge” the Pull Request; issues related to PRs will be autoclosed with [link](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue).
 * To publish a new version of the specification, GitHub plus some [W3C Tooling](https://github.com/w3c/echidna?tab=readme-ov-file) takes care of this [within minutes](https://www.w3.org/2021/03/18-echidna/?full#1) of the PR being merged.
 * To track what has happened, you can consult the GitHub logs; GitHub logs everything -- all issues, discussions about issues, labels, label changes, and specification changes, etc.
-* To stay informed, you can either “watch” the [PPA repo](https://github.com/w3c/ppa) or check your email, the repo’s notifications are copied to the [PAT working group mailing list](https://lists.w3.org/Archives/Public/public-patwg/).
+* To stay informed, you can either “watch” the [PPA repo](https://github.com/w3c/ppa) or check your email: the repo’s notifications are copied to the [PAT working group mailing list](https://lists.w3.org/Archives/Public/public-patwg/).
 
 What follows is a more detail explanation of the process.
 
