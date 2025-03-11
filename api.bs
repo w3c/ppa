@@ -1166,7 +1166,7 @@ if the user has opted out of collection of diagnostic data.
     * Histogram size
     * [=Conversion site=] for [=impressions=]
     * [=Impression site=] for [=conversions=]
-    * Histogram indexes
+    * [=impression/histogram index|Histogram indexes=]
 
 # Aggregation # {#aggregation}
 
@@ -1698,7 +1698,7 @@ aggregation.
 An important mitigation against malicious use
 of the Private Attribution APIs is the explicit specification
 of eligible conversion sites when registering an impression,
-and of eligible impression sites and histogram indexes
+and of eligible impression sites and [=impression/histogram indexes=]
 when registering a conversion.
 This prevents impressions on arbitrary malicious sites
 from interfering with attribution to the intended set
