@@ -276,11 +276,11 @@ A conversion value might also be split between multiple impressions
 to split credit,
 though this capability is not presently supported in the API.
 
-<!-- TODO: This list seems like a non sequitur -->
+<!-- TODO
 * Compatibility with privacy-preserving aggregation services
 * Flexibility to assign buckets
 * As histogram size increases, noise becomes a problem
-
+-->
 
 # Overview of Operation # {#overview}
 
