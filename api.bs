@@ -759,13 +759,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
     A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
-    [=Impressions=] are only eligible to match this [=conversion=] if either:
-    1.  they were registered by a call to <a method for=PrivateAttribution>saveImpression()</a>
-        in a script originating from one of the intermediary sites, or
-    2.  they were registered by a [:Save-Impression:] header associated with a resource
-        from one of the intermediary sites.
-    <!-- TODO: HTTP registration should also apply to impression sites.
-      -- Interaction between impression and intermediary sites needs to be clarified (#55). -->
+    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
+    are eligible to match this [=conversion=].
   </dd>
   <dt><dfn>logic</dfn></dt>
   <dd>
@@ -1139,26 +1134,23 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dt><code>conversion-site</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
-    a [=structured header/string=]. This key is required,
-    and must be a valid domain name.
+    a [=structured header/string=]. This key is required.
   </dd>
   <dt><code>histogram-index</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
-    an [=structured header/integer=]. This key is required.
+    a non-negative [=structured header/integer=]. This key is required.
   </dd>
   <dt><code>filter-data</code></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>.
-    Implementations parsing the header must accept any valid
-    [=structured header/item=] or [=structured header/inner list=].
-    If the filter data is not understood, no impression is saved.
-    This key is optional.
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
+    a non-negative [=structured header/integer=]. This key is optional.
+    If not supplied, the filter data is zero.
   </dd>
   <dt><code>lifetime-days</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
-    an [=structured header/integer=]. This key is optional.
+    a positive [=structured header/integer=]. This key is optional.
   </dd>
 </dl>
 
