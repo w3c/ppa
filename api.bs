@@ -585,6 +585,15 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     An optional piece of metadata associated with the impression. The value
     can be used to identify which impressions may receive attribution
     from a [=conversion=].
+    <p class=note>It is intentional that on the impression side this field
+    defaults to 0, while on
+    {{PrivateAttributionConversionOptions/filterData|the conversion side}} it is
+    an <span class=allow-2119>optional</span> field without a default: A default
+    on the impression side means that implementations do not need to use a bit
+    to represent potential absence of the field for each impression in the
+    [=impression store=], while optionality on the conversion side means that
+    there is a way to match any filter data, which would not be possible if
+    there were a default integer value.
   </dd>
   <dt><dfn>conversionSite</dfn></dt>
   <dd>
@@ -749,7 +758,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
   <dt><dfn>filterData</dfn></dt>
-  <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=].</dd>
+  <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=]. If omitted, all [=impression/filter data=] values will match.</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
