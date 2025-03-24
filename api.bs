@@ -69,7 +69,7 @@ it would enable unwanted
 [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
 thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
 
-This document avoids cross context recognition by ensuring that
+This document avoids cross-context recognition by ensuring that
 attribution information is aggregated using an [=aggregation service=].
 The aggregation service is trusted to compute an aggregate
 without revealing the values that each person contributes to that aggregate.
@@ -92,14 +92,14 @@ was the ability to obtain information about the effectiveness of advertising cam
 
 Web advertisers were able to measure key metrics like reach (how many people saw an ad),
 frequency (how often each person saw an ad),
-and [=conversions=] (how many people saw the ad then later took the action that the ad was supposed to motivate).
+and [=conversions=] (how many people who saw the ad then later took the action that the ad was supposed to motivate).
 In comparison, these measurements were far more timely and accurate than for any other medium.
 
 The cost of measurement performance was privacy.
 In order to produce accurate and comprehensive information,
 advertising businesses performed extensive tracking of the activity of all Web users.
 Each browser was given a tracking identifier,
-often using cookies that were lodged by cross-site content.
+often using cookies that were logged by cross-site content.
 Every action of interest was logged against this identifier,
 forming a comprehensive record of a person's online activities.
 
@@ -115,7 +115,7 @@ Any competitive edge gained by these entities--
 and the intermediaries that operate on their behalf--
 depends on having more comprehensive information about a potential audience.
 
-Over time, actions of interest expanded to include nearly every aspects of online activity.
+Over time, actions of interest expanded to include nearly every aspect of online activity.
 Methods were devised to correlate that information with activity outside of the Web.
 An energetic trade has formed,
 with multiple purveyors of personal information that is traded for various purposes.
@@ -271,20 +271,20 @@ which might be used to differentiate between different outcomes.
 The value that is allocated to impressions
 is called a <dfn>conversion value</dfn>.
 A higher conversion value might be used for larger purchases
-or any outcome that is more highly-valued.
+or any outcome that is more highly valued.
 A conversion value might also be split between multiple impressions
 to split credit,
 though this capability is not presently supported in the API.
 
+<!-- TODO
 * Compatibility with privacy-preserving aggregation services
 * Flexibility to assign buckets
-
 * As histogram size increases, noise becomes a problem
-
+-->
 
 # Overview of Operation # {#overview}
 
-The private attribution API provides aggregate information about the
+The Private Attribution API provides aggregate information about the
 association between two classes of events: [=impressions=] and [=conversions=].
 
 An [=impression=] is any action that an advertiser takes on any website.
@@ -346,7 +346,7 @@ The histogram created by the [=conversion report=] is constructed as follows:
     value is added to a histogram at the bucket that was specified at the time of the
     attributed impression. All other buckets are set to zero.
 
-The browser updates the privacy budget store to reflect the reported conversion.
+The browser updates the [=privacy budget store=] to reflect the reported conversion.
 
 The resulting histogram is prepared for aggregation according to the requirements
 of the chosen [=aggregation service=] and returned to the site.
@@ -365,7 +365,7 @@ Upon receiving a set of encrypted histograms from a site, the aggregation servic
     from the provided inputs
     and that there are enough conversion reports,
 
-2.  adds the histograms including sufficient [[#dp|noise]]
+2.  adds the histograms, including sufficient [[#dp|noise]],
     to produce a differentially-private aggregate histogram, and
 
 3.  returns the aggregate to the site.
@@ -511,7 +511,7 @@ The URL is passed as the {{PrivateAttributionConversionOptions/aggregationServic
 to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
 
 The <dfn enum>PrivateAttributionProtocol</dfn> describes the submission protocol
-used by different [=aggregation services=].  This document defines two protocols:
+used by different [=aggregation services=]. This document defines two protocols:
 
 <dl dfn-for=PrivateAttributionProtocol dfn-type=enum-value>
   <dt><dfn>dap-12-histogram</dfn></dt>
@@ -582,7 +582,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   </dd>
   <dt><dfn>filterData</dfn></dt>
   <dd>
-    An optional piece of metadata associated with the impression. The filterData
+    An optional piece of metadata associated with the impression. The value
     can be used to identify which impressions may receive attribution
     from a [=conversion=].
   </dd>
@@ -749,7 +749,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
   <dt><dfn>filterData</dfn></dt>
-  <dd>Only [=impressions=] having a filterData value matching this value will be eligible to match this [=conversion=].</dd>
+  <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
   <dt><dfn>intermediarySites</dfn></dt>
@@ -807,7 +807,7 @@ to the expected kind of activity.
 <p class=note>Enabling permissions by default
 simplifies the task of integrating external services.
 
-<p class=note>Permissions policy provides only all-or-nothing control,
+<p class=note>Permissions policy provides only all-or-nothing control;
 it does not enable delegation of a portion of privacy budget.
 
 
@@ -841,7 +841,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 ### Maintenance ### {#impression-store-maintenance}
 
 The [=user agent=] should periodically use
-the timestamp and lifetime values
+the [=impression/timestamp=] and [=impression/lifetime=] values
 to identify and delete any [=impressions=] in the [=impression store=]
 that have expired.
 
@@ -919,6 +919,8 @@ To <dfn>save an impression</dfn>,
 given an [=environment settings object=] |settings|
 and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 
+<!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
+
 1.  Collect the implicit API inputs from |settings|:
     1.  The timestamp is set to the [=current high resolution time=].
     1.  The [=impression site=] is set to the result of
@@ -933,7 +935,7 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
         throw a {{RangeError}}.
     1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
-1.  If the private attribution API is [[#opt-out|enabled]], save the impression
+1.  If the Private Attribution API is [[#opt-out|enabled]], save the impression
     to the [=impression store=].
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
@@ -947,6 +949,8 @@ API is [[#opt-out|disabled]].
 To <dfn>measure a conversion</dfn>,
 given a [=environment settings object=] |settings|
 and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+
+<!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |now| be the [=current high resolution time=].
@@ -966,7 +970,7 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
 1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
-1.  If the private attribution API is [[#opt-out|enabled]], set |report| to the
+1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
     result of [=do attribution and fill a histogram=] with |options|,
     |topLevelSite|, and |now|.
 1. Let |encryptedReport| be the result of encrypting |report|.
@@ -989,7 +993,7 @@ enum PrivateAttributionLogic {
 </xmp>
 
 Each attribution logic specifies a process for allocating values to histogram buckets,
-after the [=common matching logic=] is applied, and privacy budgeting occurs.
+after the [=common matching logic=] is applied and privacy budgeting occurs.
 
 
 To <dfn>do attribution and fill a histogram</dfn>, given
@@ -1055,7 +1059,7 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, |epoch|, and
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, [=epoch=] |epoch|, and
 [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
@@ -1098,7 +1102,7 @@ This mechanism may be a dedicated control
 for the Private Attribution API,
 or it may be a consolidated privacy control
 that applies to multiple features,
-including private attribution.
+including Private Attribution.
 Further, user agent developers should consider interaction
 of other privacy modes with the Private Attribution API.
 For example, attribution might be disabled in a private browsing mode,
@@ -1116,7 +1120,7 @@ if the user has opted out of collection of diagnostic data.
     * Histogram size
     * [=Conversion site=] for [=impressions=]
     * [=Impression site=] for [=conversions=]
-    * Ad IDs
+    * [=impression/histogram index|Histogram indexes=]
 
 # Aggregation # {#aggregation}
 
@@ -1157,7 +1161,7 @@ its reliance on client-provided proofs of correctness for inputs.
 This allows for very efficient MPC operation
 at a modest cost in the size of submissions to the system.
 
-An aggregation service that uses Multi-Party Computation (MPC)
+An aggregation service that uses MPC
 comprises two or more independent services
 that cooperate to compute a predefined function.
 
@@ -1274,7 +1278,7 @@ that is contributed.
 The [=individual differential privacy=] design of this API
 has three primary components:
 
-1.  User agents limit (using the privacy budget) the amount of information
+1.  User agents limit (using the [=privacy budget=]) the amount of information
     about [=impressions=] that leaves the device through [=conversion reports=].
     [[#dp-budget]] explores this in greater depth.
 
@@ -1305,9 +1309,9 @@ that is the combination of three values:
     That is, an instance of a user agent,
     as used by a single person.
 
-2.  The [=site=] that requests information about impressions.
+2.  The [=site=] that requests information about [=impressions=] (the [=conversion site=]).
 
-    <p class=note>The sites that register impressions
+    <p class=note>The sites that register impressions (the [=impression site=])
     are not considered.
     Those sites do not receive information from this system directly.
 
@@ -1385,7 +1389,7 @@ and its duration is one week (7 days), where a <dfn>day</dfn> is 86400 seconds.
 This budget applies to the [=impressions=]
 that are registered with the [=user agent=]
 and later queried,
-not conversions.
+not [=conversions=].
 
 From the perspective of the analysis [[PPA-DP]]
 each [=epoch=] of [=impressions=] forms a separate database.
@@ -1408,7 +1412,7 @@ at any point in time,
 while keeping the overall rate of privacy loss low.
 However, a longer interval means that it is easier to
 exhaust a privacy budget completely,
-yield no information until the next refresh.
+yielding no information until the next refresh.
 
 The decision to set the [=epoch=] duration to a week is largely arbitrary.
 One week is expected to be enough to allow sites
@@ -1422,7 +1426,7 @@ changes that might occur days or weeks in the future.
 ## Privacy Budgets ## {#dp-budget}
 
 Browsers maintain <dfn>privacy budgets</dfn>,
-which is a means of limiting the amount of privacy loss.
+which are a means of limiting the amount of privacy loss.
 
 This specification uses an individual form
 of (&epsilon;, &delta;)-differential privacy as its basis.
@@ -1435,13 +1439,13 @@ managing privacy budgets.
 
 Each [=conversion report=] that is requested specifies an &epsilon; value
 that represents the amount of privacy budget
-that the report consumes and a max on the value that can be returned in the
+that the report consumes and a maximum on the value that can be returned in the
 conversion report.
 
 
 ### Privacy Budget Deduction ### {#dp-deduction}
 
-When searching for impressions for the conversion report,
+When searching for [=impressions=] for the conversion report,
 the user agent deducts the specified &epsilon; value from
 the budget for the [=privacy budget epoch=] in which those impressions were saved.
 If the privacy budget for that [=privacy budget epoch|epoch=] is not sufficient,
@@ -1463,9 +1467,9 @@ The details of how to [=deduct privacy budget=] is given below ... WIP
 
     A [=conversion report=] might be requested at the time marked with "now".
     That conversion report selects impressions marked with black circles,
-    corresponding to impressions from Site B, C, and E.
+    corresponding to impressions from Sites B, C, and E.
 
-    As a result, privacy budgets for the querying site is deducted
+    As a result, privacy budget for the querying site is deducted
     from [=privacy budget epoch|epochs=] 1, 3, 4, and 5.
     No impressions were recorded for epoch 2,
     so no budget is deducted from that epoch.
@@ -1535,7 +1539,7 @@ of harmful information flow through the impression store:
 
 *   Websites cannot read from the impression store.
     Information from the impression store
-    is released only via encrypted conversion reports.
+    is released only via encrypted [=conversion reports=].
     [[#dp|Differential privacy]], provided by a combination
     of functionality in the user agent
     and in the [=aggregation service=],
@@ -1565,7 +1569,7 @@ A site calling the APIs must not be able to learn:
 *   Whether the [=conversion report=] reflects a non-zero
     [=conversion value=].
 *   Which <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>
-    is assigned the conversion value.
+    is assigned the [=conversion value=].
 
 Note that explicit return values or thrown exceptions
 are not the only way that a site can learn from
@@ -1587,7 +1591,7 @@ Strategies to prevent leakage include:
 *   Avoiding conditional logic. For example,
     <a method for=PrivateAttribution>measureConversion()</a>
     should always go through the full process of constructing
-    a conversion report, even when the conversion value to be
+    a conversion report, even when the [=conversion value=] to be
     reported is zero.
 
 
@@ -1598,7 +1602,7 @@ security of aggregation services is quite important
 to the overall security of the Private Attribution mechanism.
 [=Conversion reports=]
 produced by <a method for=PrivateAttribution>measureConversion()</a>
-are encrypted to cryptographic key(s) of the aggregation service.
+are encrypted using cryptographic key(s) of the aggregation service.
 Thus, much of the potential for disclosure
 of the information contained in these reports
 depends on the details of the aggregation service.
@@ -1639,8 +1643,8 @@ is a particular concern with the Private Attribution API,
 because impressions are stored only on the device.
 It is not possible to apply server-side intelligence
 to identify fraudulent impressions and exclude them
-from attribution. Conversely, even though conversion
-reports are encrypted, because the reports are sent
+from attribution. Conversely, even though [=conversion
+reports=] are encrypted, because the reports are sent
 to a server, the server can make a determination that
 the conversion is likely fraudulent and exclude it from
 aggregation.
@@ -1648,7 +1652,7 @@ aggregation.
 An important mitigation against malicious use
 of the Private Attribution APIs is the explicit specification
 of eligible conversion sites when registering an impression,
-and of eligible impression sites and ad IDs
+and of eligible impression sites and [=impression/histogram indexes=]
 when registering a conversion.
 This prevents impressions on arbitrary malicious sites
 from interfering with attribution to the intended set
@@ -1687,17 +1691,17 @@ with a limited set of related impression candidates,
 it is important to consider how the API might be misused
 for larger-scale data collection.
 The requirement that impressions enumerate
-the possible conversion sites (and vice-versa)
+the possible [=conversion sites=] (and vice-versa)
 has an important role in preventing misuse of the API
 for mass data collection, and in making attempts
 at such misuse more visible.
 
 <p class=issue>
 It is unclear whether the [=privacy budget store=] should be cleared whenever
-the impression store is cleared. On one hand, it contains information about
-browsing activity, so is desirable to include it when clearing browsing activity.
+the [=impression store=] is cleared. On one hand, it contains information about
+browsing activity, so it is desirable to include it when clearing browsing activity.
 On the other hand, it is only possible to strictly adhere to the requirements of
-the differential privacy mechanism, if information about a fully- or partially-
+the differential privacy mechanism if information about a fully- or partially-
 depleted privacy budget is maintained until that budget is no longer relevant
 (i.e. the end of the [=privacy budget epoch=]).
 
@@ -1718,11 +1722,11 @@ and to prevent discrimination
 against users who choose to disable the Private Attribution API,
 sites must not be able to detect that the API is disabled.
 Specifically, all calls to the Private Attribution API
-that are otherwise valid,
+that are otherwise valid
 must complete successfully, even when the API is disabled.
 The only difference in behavior
-is that conversion reports returned when the API is disabled
-will never report any conversion value.
+is that [=conversion reports=] returned when the API is disabled
+will never report any [=conversion value=].
 Because the reports are encrypted,
 this difference cannot be detected
 by the site receiving the conversion report.
@@ -1742,7 +1746,7 @@ which implies some risk of that identifying information
 becoming available to the site that receives that report.
 The following measures mitigate this risk:
 
-*   The impression store cannot be read directly.
+*   The [=impression store=] cannot be read directly.
     Thus, identifiers are only usable for tracking
     to the extent information about them
     is revealed in [=conversion reports=].
