@@ -1090,25 +1090,6 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
       </dl>
 
-
-To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
-  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
-
-1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
-
-1.  Let |impression| be the value in |matchedImpressions| with the most recent
-    [=impression/timestamp=].
-
-1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
-    with |histogramSize|.
-
-1.  Let |index| be |impression|'s [=impression/histogram index=].
-
-1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
-
-1.  Return |histogram|.
-
-
 To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 1.  Return a [=list=] of [=list/size=] |size|, whose [=list/items=] are all 0.
@@ -1145,6 +1126,26 @@ To perform <dfn>common matching logic</dfn>, given
     1.  [=set/Append=] |impression| to |matching|.
 
 1.  Return |matching|.
+
+
+#### Last-Touch Attribution #### {#last-touch-attribution}
+
+To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
+  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
+
+1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
+
+1.  Let |impression| be the value in |matchedImpressions| with the most recent
+    [=impression/timestamp=].
+
+1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
+    with |histogramSize|.
+
+1.  Let |index| be |impression|'s [=impression/histogram index=].
+
+1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
+
+1.  Return |histogram|.
 
 
 ## User Control and Visibility ## {#user-control}
