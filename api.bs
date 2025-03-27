@@ -1024,9 +1024,12 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
         <dl class="switch">
         </dl>
         :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
-        ::  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
-            is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
-            throw a {{RangeError}}.
+        ::  Perform the following steps:
+            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a> is 0,
+                throw a {{RangeError}}.
+            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
+                is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
+                throw a {{RangeError}}.
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
 1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
