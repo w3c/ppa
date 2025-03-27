@@ -733,6 +733,10 @@ dictionary PrivateAttributionConversionOptions {
   unsigned long maxValue = 1;
 };
 
+enum PrivateAttributionLogic {
+  "last-touch",
+};
+
 dictionary PrivateAttributionConversionResult {
   required Uint8Array report;
 };
@@ -1038,12 +1042,6 @@ which determines how the [=conversion value=] is allocated to histogram buckets.
 The <a method for=PrivateAttribution>measureConversion()</a> function
 accepts a <a dict-member for=PrivateAttributionConversionOptions>logic</a> parameter
 that specifies the [=attribution logic=].
-
-<xmp class=idl>
-enum PrivateAttributionLogic {
-  "last-touch",
-};
-</xmp>
 
 Each attribution logic specifies a process for allocating values to histogram buckets,
 after the [=common matching logic=] is applied and privacy budgeting occurs.
