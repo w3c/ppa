@@ -1020,10 +1020,13 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
              [=obtain a site|obtaining a site=] from the [=origin=].
         <!-- TODO: the intermediary site is currently unused -->
 1. Validate the page-supplied API inputs:
-    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
-        is specified, and the value is anything other than
-        <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
-        throw a {{TypeError}}.
+    1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
+        <dl class="switch">
+        </dl>
+        :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+        ::  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
+            is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
+            throw a {{RangeError}}.
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
 1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
