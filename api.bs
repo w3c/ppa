@@ -864,20 +864,6 @@ excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
 
 
-### Clearing Impression State ### {#impression-store-clearing}
-
-A mechanism must be provided to clear the impression store.
-For example, the impression store could be cleared
-upon activation of the control that
-[[#opt-out|disables]] the Private Attribution API.
-
-It is recommended that any mechanism a user agent provides
-to clear stored data (history, cookies, etc.)
-be extended to cover the impression store.
-[[#clear-budget-store]] provides more detailed information
-on the clearing of stored data.
-
-
 ## State For Privacy Budget Management ## {#privacy-state}
 
 [=User agents=] maintain three pieces of state
@@ -962,12 +948,12 @@ given an [=environment settings object=] |settings|,
 a [=site=] |site|,
 and [=moment=] |now|:
 
-1.  Let |period| be the duration of an [=epoch=] (i.e., 86400 seconds).
+1.  Let |period| be the [=duration=] of one [=epoch=] (i.e., 86400 seconds).
 
 1.  If the [=epoch start store=] does not [=map/contain=] |site|, [=map/set=]
     its value to |now|, minus a [=duration=]
     that is randomly selected
-    from between 0 (inclusive) and a duration of [=epoch=] (exclusive).
+    from between 0 (inclusive) and |period| (exclusive).
 
 1.  Let |start| be the result of [=map/get|getting the value=] of |site|
     from the [=epoch start store=].
@@ -975,103 +961,6 @@ and [=moment=] |now|:
 1.  Let |elapsed| be |now| - |start| / |period|.
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
-
-
-### Clearing Privacy Budget State ### {#clear-budget-store}
-
-A [=user agent=] might present the option to clear storage.
-These exist for two reasons:
-
-*   Privacy toward sites,
-    so that the sites cannot recognize the [=user=] in future interactions
-    (that is, to prevent [=same site recognition=]).
-
-*   Removing traces of activity locally,
-    so that other users of a computer
-    cannot access browsing history.
-
-Clearing the state that tracks [=privacy budget=] expenditure
-has an adverse effect on privacy toward sites.
-Sites would then be able to gain more information
-from attribution.
-
-
-#### Clearing Site Data #### {#clear-site-data}
-
-When clearing site data,
-but retaining browsing history,
-a [=user agent=] can [=map/set=] the value
-in the [=privacy budget store=] to 0 for all [=epochs=]
-up to the [=get the current epoch|current epoch=],
-starting from the [=get the starting epoch for attribution|earliest available epoch=]
-for all affected [=sites=].
-
-
-#### Clearing Browsing History #### {#clear-browsing-history}
-
-Updating the [=privacy budget store=] is insufficient
-when clearing browsing history.
-Retaining per-[=site=] information
-necessary to prevent privacy loss toward sites
-leaves information about visits to sites
-for other users of a computer to discover
-when removing browsing history.
-
-When clearing browsing history,
-[=user agents=] need to
-remove all per-[=site=] [=privacy budget=] information
-(that is, remove entries from both the [=privacy budget store=]
-and the [=epoch start store=]).
-[=User agents=] also need to ensure that
-any subsequent [=privacy budget=] expenditure
-cannot cause privacy loss in excess of configured limits
-as a result of losing that information.
-
-This can be achieved by disabling attribution
-for a period between one and two [=epochs=]
-from the point that browsing history is discarded.
-Otherwise, a [=site=] that expends its budget
-immediately prior to the clearing of history
-would be able to learn more through API
-than it could without the clearing of state.
-
-<p class=note>
-This disables the API for up to <em>two</em> [=epochs=]
-for affected [=sites=].
-Because the [=epoch start store=] is cleared,
-the start of any newly-defined [=epoch=] for that [=site=]
-becomes unknown.
-Any new [=epoch=] will [start at a fresh randomly-selected time](#s-epoch-start),
-which cannot overlap with any [=epoch=] that might have been defined
-before history was cleared.
-
-A [=user agent=] remembers when history was last cleared
-in the [=last browsing history clear=] variable.
-This is used to prevent [=privacy budget|budget=] expenditure
-until it is guaranteed that a [=site=] cannot exceed
-the [=user agent=]-chosen maximum allowed [=privacy budget=].
-
-The [=get the starting epoch for attribution=] algorithm
-ensures that an [=impression site=]
-cannot make queries [=impressions=] from any [=epoch=]
-that starts within one [=epoch=] [=duration=]
-from when state is cleared.
-
-
-#### Removing Impressions #### {#removing-impressions}
-
-A [=user agent=] that clears site state for a [=site=]
-must discard all [=impression store|saved impressions=]
-that were saved during the affected period
-with a [=same site|matching=] [=impression/impression site=]
-or [=impression/conversion site=].
-For an [=impression site=],
-these [=impressions=] relate to activity that was cleared.
-A [=conversion site=] that has had state cleared
-will not be able to use these [=impressions=].
-
-[=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
-may be cleared.
 
 
 ### Last Browsing History Clear Time ### {#last-clear}
@@ -1084,16 +973,21 @@ when any [=site=]-level state is cleared
 at the request of a [=user=].
 The value is initially unset.
 
-<p class=note>
+<div class=note>
 A [=user agent=] that offers selective deletion of history,
 such as the removal of state for a single site,
 could partition this value so that other sites remain unaffected.
 However, any choice to partition leaks some information
-that might reveal that a specific site had been visited.
+that might reveal that a specific site had been visited
+to any entity that can access stored data.
 Strictly limiting the number of partitions
-is necessary to make this information less useful.
-This specification describes algorithms that provide the strongest privacy,
-where no such partitioning is used.
+might make this information less useful
+in terms of revealing that a particular site was visited.
+
+This specification describes algorithms that do not including partition.
+This guarantees that stored data does not reveal anything
+about browsing history.
+</div>
 
 As an optional optimization,
 updating the [=last browsing history clear=] can be skipped if:
@@ -1104,7 +998,7 @@ updating the [=last browsing history clear=] can be skipped if:
     where other interactions with the same [=site=] were retained.
 *   All affected [=sites=] have a value in the [=epoch start store=].
 
-If these conditions are true,
+If all three conditions are true,
 the [=last browsing history clear=] does not need to be updated.
 Instead, the [=privacy budget store=] must be updated
 by [=map/set|setting=] a value of 0
@@ -1118,16 +1012,6 @@ about interactions with affected [=sites=]
 in the affected [=epochs=].
 This only works because any of the retained interactions
 could have resulted in exhausting the budget.
-
-A [=user agent=] may clear data
-from the [=privacy budget store=] and [=epoch start store=]
-when the API is [[#opt-out|disabled]].
-In that case, if the API is re-enabled,
-there is no way to determine what budget was expended
-prior to the API being [[#opt-out|disabled]].
-In that case, a [=user agent=] can update
-the value [=last browsing history clear=]
-to ensure that [=privacy budgets=] are not inadvertently exceeded.
 
 To <dfn>get the starting epoch for attribution</dfn>
 given [=site=] site:
@@ -1143,8 +1027,10 @@ given [=site=] site:
         with |site| and the value of [=last browsing history clear=].
 
         <p class=note>
-        This is the one case where a [=get the current epoch=]
+        This use of [=get the current epoch=]
         can return a negative value.
+        This is because the value in [=epoch start store=]
+        is likely to be set to a time be after history was last cleared.
 
     1.  Set |clearEpoch| to |clearEpoch| + 2.
 
@@ -1801,7 +1687,7 @@ of harmful information flow through the impression store:
     is distinguishable from the value it would have
     absent any user's contribution.
 *   Users can explicitly
-    [[#impression-store-clearing|clear the impression store]].
+    [[#removing-impressions|clear stored impressions]].
 *   It is recommended that user agents limit how long
     data can persist in the impression store,
     even absent explicit user action,
@@ -1914,6 +1800,124 @@ of candidate impressions.
 # Privacy Considerations # {#privacy}
 
 
+## Clearing API State ## {#clear-budget-store}
+
+A [=user agent=] might present the option to clear storage.
+These exist for two reasons:
+
+*   Privacy toward sites,
+    so that the sites cannot recognize the [=user=] in future interactions
+    (that is, to prevent [=same site recognition=]).
+
+*   Removing traces of activity locally,
+    so that other users of a computer
+    cannot access browsing history.
+
+Clearing the state that tracks [=privacy budget=] expenditure
+has an adverse effect on privacy toward sites.
+Sites would then be able to gain more information
+from attribution.
+
+A [=user agent=] may clear data
+from the [=privacy budget store=] and [=epoch start store=]
+when the API is [[#opt-out|disabled]].
+In that case, if the API is re-enabled,
+there is no way to determine what budget was expended
+prior to the API being [[#opt-out|disabled]].
+In that case, a [=user agent=] can update
+the value [=last browsing history clear=]
+to ensure that [=privacy budgets=] are not inadvertently exceeded.
+
+
+### Clearing Site Data ### {#clear-site-data}
+
+When clearing site data,
+but retaining browsing history,
+a [=user agent=] can [=map/set=] the value
+in the [=privacy budget store=] to 0 for all [=epochs=]
+up to the [=get the current epoch|current epoch=],
+starting from the [=get the starting epoch for attribution|earliest available epoch=]
+for all affected [=sites=].
+
+
+### Clearing Browsing History ### {#clear-browsing-history}
+
+Updating the [=privacy budget store=] is insufficient
+when clearing browsing history.
+Retaining per-[=site=] information
+necessary to prevent privacy loss toward sites
+leaves information about visits to sites
+for other users of a computer to discover
+when removing browsing history.
+
+When clearing browsing history,
+[=user agents=] need to
+remove all per-[=site=] [=privacy budget=] information
+(that is, remove entries from both the [=privacy budget store=]
+and the [=epoch start store=]).
+[=User agents=] also need to ensure that
+any subsequent [=privacy budget=] expenditure
+cannot cause privacy loss in excess of configured limits
+as a result of losing that information.
+
+This can be achieved by disabling attribution
+for a period between one and two [=epochs=]
+from the point that browsing history is discarded.
+Otherwise, a [=site=] that expends its budget
+immediately prior to the clearing of history
+would be able to learn more through API
+than it could without the clearing of state.
+
+<p class=note>
+This disables the API for up to <em>two</em> [=epochs=]
+for affected [=sites=].
+Because the [=epoch start store=] is cleared,
+the start of any newly-defined [=epoch=] for that [=site=]
+becomes unknown.
+Any new [=epoch=] will [start at a fresh randomly-selected time](#s-epoch-start),
+which cannot overlap with any [=epoch=] that might have been defined
+before history was cleared.
+
+A [=user agent=] remembers when history was last cleared
+in the [=last browsing history clear=] variable.
+This is used to prevent [=privacy budget|budget=] expenditure
+until it is guaranteed that a [=site=] cannot exceed
+the [=user agent=]-chosen maximum allowed [=privacy budget=].
+
+The [=get the starting epoch for attribution=] algorithm
+ensures that an [=impression site=]
+cannot make queries [=impressions=] from any [=epoch=]
+that starts within one [=epoch=] [=duration=]
+from when state is cleared.
+
+
+### Clearing Impressions ### {#removing-impressions}
+
+A mechanism must be provided to clear the impression store.
+For example, the impression store could be cleared
+upon activation of the control that
+[[#opt-out|disables]] the Private Attribution API.
+
+It is recommended that any mechanism a [=user agent=] provides
+to clear stored data (history, cookies, etc.)
+be extended to cover the impression store.
+[[#clear-budget-store]] provides more detailed information
+on the clearing of stored data.
+
+A [=user agent=] that clears state for a [=site=]
+must discard all [=impression store|saved impressions=]
+that were saved during the affected period
+with a [=same site|matching=] [=impression/impression site=]
+or [=impression/conversion site=].
+For an [=impression site=],
+these [=impressions=] relate to activity that was cleared.
+A [=conversion site=] that has had state cleared
+will not be able to use these [=impressions=].
+
+[=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
+may be cleared.
+
+
 ## Information Exposed by the Private Attribution API ## {#privacy-exposure}
 
 The [=impression store=] and [=privacy budget store=]
@@ -2004,7 +2008,7 @@ The following measures mitigate this risk:
     is revealed in [=conversion reports=].
 *   The information in [=conversion reports=] is only revealed
     after aggregation and the addition of noise.
-*   Users have the ability to [[#impression-store-clearing|clear the impression store]].
+*   Users have the ability to [[#removing-impressions|clear the impression store]].
 *   No impressions are saved to the impression store
     when the Private Attribution API is [[#opt-out|disabled]].
 
