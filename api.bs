@@ -828,6 +828,10 @@ The <dfn>impression store</dfn> is used by the <a method
 for=PrivateAttribution>measureConversion()</a> method to find matching
 [=impressions=].
 
+<p class=note>
+Though this API enables the storage of data by sites,
+this does not use a [=storage key=].
+
 
 ### Contents ### {#impression-store-contents}
 
@@ -883,6 +887,12 @@ The [=privacy budget store=] records the state
 of the per-[=site=] [=privacy budgets=].
 It is updated by [=deduct privacy budget=].
 
+<p class=note>
+Like the [=impression store=],
+the [=privacy budget store=] does not use a [=storage key=].
+Additionally, the [=privacy budget store=] has some additional constraints
+on how information is cleared.
+
 <p class=issue>
 The [=safety limits=] need to be described in more detail.
 Some references to clearing
@@ -919,6 +929,52 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=] to |newValue|.
 
 1.  Return whether |newValue| is greater than or equal to 0.
+
+
+### Clearing ### {#budget-store-clearing}
+
+A [=user agent=] might present the option to clear storage.
+These exist for two reasons:
+
+*   Privacy toward sites,
+    so that the sites cannot recognize the [=user=] in future interactions.
+    (that is, to [=same site recognition=])
+
+*   Removing traces of activity locally,
+    so that other users of a computer
+    cannot access browsing history.
+
+Clearing privacy budget state has an adverse effect on privacy toward sites,
+because it might allow sites to gain more information
+through attribution.
+Retaining any per-site information
+necessary to prevent privacy loss toward sites
+leaves information about visits to sites
+for other users of a computer to discover.
+
+To this end, [=user agents=] can both
+remove per-site information
+and globally disable the attribution API.
+Attribution needs to be disabled for one [=epoch=]
+from the point that state is discarded.
+Otherwise, site that expends its budget
+immediately prior to the clearing of state
+would be able to learn more through th eAPI
+than it could without the clearing of state.
+
+This does not apply if only some interactions with a site are cleared,
+such as if local storage of activity over a set time window are removed.
+This only applies if all interactions with a site
+need to be removed.
+
+A [=user agent=] therefore has to remember when state was last cleared,
+preventing budget expenditure until that time elapses.
+A site that has an [=epoch=] that starts within
+that offers selective deletion of history,
+such as the removal of state for a single site,
+could partition this value so that other sites remain unaffected.
+However, this cannot use too many partitions,
+or the choice of partition will correlate strongly with site identity.
 
 
 
@@ -1799,6 +1855,8 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
     text: set; url: #sets
+urlPrefix: https://storage.spec.whatwg.org/; spec: storage; type: dfn;
+    text: storage key
 </pre>
 <pre class=biblio>
 {
