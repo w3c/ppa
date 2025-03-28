@@ -403,18 +403,21 @@ as the primary scope over which it operates.
 Three types of sites are recognized:
 
 *   An <dfn>impression site</dfn> is the [=site=]
-    derived from the [=top-level origin=]
+    that registers an impression.
+    This [=impression site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
     at the time that {{PrivateAttribution/saveImpression()}}
     is invoked to store an [=impression=].
 
 *   A <dfn>conversion site</dfn> is the [=site=]
-    derived from the [=top-level origin=]
+    where a conversion occurs.
+    The [=conversion site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
     at the time that {{PrivateAttribution/measureConversion()}} is invoked.
 
-*   An <dfn>intermediary site</dfn> is the [=site=]
-    derived from the [=origin=]
+*   An <dfn>intermediary site</dfn> is a [=site=]
+    that calls the API from any cross-site frame, such an [=iframe=].
+    The [=impression site=] is derived from the [=origin=]
     of the [=relevant settings object=]
     at the time that either {{PrivateAttribution/saveImpression()}}
     or {{PrivateAttribution/measureConversion()}} is invoked,
