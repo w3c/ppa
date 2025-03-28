@@ -733,6 +733,10 @@ dictionary PrivateAttributionConversionOptions {
   unsigned long maxValue = 1;
 };
 
+enum PrivateAttributionLogic {
+  "last-touch",
+};
+
 dictionary PrivateAttributionConversionResult {
   required Uint8Array report;
 };
@@ -972,10 +976,16 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
              [=obtain a site|obtaining a site=] from the [=origin=].
         <!-- TODO: the intermediary site is currently unused -->
 1. Validate the page-supplied API inputs:
-    1.  If <a dict-member for=PrivateAttributionConversionOptions>logic</a>
-        is specified, and the value is anything other than
-        <a enum-value for=PrivateAttributionLogic>"last-touch"</a>,
-        throw a {{TypeError}}.
+    1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
+        <dl class="switch">
+        </dl>
+        :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+        ::  Perform the following steps:
+            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a> is 0,
+                throw a {{RangeError}}.
+            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
+                is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
+                throw a {{RangeError}}.
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
 1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
@@ -994,12 +1004,6 @@ which determines how the [=conversion value=] is allocated to histogram buckets.
 The <a method for=PrivateAttribution>measureConversion()</a> function
 accepts a <a dict-member for=PrivateAttributionConversionOptions>logic</a> parameter
 that specifies the [=attribution logic=].
-
-<xmp class=idl>
-enum PrivateAttributionLogic {
-  "last-touch",
-};
-</xmp>
 
 Each attribution logic specifies a process for allocating values to histogram buckets,
 after the [=common matching logic=] is applied and privacy budgeting occurs.
@@ -1042,28 +1046,10 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
       </dl>
 
-
-To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
-  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
-
-1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
-
-1.  Let |impression| be the value in |matchedImpressions| with the most recent
-    [=impression/timestamp=].
-
-1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
-    with |histogramSize|.
-
-1.  Let |index| be |impression|'s [=impression/histogram index=].
-
-1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
-
-1.  Return |histogram|.
-
-
 To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 1.  Return a [=list=] of [=list/size=] |size|, whose [=list/items=] are all 0.
+
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
@@ -1096,6 +1082,27 @@ To perform <dfn>common matching logic</dfn>, given
     1.  [=set/Append=] |impression| to |matching|.
 
 1.  Return |matching|.
+
+
+#### Last-Touch Attribution #### {#last-touch-attribution}
+
+To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
+  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
+
+1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
+
+1.  Let |impression| be the value in |matchedImpressions| with the most recent
+    [=impression/timestamp=].
+
+1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
+    with |histogramSize|.
+
+1.  Let |index| be |impression|'s [=impression/histogram index=].
+
+1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
+
+1.  Return |histogram|.
+
 
 ## User Control and Visibility ## {#user-control}
 
