@@ -432,7 +432,7 @@ which could otherwise be used to exceed [=privacy budgets=].
 ## Navigator Interface ## {#navigator-interface}
 
 All functionality for this API is attached
-to the `{{Navigator|navigator}}.{{Navigator/privateAttribution|privateAttribution}}` attribute.
+to the <code>{{Navigator|navigator}}.{{Navigator/privateAttribution|privateAttribution}}</code> attribute.
 
 <xmp class=idl>
 partial interface Navigator {
