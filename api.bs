@@ -725,8 +725,8 @@ dictionary PrivateAttributionConversionOptions {
 
   unsigned long lookbackDays;
   unsigned long filterData;
-  sequence<DOMString> impressionSites = [];
-  sequence<DOMString> intermediarySites = [];
+  sequence<USVString> impressionSites = [];
+  sequence<USVString> intermediarySites = [];
 
   PrivateAttributionLogic logic = "last-touch";
   unsigned long value = 1;
