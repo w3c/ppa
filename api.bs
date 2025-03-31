@@ -948,7 +948,7 @@ given an [=environment settings object=] |settings|,
 a [=site=] |site|,
 and [=moment=] |now|:
 
-1.  Let |period| be the [=duration=] of one [=epoch=] (i.e., 86400 seconds).
+1.  Let |period| be the [=duration=] of one [=epoch=].
 
 1.  If the [=epoch start store=] does not [=map/contain=] |site|, [=map/set=]
     its value to |now|, minus a [=duration=]
@@ -994,7 +994,7 @@ updating the [=last browsing history clear=] can be skipped if:
 
 *   All interactions that are cleared are with [=sites=]
     that have other uncleared interactions.
-*   All cleared interactions occuring during [=epochs=]
+*   All cleared interactions occurring during [=epochs=]
     where other interactions with the same [=site=] were retained.
 *   All affected [=sites=] have a value in the [=epoch start store=].
 
@@ -1003,7 +1003,7 @@ the [=last browsing history clear=] does not need to be updated.
 Instead, the [=privacy budget store=] must be updated
 by [=map/set|setting=] a value of 0
 for all [=privacy budget key=] combinations that can be formed
-from every affected [=sites=] and [=epochs=].
+from every affected [=site=] and [=epoch=].
 
 <p class=note>
 This optimization relies on the [=user agent=]
@@ -1030,12 +1030,12 @@ given [=site=] site:
         This use of [=get the current epoch=]
         can return a negative value.
         This is because the value in [=epoch start store=]
-        is likely to be set to a time be after history was last cleared.
+        is likely to be set to a time after history was last cleared.
 
     1.  Set |clearEpoch| to |clearEpoch| + 2.
 
         <p class=note>
-        Adding <em>two</em> is necessary to that the [=epoch=]
+        Adding <em>two</em> is necessary so that the [=epoch=]
         does not overlap with an [=epoch=]
         before browsing history--
         and the [=epoch start store=]--
@@ -1825,7 +1825,7 @@ In that case, if the API is re-enabled,
 there is no way to determine what budget was expended
 prior to the API being [[#opt-out|disabled]].
 In that case, a [=user agent=] can update
-the value [=last browsing history clear=]
+the value of [=last browsing history clear=]
 to ensure that [=privacy budgets=] are not inadvertently exceeded.
 
 
@@ -1865,7 +1865,7 @@ for a period between one and two [=epochs=]
 from the point that browsing history is discarded.
 Otherwise, a [=site=] that expends its budget
 immediately prior to the clearing of history
-would be able to learn more through API
+would be able to learn more through the API
 than it could without the clearing of state.
 
 <p class=note>
@@ -1879,21 +1879,21 @@ which cannot overlap with any [=epoch=] that might have been defined
 before history was cleared.
 
 A [=user agent=] remembers when history was last cleared
-in the [=last browsing history clear=] variable.
+in the [=last browsing history clear=] value.
 This is used to prevent [=privacy budget|budget=] expenditure
 until it is guaranteed that a [=site=] cannot exceed
 the [=user agent=]-chosen maximum allowed [=privacy budget=].
 
 The [=get the starting epoch for attribution=] algorithm
 ensures that an [=impression site=]
-cannot make queries [=impressions=] from any [=epoch=]
+cannot query [=impressions=] from any [=epoch=]
 that starts within one [=epoch=] [=duration=]
 from when state is cleared.
 
 
 ### Clearing Impressions ### {#removing-impressions}
 
-A mechanism must be provided to clear the impression store.
+A mechanism must be provided to clear the [=impression store=].
 For example, the impression store could be cleared
 upon activation of the control that
 [[#opt-out|disables]] the Private Attribution API.
