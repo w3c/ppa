@@ -958,7 +958,7 @@ and [=moment=] |now|:
 1.  Let |start| be the result of [=map/get|getting the value=] of |site|
     from the [=epoch start store=].
 
-1.  Let |elapsed| be |now| - |start| / |period|.
+1.  Let |elapsed| be (|now| - |start|) / |period|.
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
 
