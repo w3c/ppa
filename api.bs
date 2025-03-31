@@ -1800,6 +1800,116 @@ of candidate impressions.
 # Privacy Considerations # {#privacy}
 
 
+## Information Exposed by the Private Attribution API ## {#privacy-exposure}
+
+The [=impression store=] and [=privacy budget store=]
+contain information about a cross-section of browsing activity.
+As use of the API increases,
+so does the scope of this information.
+However, most of the information written to these stores
+is never disclosed.
+Because attribution is performed on the device
+(<dfn ignore=''>on-device attribution</dfn>),
+only information about attributed conversions is exposed by the
+Private Attribution API. This contrasts with other schemes in which
+information about both impressions and conversions is sent to the
+aggregation service for <dfn ignore=''>off-device attribution</dfn>.
+In the latter class of schemes, the amount of information
+that could be revealed in a compromise of the aggregation service
+(or in a compromise of communication with the aggregation service)
+is significantly larger.
+
+When the Private Attribution API makes an attribution, information
+about that attribution is released from the device
+only to the extent the [[#dp|differential privacy]] restrictions allow.
+
+While the Private Attribution API is intended to measure
+the association of relatively infrequent conversion events
+with a limited set of related impression candidates,
+it is important to consider how the API might be misused
+for larger-scale data collection.
+The requirement that impressions enumerate
+the possible [=conversion sites=] (and vice-versa)
+has an important role in preventing misuse of the API
+for mass data collection, and in making attempts
+at such misuse more visible.
+
+<p class=issue>
+It is unclear whether the [=privacy budget store=] should be cleared whenever
+the [=impression store=] is cleared. On one hand, it contains information about
+browsing activity, so it is desirable to include it when clearing browsing activity.
+On the other hand, it is only possible to strictly adhere to the requirements of
+the differential privacy mechanism if information about a fully- or partially-
+depleted privacy budget is maintained until that budget is no longer relevant
+(i.e. the end of the [=privacy budget epoch=]).
+
+
+## Disabling the Private Attribution API ## {#privacy-opt-out}
+
+The Private Attribution API
+is designed to reveal only aggregate information.
+The use of [[#dp|differential privacy]]
+limits the chance of determining whether any particular user
+contributed to the aggregated output.
+However, some users may still prefer
+not to participate in attribution measurement.
+As discussed in [[#opt-out]], the user agent must provide
+a mechanism for the user to disable the Private Attribution API.
+
+To minimize the risk of fingerprinting,
+and to prevent discrimination
+against users who choose to disable the Private Attribution API,
+sites must not be able to detect that the API is disabled.
+Specifically, all calls to the Private Attribution API
+that are otherwise valid
+must complete successfully, even when the API is disabled.
+The only difference in behavior
+is that [=conversion reports=] returned when the API is disabled
+will never report any [=conversion value=].
+Because the reports are encrypted,
+this difference cannot be detected
+by the site receiving the conversion report.
+
+
+## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
+
+Sites are able to encode some amount of data
+in impressions,
+using {{PrivateAttributionConversionOptions/filterData}}
+or other fields.
+The API does not prevent sites from encoding user identifiers
+in these fields.
+The attribution process can use this data
+when constructing a [=conversion report=],
+which implies some risk of that identifying information
+becoming available to the site that receives that report.
+The following measures mitigate this risk:
+
+*   The [=impression store=] cannot be read directly.
+    Thus, identifiers are only usable for tracking
+    to the extent information about them
+    is revealed in [=conversion reports=].
+*   The information in [=conversion reports=] is only revealed
+    after aggregation and the addition of noise.
+*   Users have the ability to [[#removing-impressions|clear the impression store]].
+*   No impressions are saved to the impression store
+    when the Private Attribution API is [[#opt-out|disabled]].
+
+
+## Use in Third-party Contexts ## {#privacy-third-party-contexts}
+
+The Private Attribution API is available even in third-party contexts.
+In particular, a third-party iframe
+may call <a method for=PrivateAttribution>saveImpression()</a>.
+Note, however, that the impression is recorded with the [=site=]
+of the top-level navigation context, not the [=origin=] of the iframe.
+
+While the availability of the API in third-party contexts
+carries some increase in privacy risk,
+this support is deemed necessary
+because iframes are commonly used to display advertisements.
+
+
 ## Clearing API State ## {#clear-budget-store}
 
 A [=user agent=] might present the option to clear storage.
@@ -1916,115 +2026,6 @@ will not be able to use these [=impressions=].
 
 [=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
 may be cleared.
-
-
-## Information Exposed by the Private Attribution API ## {#privacy-exposure}
-
-The [=impression store=] and [=privacy budget store=]
-contain information about a cross-section of browsing activity.
-As use of the API increases,
-so does the scope of this information.
-However, most of the information written to these stores
-is never disclosed.
-Because attribution is performed on the device
-(<dfn ignore=''>on-device attribution</dfn>),
-only information about attributed conversions is exposed by the
-Private Attribution API. This contrasts with other schemes in which
-information about both impressions and conversions is sent to the
-aggregation service for <dfn ignore=''>off-device attribution</dfn>.
-In the latter class of schemes, the amount of information
-that could be revealed in a compromise of the aggregation service
-(or in a compromise of communication with the aggregation service)
-is significantly larger.
-
-When the Private Attribution API makes an attribution, information
-about that attribution is released from the device
-only to the extent the [[#dp|differential privacy]] restrictions allow.
-
-While the Private Attribution API is intended to measure
-the association of relatively infrequent conversion events
-with a limited set of related impression candidates,
-it is important to consider how the API might be misused
-for larger-scale data collection.
-The requirement that impressions enumerate
-the possible [=conversion sites=] (and vice-versa)
-has an important role in preventing misuse of the API
-for mass data collection, and in making attempts
-at such misuse more visible.
-
-<p class=issue>
-It is unclear whether the [=privacy budget store=] should be cleared whenever
-the [=impression store=] is cleared. On one hand, it contains information about
-browsing activity, so it is desirable to include it when clearing browsing activity.
-On the other hand, it is only possible to strictly adhere to the requirements of
-the differential privacy mechanism if information about a fully- or partially-
-depleted privacy budget is maintained until that budget is no longer relevant
-(i.e. the end of the [=privacy budget epoch=]).
-
-## Disabling the Private Attribution API ## {#privacy-opt-out}
-
-The Private Attribution API
-is designed to reveal only aggregate information.
-The use of [[#dp|differential privacy]]
-limits the chance of determining whether any particular user
-contributed to the aggregated output.
-However, some users may still prefer
-not to participate in attribution measurement.
-As discussed in [[#opt-out]], the user agent must provide
-a mechanism for the user to disable the Private Attribution API.
-
-To minimize the risk of fingerprinting,
-and to prevent discrimination
-against users who choose to disable the Private Attribution API,
-sites must not be able to detect that the API is disabled.
-Specifically, all calls to the Private Attribution API
-that are otherwise valid
-must complete successfully, even when the API is disabled.
-The only difference in behavior
-is that [=conversion reports=] returned when the API is disabled
-will never report any [=conversion value=].
-Because the reports are encrypted,
-this difference cannot be detected
-by the site receiving the conversion report.
-
-
-## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
-
-Sites are able to encode some amount of data
-in impressions,
-using {{PrivateAttributionConversionOptions/filterData}}
-or other fields.
-The API does not prevent sites from encoding user identifiers
-in these fields.
-The attribution process can use this data
-when constructing a [=conversion report=],
-which implies some risk of that identifying information
-becoming available to the site that receives that report.
-The following measures mitigate this risk:
-
-*   The [=impression store=] cannot be read directly.
-    Thus, identifiers are only usable for tracking
-    to the extent information about them
-    is revealed in [=conversion reports=].
-*   The information in [=conversion reports=] is only revealed
-    after aggregation and the addition of noise.
-*   Users have the ability to [[#removing-impressions|clear the impression store]].
-*   No impressions are saved to the impression store
-    when the Private Attribution API is [[#opt-out|disabled]].
-
-
-## Use in Third-party Contexts ## {#privacy-third-party-contexts}
-
-The Private Attribution API is available even in third-party contexts.
-In particular, a third-party iframe
-may call <a method for=PrivateAttribution>saveImpression()</a>.
-Note, however, that the impression is recorded with the [=site=]
-of the top-level navigation context, not the [=origin=] of the iframe.
-
-While the availability of the API in third-party contexts
-carries some increase in privacy risk,
-this support is deemed necessary
-because iframes are commonly used to display advertisements.
 
 
 # Acknowledgements # {#ack}
