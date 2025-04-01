@@ -417,7 +417,7 @@ Three types of sites are recognized:
 
 *   An <dfn>intermediary site</dfn> is a [=site=]
     that calls the API from any cross-site frame, such an [=iframe=].
-    The [=impression site=] is derived from the [=origin=]
+    The [=intermediary site=] is derived from the [=origin=]
     of the [=relevant settings object=]
     at the time that either {{PrivateAttribution/saveImpression()}}
     or {{PrivateAttribution/measureConversion()}} is invoked,
