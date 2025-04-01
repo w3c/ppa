@@ -1991,7 +1991,7 @@ until it is guaranteed that a [=site=] cannot exceed
 the [=user agent=]-chosen maximum allowed [=privacy budget=].
 
 The [=get the starting epoch for attribution=] algorithm
-ensures that an [=impression site=]
+ensures that a [=conversion site=]
 cannot query [=impressions=] from any [=epoch=]
 that starts within one [=epoch=] [=duration=]
 from when state is cleared.
