@@ -911,8 +911,7 @@ A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items
 </dl>
 
 To <dfn>deduct privacy budget</dfn>
-given an [=environment settings object=] |settings|,
-a [=privacy budget key=] |key|,
+given a [=privacy budget key=] |key|,
 [=float=] |epsilon|,
 integer |sensitivity|,
 and integer |globalSensitivity|:
@@ -944,8 +943,7 @@ The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
 with values that are [=moments=].
 
 To <dfn>get the current epoch</dfn>
-given an [=environment settings object=] |settings|,
-a [=site=] |site|,
+given a [=site=] |site|,
 and [=moment=] |now|:
 
 1.  Let |period| be the [=duration=] of one [=epoch=].
@@ -1945,8 +1943,6 @@ When clearing site data,
 but retaining browsing history,
 a [=user agent=] can [=map/set=] the value
 in the [=privacy budget store=] to 0 for all [=epochs=]
-up to the [=get the current epoch|current epoch=],
-starting from the [=get the starting epoch for attribution|earliest available epoch=]
 for all affected [=sites=].
 
 
