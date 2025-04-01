@@ -434,11 +434,21 @@ which could otherwise be used to exceed [=privacy budgets=].
 
 ## Navigator Interface ## {#navigator-interface}
 
+All functionality for this API is attached
+to the <code>{{Navigator|navigator}}.{{Navigator/privateAttribution|privateAttribution}}</code> attribute.
+
 <xmp class=idl>
 partial interface Navigator {
   [SecureContext, SameObject] readonly attribute PrivateAttribution privateAttribution;
 };
 </xmp>
+
+This provides three key functions:
+
+* A list of browser-supported aggregation functions ([[#find-aggregation-service]])
+* A means of asking the browser to save impressions ([[#save-impression-api]])
+* A method to request conversion measurement ([[#measure-conversion-api]])
+
 
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
@@ -620,7 +630,7 @@ with [=this=]'s [=relevant settings object=]
 and the provided |options|.
 
 
-## Requesting Attribution for a Conversion ## {#measure-conversion}
+## Requesting Attribution for a Conversion ## {#measure-conversion-api}
 
 The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
 requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
