@@ -935,13 +935,13 @@ that are used to manage the expenditure of [=privacy budgets=]:
     It is updated by [=deduct privacy budget=].
 
 
-*   A singleton [=last browsing history clear=] value
-    that tracks when the browsing activity for a [=site=] was last cleared.
-
 *   The [=epoch start store=] records when each [=epoch=] starts
     for [=impression sites=].
     This store is initialized as a side effect
     of invoking <a method for=PrivateAttribution>saveImpression()</a>.
+
+*   A singleton [=last browsing history clear=] value
+    that tracks when the browsing activity for a [=site=] was last cleared.
 
 <p class=note>
 Like the [=impression store=],
