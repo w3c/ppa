@@ -2085,6 +2085,12 @@ Continuous large corrections have the most serious effect on privacy,
 as each transition between epochs
 will release additional [=privacy budget=].
 
+<p class=note>A very large increase in time
+that skips entire [=epochs=]
+does not result in additional privacy loss.
+No privacy loss is possible
+unless an [=impression=] can be [[#save-impression-api|saved]].
+
 Of course, any [=user agent=] that has a need for large
 or continuous
 corrections to its clock will likely be highly identifiable
