@@ -985,7 +985,7 @@ The <dfn>last browsing history clear</dfn> is a [=moment=]
 using the [=wall clock=]
 that tracks when browsing history was last cleared.
 The [=last browsing history clear=] value is updated
-to the [=current high resolution time=]
+to the [=current wall time=]
 when any [=site=]-level state is cleared
 at the request of a [=user=].
 The value is initially unset.
@@ -1073,7 +1073,7 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  The timestamp is set to the [=current high resolution time=].
+    1.  The timestamp is set to the [=current wall time=].
     1.  The [=impression site=] is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
@@ -1104,7 +1104,7 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |now| be the [=current high resolution time=].
+    1.  Let |now| be the [=current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
@@ -2114,6 +2114,8 @@ urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: site
     text: top-level origin; url: #concept-environment-top-level-origin
     text: iframe; url: #child-navigable
+urlPrefix: https://w3c.github.io/hr-time/; spec: hr-time; type: dfn
+    text: current wall time
 urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: user agent
     text: set; url: #sets
