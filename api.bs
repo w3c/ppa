@@ -957,7 +957,8 @@ that arises from a [=privacy budget=] reaching zero
 is averaged across all the contributions from all [=users=].
 
 The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
-with values that are [=moments=].
+with values that are [=moments=]
+from the [=wall clock=].
 
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
@@ -981,6 +982,7 @@ and [=moment=] |now|:
 ### Last Browsing History Clear Time ### {#last-clear}
 
 The <dfn>last browsing history clear</dfn> is a [=moment=]
+using the [=wall clock=]
 that tracks when browsing history was last cleared.
 The [=last browsing history clear=] value is updated
 to the [=current high resolution time=]
@@ -1817,6 +1819,15 @@ of candidate impressions.
 
 # Privacy Considerations # {#privacy}
 
+The main privacy goal of this API is
+to ensure that providing sites with the ability to perform attribution
+does not improve their ability to perform [=cross-site recognition=].
+
+This section provides more information
+about the protections necessary to achieve this goal.
+Additional discussion talk about secondary privacy goals,
+such as the prevention of [=same-site recognition=].
+
 
 ## Information Exposed by the Private Attribution API ## {#privacy-exposure}
 
@@ -1935,7 +1946,7 @@ These exist for two reasons:
 
 *   Privacy toward sites,
     so that the sites cannot recognize the [=user=] in future interactions
-    (that is, to prevent [=same site recognition=]).
+    (that is, to prevent [=same-site recognition=]).
 
 *   Removing traces of activity locally,
     so that other users of a computer
@@ -2044,6 +2055,43 @@ will not be able to use these [=impressions=].
 may be cleared.
 
 
+## Choice of Clock ## {#why-wall-clock}
+
+This API uses a [=wall clock=] as its basis for time.
+This is primarily because the API relies on a persistent notion of time.
+A [=monotonic clock=] is only defined during a single execution of a [=user agent=],
+so it has no guarantee of consistency if a [=user agent=] is restarted.
+
+A [=wall clock=] can be adjusted to account for errors that might accumulate
+due to clock drift.
+A [=wall clock=] therefire is not guaranteed to always advance at a consistent rate,
+including the possibility that it might sometimes decrease.
+
+Decreases in the [=wall clock=] do not affect the privacy guarantees
+that this API provides.
+Only increases in the [=wall clock|clock=],
+can have an adverse privacy effect.
+Increases above the normal progress of time
+might result in the renewal of [=privacy budget=]
+more quickly than intended.
+
+For a clock that undergoes corrections within each [=epoch=],
+clock adjustments will have no privacy effect.
+A single correction that is sufficiently large
+might cause [=privacy budgets=] to be renewed
+ahead of schedule,
+resulting in a one-time increase in privacy loss.
+Continuous large corrections have the most serious effect on privacy,
+as each transition between epochs
+will release additional [=privacy budget=].
+
+Of course, any [=user agent=] that has a need for large
+or continuous
+corrections to its clock will likely be highly identifiable
+as a result of the time that it reports.
+That alone is likely enough to enable unwanted [=cross-site recognition=].
+
+
 # Acknowledgements # {#ack}
 
 This specification is the result of a lot of work from many people.
@@ -2066,7 +2114,8 @@ urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
 urlPrefix: https://storage.spec.whatwg.org/; spec: storage; type: dfn;
     text: storage key
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
-    text: same site recognition
+    text: cross-site recognition
+    text: same-site recognition
 </pre>
 <pre class=biblio>
 {
