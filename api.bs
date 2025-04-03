@@ -1825,7 +1825,7 @@ does not improve their ability to perform [=cross-site recognition=].
 
 This section provides more information
 about the protections necessary to achieve this goal.
-Additional discussion talk about secondary privacy goals,
+Additional discussion talks about secondary privacy goals,
 such as the prevention of [=same-site recognition=].
 
 
@@ -2064,7 +2064,7 @@ so it has no guarantee of consistency if a [=user agent=] is restarted.
 
 A [=wall clock=] can be adjusted to account for errors that might accumulate
 due to clock drift.
-A [=wall clock=] therefire is not guaranteed to always advance at a consistent rate,
+A [=wall clock=] therefore is not guaranteed to always advance at a consistent rate,
 including the possibility that it might sometimes decrease.
 
 Decreases in the [=wall clock=] do not affect the privacy guarantees
