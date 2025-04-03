@@ -1987,11 +1987,17 @@ to ensure that [=privacy budgets=] are not inadvertently exceeded.
 
 ### Clearing Site Data ### {#clear-site-data}
 
-When clearing site data,
+When clearing site data at the request of a [=user=],
 but retaining browsing history,
 a [=user agent=] can [=map/set=] the value
 in the [=privacy budget store=] to 0 for all [=epochs=]
 for all affected [=sites=].
+
+When clearing site data at the request of a [=site=],
+through the use of the [:Clear-Site-Data:] header,
+A [=user agent=] only [[#removing-impressions|removes impressions]],
+without altering either the [=privacy budget store=]
+or the [=epoch start store=] for affected [=sites=].
 
 
 ### Clearing Browsing History ### {#clear-browsing-history}
@@ -2069,7 +2075,7 @@ A [=conversion site=] that has had state cleared
 will not be able to use these [=impressions=].
 
 [=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
-may be cleared.
+may be retained.
 
 
 # Acknowledgements # {#ack}
