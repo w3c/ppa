@@ -1027,11 +1027,12 @@ in terms of revealing that a particular site was visited.
 
 This specification describes algorithms that do not including partition.
 This guarantees that stored data does not reveal anything
-about browsing history.
+about browsing history after it is cleared.
 </div>
 
 As an optional optimization,
-updating the [=last browsing history clear=] can be skipped if:
+updating the [=last browsing history clear=] can be skipped if
+all of the following are true:
 
 *   All interactions that are cleared are with [=sites=]
     that have other uncleared interactions.
@@ -1053,6 +1054,9 @@ about interactions with affected [=sites=]
 in the affected [=epochs=].
 This only works because any of the retained interactions
 could have resulted in exhausting the budget.
+Resetting the budget is necessary to ensure
+that no information about the gap in browsing history
+is exposed.
 
 To <dfn>get the starting epoch for attribution</dfn>
 given [=site=] site:
