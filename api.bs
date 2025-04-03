@@ -959,6 +959,32 @@ is averaged across all the contributions from all [=users=].
 The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
 with values that are [=moments=].
 
+A <dfn local-lt=epoch>privacy budget epoch</dfn> (or [=epoch=])
+identifies a period of time.
+The length of an [=epoch=] is fixed at one week or 7 [=days=],
+where a <dfn>day</dfn> is defined as 86400 seconds.
+
+The exact time span for an [=epoch=] is different
+for each combination of [=user agent=] and [=site=].
+The start time for a given pair of [=user agent=] and [=site=]
+is chosen randomly by the [=user agent=] when an epoch is first needed--
+as a side effect of invoking the [=get the current epoch=] algorithm.
+The definition of an [=epoch=] is also reset
+if the [=user agent=] clears browsing history;
+see [[#clear-browsing-history]].
+
+<p class=note>
+This means that [=epoch=] is [=user agent=]-defined,
+so it has no defined type.
+The internal representation of an [=epoch=]
+in a [=user agent=]
+might be an integer,
+as the [=get the current epoch=] algorithm assumes.
+However, the only real requirement is that an [=epoch=]
+can be used to index the [=maplike=] structures
+used for the [=impression store|impression=]
+and [=epoch start store|epoch start=] stores.
+
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
 and [=moment=] |now|:
@@ -1537,10 +1563,8 @@ to protect against those attacks.
 
 Sites receive a separate differential privacy budget
 that is used to query [=impressions=] recorded
-in each time interval.
-This period is called a <dfn local-lt=epoch>privacy budget epoch</dfn>
-(or simply [=epoch=])
-and its duration is one week (7 days), where a <dfn>day</dfn> is 86400 seconds.
+in each [=privacy budget epoch=]
+(or [=epoch=]).
 
 This budget applies to the [=impressions=]
 that are registered with the [=user agent=]
