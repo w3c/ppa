@@ -847,7 +847,7 @@ for=PrivateAttribution>measureConversion()</a> method to find matching
 
 <p class=note>
 Though this API enables the storage of data by sites,
-this does not use a [=storage key=].
+the [=impression store=] does not use a [=storage key=].
 
 
 ### Contents ### {#impression-store-contents}
