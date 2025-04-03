@@ -920,8 +920,8 @@ The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
 <dl dfn-for="privacy budget key">
-: <dfn ignore>epoch</dfn>
-:: A [=privacy budget epoch=]
+: <dfn ignore>epoch index</dfn>
+:: An [=epoch index=]
 : <dfn ignore>site</dfn>
 :: A [=site=]
 
@@ -973,21 +973,37 @@ The definition of an [=epoch=] is also reset
 if the [=user agent=] clears browsing history;
 see [[#clear-browsing-history]].
 
-<p class=note>
-This means that [=epoch=] is [=user agent=]-defined,
-so it has no defined type.
-The internal representation of an [=epoch=]
-in a [=user agent=]
-might be an integer,
-as the [=get the current epoch=] algorithm assumes.
-However, the only real requirement is that an [=epoch=]
-can be used to index the [=maplike=] structures
-used for the [=impression store|impression=]
+An <dfn local-lt="epoch indices">epoch index</dfn> is an integer
+that refers to a given [=epoch=].
+An [=epoch index=] is used to access
+the [=impression store|impression=]
 and [=epoch start store|epoch start=] stores.
+
+<div class=note>
+In the same way that a [=moment=] is an abstract concept
+that can only be expressed as a [=duration=]
+relative to another [=moment=],
+[=epochs=] are abstract.
+
+[=Epoch indices=] are stored as integers
+relative to a set reference point.
+The [=epoch indices=] in this specification
+use the values from the [=epoch start store=]
+as a reference point.
+A [=user agent=] could choose to use a different [=moment=]
+to indicate a "zero" or reference [=epoch=].
+</div>
+
+The algorithms in this specification all use concrete [=epoch indices=],
+rather than the more abstract [=epoch=].
+[=moment|Points in time=] are translalated to an [=epoch index=]
+for the corresponding [=epoch=]
+using the [=get the current epoch=] algoritm.
 
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
-and [=moment=] |now|:
+and [=moment=] |now|,
+returning an [=epoch index=]:
 
 1.  Let |period| be the [=duration=] of one [=epoch=].
 
@@ -1045,7 +1061,8 @@ the [=last browsing history clear=] does not need to be updated.
 Instead, the [=privacy budget store=] must be updated
 by [=map/set|setting=] a value of 0
 for all [=privacy budget key=] combinations that can be formed
-from every affected [=site=] and [=epoch=].
+from every affected [=site=] and [=epoch=]
+(using the [=get the current epoch|corresponding=] [=epoch index=]).
 
 <p class=note>
 This optimization relies on the [=user agent=]
@@ -1059,10 +1076,11 @@ that no information about the gap in browsing history
 is exposed.
 
 To <dfn>get the starting epoch for attribution</dfn>
-given [=site=] site:
+given [=site=] site,
+returning an [=epoch index=]:
 
 1.  Let |startEpoch| be a [=user agent=]-defined value
-    for the earliest [=epoch=]
+    for the earliest [=epoch index=]
     that is supported for attribution.
 
 1.  If the [=last browsing history clear=] is set,
@@ -1224,7 +1242,7 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, [=epoch=] |epoch|, and
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, [=epoch index=] |epoch|, and
 [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
