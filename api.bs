@@ -403,18 +403,21 @@ as the primary scope over which it operates.
 Three types of sites are recognized:
 
 *   An <dfn>impression site</dfn> is the [=site=]
-    derived from the [=top-level origin=]
+    that registers an impression.
+    This [=impression site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
     at the time that {{PrivateAttribution/saveImpression()}}
     is invoked to store an [=impression=].
 
 *   A <dfn>conversion site</dfn> is the [=site=]
-    derived from the [=top-level origin=]
+    where a conversion occurs.
+    The [=conversion site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
     at the time that {{PrivateAttribution/measureConversion()}} is invoked.
 
-*   An <dfn>intermediary site</dfn> is the [=site=]
-    derived from the [=origin=]
+*   An <dfn>intermediary site</dfn> is a [=site=]
+    that calls the API from any cross-site frame, such an [=iframe=].
+    The [=intermediary site=] is derived from the [=origin=]
     of the [=relevant settings object=]
     at the time that either {{PrivateAttribution/saveImpression()}}
     or {{PrivateAttribution/measureConversion()}} is invoked,
@@ -431,11 +434,21 @@ which could otherwise be used to exceed [=privacy budgets=].
 
 ## Navigator Interface ## {#navigator-interface}
 
+All functionality for this API is attached
+to the <code>{{Navigator|navigator}}.{{Navigator/privateAttribution|privateAttribution}}</code> attribute.
+
 <xmp class=idl>
 partial interface Navigator {
   [SecureContext, SameObject] readonly attribute PrivateAttribution privateAttribution;
 };
 </xmp>
+
+This provides three key functions:
+
+* A list of browser-supported aggregation functions ([[#find-aggregation-service]])
+* A means of asking the browser to save impressions ([[#save-impression-api]])
+* A method to request conversion measurement ([[#measure-conversion-api]])
+
 
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
@@ -617,7 +630,7 @@ with [=this=]'s [=relevant settings object=]
 and the provided |options|.
 
 
-## Requesting Attribution for a Conversion ## {#measure-conversion}
+## Requesting Attribution for a Conversion ## {#measure-conversion-api}
 
 The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
 requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
@@ -832,6 +845,10 @@ The <dfn>impression store</dfn> is used by the <a method
 for=PrivateAttribution>measureConversion()</a> method to find matching
 [=impressions=].
 
+<p class=note>
+Though this API enables the storage of data by sites,
+this does not use a [=storage key=].
+
 
 ### Contents ### {#impression-store-contents}
 
@@ -862,17 +879,6 @@ It is not necessary to remove [=impressions=] immediately upon expiry,
 as long as <a method for=PrivateAttribution>measureConversion()</a>
 excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
-
-
-### Clearing ### {#impression-store-clearing}
-
-A mechanism must be provided to clear the impression store.
-For example, the impression store could be cleared
-upon activation of the control that
-[[#opt-out|disables]] the Private Attribution API.
-It is recommended that any mechanism a user agent provides
-to clear stored browsing data (history, cookies, etc.)
-be extended to cover the impression store.
 
 
 ### Site Names ### {#site-name-algorithm}
@@ -919,17 +925,30 @@ For example, "`extra.example.com`" is parsed as "`example.com`".
 </p>
 
 
-## Privacy Budget Store ## {#s-privacy-budget-store}
+## State For Privacy Budget Management ## {#privacy-state}
 
-<!--
-Added this here for symmetry with the impression store and with the philosophy
-that "just tell me how to implement" goes in the API section. But I'd also be
-fine with putting this in the DP section.
--->
+[=User agents=] maintain three pieces of state
+that are used to manage the expenditure of [=privacy budgets=]:
 
-The [=privacy budget store=] records the state
-of the per-[=site=] [=privacy budgets=].
-It is updated by [=deduct privacy budget=].
+*   The [=privacy budget store=] records the state
+    of the per-[=site=] and per-[=epoch=] [=privacy budgets=].
+    It is updated by [=deduct privacy budget=].
+
+
+*   A singleton [=last browsing history clear=] value
+    that tracks when the browsing activity for a [=site=] was last cleared.
+
+*   The [=epoch start store=] records when each [=epoch=] starts
+    for [=impression sites=].
+    This store is initialized as a side effect
+    of invoking <a method for=PrivateAttribution>saveImpression()</a>.
+
+<p class=note>
+Like the [=impression store=],
+the [=privacy budget store=] does not use a [=storage key=].
+These stores have some additional constraints
+on how information is cleared;
+see [[#clear-budget-store]] for details.
 
 <p class=issue>
 The [=safety limits=] need to be described in more detail.
@@ -937,6 +956,11 @@ Some references to clearing
 the [=impression store=] may need to be
 updated to refer to the [=privacy budget store=] as well.
 
+
+### Privacy Budget Store ### {#s-privacy-budget-store}
+
+The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
+[=privacy budget keys=] and whose values are [=floats=].
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
@@ -948,14 +972,14 @@ A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items
 
 </dl>
 
-The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
-[=privacy budget keys=] and whose values are [=floats=].
-
-To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
-[=float=] |epsilon|, integer |sensitivity|, and integer |globalSensitivity|:
+To <dfn>deduct privacy budget</dfn>
+given a [=privacy budget key=] |key|,
+[=float=] |epsilon|,
+integer |sensitivity|,
+and integer |globalSensitivity|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
-     its value of |key| to be a [=user agent=]-defined value.
+    its value of |key| to be a [=user agent=]-defined value.
 
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
@@ -968,6 +992,119 @@ To <dfn>deduct privacy budget</dfn> given a [=privacy budget key=] |key|,
 
 1.  Return whether |newValue| is greater than or equal to 0.
 
+
+### Epoch Start Store ### {#s-epoch-start}
+
+An [=epoch=] starts at a randomly-selected time
+for each [=site=].
+This ensures that any bias in aggregates
+that arises from a [=privacy budget=] reaching zero
+is averaged across all the contributions from all [=users=].
+
+The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
+with values that are [=moments=].
+
+To <dfn>get the current epoch</dfn>
+given a [=site=] |site|,
+and [=moment=] |now|:
+
+1.  Let |period| be the [=duration=] of one [=epoch=].
+
+1.  If the [=epoch start store=] does not [=map/contain=] |site|, [=map/set=]
+    its value to |now|, minus a [=duration=]
+    that is randomly selected
+    from between 0 (inclusive) and |period| (exclusive).
+
+1.  Let |start| be the result of [=map/get|getting the value=] of |site|
+    from the [=epoch start store=].
+
+1.  Let |elapsed| be (|now| - |start|) / |period|.
+
+1.  Return |elapsed| as an integer, rounded towards negative Infinity.
+
+
+### Last Browsing History Clear Time ### {#last-clear}
+
+The <dfn>last browsing history clear</dfn> is a [=moment=]
+that tracks when browsing history was last cleared.
+The [=last browsing history clear=] value is updated
+to the [=current high resolution time=]
+when any [=site=]-level state is cleared
+at the request of a [=user=].
+The value is initially unset.
+
+<div class=note>
+A [=user agent=] that offers selective deletion of history,
+such as the removal of state for a single site,
+could partition this value so that other sites remain unaffected.
+However, any choice to partition leaks some information
+that might reveal that a specific site had been visited
+to any entity that can access stored data.
+Strictly limiting the number of partitions
+might make this information less useful
+in terms of revealing that a particular site was visited.
+
+This specification describes algorithms that do not including partition.
+This guarantees that stored data does not reveal anything
+about browsing history.
+</div>
+
+As an optional optimization,
+updating the [=last browsing history clear=] can be skipped if:
+
+*   All interactions that are cleared are with [=sites=]
+    that have other uncleared interactions.
+*   All cleared interactions occurring during [=epochs=]
+    where other interactions with the same [=site=] were retained.
+*   All affected [=sites=] have a value in the [=epoch start store=].
+
+If all three conditions are true,
+the [=last browsing history clear=] does not need to be updated.
+Instead, the [=privacy budget store=] must be updated
+by [=map/set|setting=] a value of 0
+for all [=privacy budget key=] combinations that can be formed
+from every affected [=site=] and [=epoch=].
+
+<p class=note>
+This optimization relies on the [=user agent=]
+having retained information
+about interactions with affected [=sites=]
+in the affected [=epochs=].
+This only works because any of the retained interactions
+could have resulted in exhausting the budget.
+
+To <dfn>get the starting epoch for attribution</dfn>
+given [=site=] site:
+
+1.  Let |startEpoch| be a [=user agent=]-defined value
+    for the earliest [=epoch=]
+    that is supported for attribution.
+
+1.  If the [=last browsing history clear=] is set,
+    perform the following steps:
+
+    1.  Let |clearEpoch| be the result of [=get the current epoch=]
+        with |site| and the value of [=last browsing history clear=].
+
+        <p class=note>
+        This use of [=get the current epoch=]
+        can return a negative value.
+        This is because the value in [=epoch start store=]
+        is likely to be set to a time after history was last cleared.
+
+    1.  Set |clearEpoch| to |clearEpoch| + 2.
+
+        <p class=note>
+        Adding <em>two</em> is necessary so that the [=epoch=]
+        does not overlap with an [=epoch=]
+        before browsing history--
+        and the [=epoch start store=]--
+        was cleared.
+
+    1.  If |clearEpoch| is greater than |startEpoch|,
+        return |clearEpoch|.
+
+1.  Return |startEpoch|.
 
 
 ## Save Impression Algorithm ## {#save-impression-api-operation}
@@ -1022,14 +1159,14 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 1. Validate the page-supplied API inputs:
     1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
         <dl class="switch">
+            :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+            ::  Perform the following steps:
+                1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a> is 0,
+                    throw a {{RangeError}}.
+                1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
+                    is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
+                    throw a {{RangeError}}.
         </dl>
-        :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
-        ::  Perform the following steps:
-            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a> is 0,
-                throw a {{RangeError}}.
-            1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
-                is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
-                throw a {{RangeError}}.
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
 1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
@@ -1059,9 +1196,13 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
 
-1.  For each |epoch| starting from the oldest [=epoch=] supported by the
-    [=user agent=] to the current [=privacy budget epoch=]:
-    <!-- TODO: Clarify how epoch iteration works. -->
+1.  Let |currentEpoch| be the result of [=get the current epoch=]
+    with |site| and |now|.
+
+1.  Let |startEpoch| be the result of [=get the starting epoch for attribution=]
+    with |site|.
+
+1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
         with |options|, |epoch|, and |now|.
@@ -1609,7 +1750,7 @@ of harmful information flow through the impression store:
     is distinguishable from the value it would have
     absent any user's contribution.
 *   Users can explicitly
-    [[#impression-store-clearing|clear the impression store]].
+    [[#removing-impressions|clear stored impressions]].
 *   It is recommended that user agents limit how long
     data can persist in the impression store,
     even absent explicit user action,
@@ -1765,6 +1906,7 @@ the differential privacy mechanism if information about a fully- or partially-
 depleted privacy budget is maintained until that budget is no longer relevant
 (i.e. the end of the [=privacy budget epoch=]).
 
+
 ## Disabling the Private Attribution API ## {#privacy-opt-out}
 
 The Private Attribution API
@@ -1812,7 +1954,7 @@ The following measures mitigate this risk:
     is revealed in [=conversion reports=].
 *   The information in [=conversion reports=] is only revealed
     after aggregation and the addition of noise.
-*   Users have the ability to [[#impression-store-clearing|clear the impression store]].
+*   Users have the ability to [[#removing-impressions|clear the impression store]].
 *   No impressions are saved to the impression store
     when the Private Attribution API is [[#opt-out|disabled]].
 
@@ -1829,6 +1971,122 @@ While the availability of the API in third-party contexts
 carries some increase in privacy risk,
 this support is deemed necessary
 because iframes are commonly used to display advertisements.
+
+
+## Clearing API State ## {#clear-budget-store}
+
+A [=user agent=] might present the option to clear storage.
+These exist for two reasons:
+
+*   Privacy toward sites,
+    so that the sites cannot recognize the [=user=] in future interactions
+    (that is, to prevent [=same site recognition=]).
+
+*   Removing traces of activity locally,
+    so that other users of a computer
+    cannot access browsing history.
+
+Clearing the state that tracks [=privacy budget=] expenditure
+has an adverse effect on privacy toward sites.
+Sites would then be able to gain more information
+from attribution.
+
+A [=user agent=] may clear data
+from the [=privacy budget store=] and [=epoch start store=]
+when the API is [[#opt-out|disabled]].
+In that case, if the API is re-enabled,
+there is no way to determine what budget was expended
+prior to the API being [[#opt-out|disabled]].
+In that case, a [=user agent=] can update
+the value of [=last browsing history clear=]
+to ensure that [=privacy budgets=] are not inadvertently exceeded.
+
+
+### Clearing Site Data ### {#clear-site-data}
+
+When clearing site data,
+but retaining browsing history,
+a [=user agent=] can [=map/set=] the value
+in the [=privacy budget store=] to 0 for all [=epochs=]
+for all affected [=sites=].
+
+
+### Clearing Browsing History ### {#clear-browsing-history}
+
+Updating the [=privacy budget store=] is insufficient
+when clearing browsing history.
+Retaining per-[=site=] information
+necessary to prevent privacy loss toward sites
+leaves information about visits to sites
+for other users of a computer to discover
+when removing browsing history.
+
+When clearing browsing history,
+[=user agents=] need to
+remove all per-[=site=] [=privacy budget=] information
+(that is, remove entries from both the [=privacy budget store=]
+and the [=epoch start store=]).
+[=User agents=] also need to ensure that
+any subsequent [=privacy budget=] expenditure
+cannot cause privacy loss in excess of configured limits
+as a result of losing that information.
+
+This can be achieved by disabling attribution
+for a period between one and two [=epochs=]
+from the point that browsing history is discarded.
+Otherwise, a [=site=] that expends its budget
+immediately prior to the clearing of history
+would be able to learn more through the API
+than it could without the clearing of state.
+
+<p class=note>
+This disables the API for up to <em>two</em> [=epochs=]
+for affected [=sites=].
+Because the [=epoch start store=] is cleared,
+the start of any newly-defined [=epoch=] for that [=site=]
+becomes unknown.
+Any new [=epoch=] will [start at a fresh randomly-selected time](#s-epoch-start),
+which cannot overlap with any [=epoch=] that might have been defined
+before history was cleared.
+
+A [=user agent=] remembers when history was last cleared
+in the [=last browsing history clear=] value.
+This is used to prevent [=privacy budget|budget=] expenditure
+until it is guaranteed that a [=site=] cannot exceed
+the [=user agent=]-chosen maximum allowed [=privacy budget=].
+
+The [=get the starting epoch for attribution=] algorithm
+ensures that a [=conversion site=]
+cannot query [=impressions=] from any [=epoch=]
+that starts within one [=epoch=] [=duration=]
+from when state is cleared.
+
+
+### Clearing Impressions ### {#removing-impressions}
+
+A mechanism must be provided to clear the [=impression store=].
+For example, the impression store could be cleared
+upon activation of the control that
+[[#opt-out|disables]] the Private Attribution API.
+
+It is recommended that any mechanism a [=user agent=] provides
+to clear stored data (history, cookies, etc.)
+be extended to cover the impression store.
+[[#clear-budget-store]] provides more detailed information
+on the clearing of stored data.
+
+A [=user agent=] that clears state for a [=site=]
+must discard all [=impression store|saved impressions=]
+that were saved during the affected period
+with a [=same site|matching=] [=impression/impression site=]
+or [=impression/conversion site=].
+For an [=impression site=],
+these [=impressions=] relate to activity that was cleared.
+A [=conversion site=] that has had state cleared
+will not be able to use these [=impressions=].
+
+[=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
+may be cleared.
 
 
 # Acknowledgements # {#ack}
@@ -1854,10 +2112,14 @@ urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
     text: set; url: #sets
     text: string
     text: user agent
+urlPrefix: https://storage.spec.whatwg.org/; spec: storage; type: dfn;
+    text: storage key
 urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
     text: domain label
     text: host parser; url: #concept-host-parser
     text: registrable domain; url: #host-registrable-domain
+urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
+    text: same site recognition
 </pre>
 <pre class=biblio>
 {
