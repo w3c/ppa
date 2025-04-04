@@ -856,7 +856,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 
 <div dfn-for=impression link-for-hint=PrivateAttribution>
 <pre class=simpledef>
-<dfn>Filter Data</dfn>: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
+<dfn>Filter Data</dfn>: The {{PrivateAttributionImpressionOptions/filterData}} value passed to <a>saveImpression()</a>.
 <dfn>Impression Site</dfn>: The [=impression site=] where <a>saveImpression()</a> was called.
 <dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
@@ -1905,7 +1905,7 @@ by the site receiving the conversion report.
 
 Sites are able to encode some amount of data
 in impressions,
-using {{PrivateAttributionConversionOptions/filterData}}
+using {{PrivateAttributionImpressionOptions/filterData}}
 or other fields.
 The API does not prevent sites from encoding user identifiers
 in these fields.
