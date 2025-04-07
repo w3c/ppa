@@ -1030,22 +1030,6 @@ when any [=site=]-level state is cleared
 at the request of a [=user=].
 The value is initially unset.
 
-<div class=note>
-A [=user agent=] that offers selective deletion of history,
-such as the removal of state for a single site,
-could partition this value so that other sites remain unaffected.
-However, any choice to partition leaks some information
-that might reveal that a specific site had been visited
-to any entity that can access stored data.
-Strictly limiting the number of partitions
-might make this information less useful
-in terms of revealing that a particular site was visited.
-
-This specification describes algorithms that do not including partition.
-This guarantees that stored data does not reveal anything
-about browsing history after it is cleared.
-</div>
-
 As an optional optimization,
 updating the [=last browsing history clear=] can be skipped if
 all of the following are true:
