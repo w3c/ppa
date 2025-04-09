@@ -777,7 +777,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=]. If omitted, all [=impression/filter data=] values will match.</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
     A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
@@ -1223,7 +1223,8 @@ To perform <dfn>common matching logic</dfn>, given
         [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
-        does not [=list/contain=] |impression|'s [=impression/impression site=],
+        [=list/is empty|is not empty=] and
+        [=list/contains|does not contain=] |impression|'s [=impression/impression site=],
         [=iteration/continue=].
 
     1.  [=set/Append=] |impression| to |matching|.
