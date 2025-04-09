@@ -557,7 +557,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
     navigator.privateAttribution.saveImpression({
       histogramIndex: 3,
       filterData: 2,
-      conversionSite: "advertiser.example",
+      conversionSites: ["advertiser.example"],
       lifetimeDays: 7,
     });
   </xmp>
@@ -574,7 +574,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long filterData = 0;
-  required USVString conversionSite;
+  sequence<USVString> conversionSites = [];
   unsigned long lifetimeDays = 30;
 };
 
@@ -608,12 +608,12 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     there is a way to match any filter data, which would not be possible if
     there were a default integer value.
   </dd>
-  <dt><dfn>conversionSite</dfn></dt>
+  <dt><dfn>conversionSites</dfn></dt>
   <dd>
-    The site where [=conversions=] for this impression may occur, identified by
-    its domain name. The <a method for=PrivateAttribution>measureConversion()</a>
-    method will only attribute to this impression when called by the indicated
-    site.
+    The sites where [=conversions=] for this impression may occur, identified by
+    their domain names. The <a method for=PrivateAttribution>measureConversion()</a>
+    method will only attribute to this impression when called by one of the indicated
+    sites. If empty, any site will match.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
     A positive "time to live" (in days) after which the [=impression=] can no
@@ -1163,7 +1163,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
-        with |options|, |epoch|, and |now|.
+        with |options|, |topLevelSite|, |epoch|, and |now|.
 
     1.  If |impressions| [=set/is empty|is not empty=]:
 
@@ -1197,8 +1197,8 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, [=epoch=] |epoch|, and
-[=moment=] |now|:
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
+[=site=] |topLevelSite|, [=epoch=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
@@ -1212,6 +1212,10 @@ To perform <dfn>common matching logic</dfn>, given
 <!-- TODO: Clarify "for the |epoch|" -->
 
     1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
+        [=iteration/continue=].
+
+    1.  If |impression|'s [=impression/conversion sites=] [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=map/exists=],
