@@ -1122,8 +1122,7 @@ set on a response requesting that the user agent invoke the
 <a method for=PrivateAttribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-site=advertiser.example, histogram-index=2, \
-  filter-data=12, lifetime-days=7
+Save-Impression: conversion-site=advertiser.example, histogram-index=2, filter-data=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
