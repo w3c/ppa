@@ -1002,20 +1002,20 @@ using the [=get the current epoch=] algoritm.
 
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
-and [=moment=] |now|,
+and [=moment=] |t|,
 returning an [=epoch index=]:
 
 1.  Let |period| be the [=duration=] of one [=epoch=].
 
 1.  If the [=epoch start store=] does not [=map/contain=] |site|, [=map/set=]
-    its value to |now|, minus a [=duration=]
+    its value to |t|, minus a [=duration=]
     that is randomly selected
     from between 0 (inclusive) and |period| (exclusive).
 
 1.  Let |start| be the result of [=map/get|getting the value=] of |site|
     from the [=epoch start store=].
 
-1.  Let |elapsed| be (|now| - |start|) / |period|.
+1.  Let |elapsed| be (|t| - |start|) / |period|.
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
 
