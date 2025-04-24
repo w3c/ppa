@@ -1118,21 +1118,37 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  The timestamp is set to |settings|'s [=environment settings object/current wall time=].
-    1.  The [=impression site=] is set to the result of
+    1.  Let |timestamp| be |settings|'s [=environment settings object/current wall time=].
+    1.  The [=impression site=] |site| is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    1.  The [=intermediary site=] is set to
+    1.  The [=intermediary site=] |intermediarySite| is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
              [=obtain a site|obtaining a site=] from the [=origin=].
 1.  Validate the page-supplied API inputs:
-    1. If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
+    1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
-    1. Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
+    1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
-1.  If the Private Attribution API is [[#opt-out|enabled]], save the impression
-    to the [=impression store=].
+    1.  Let |conversionSite| be the result of invoking [=parse a site=]
+        with |options|.{{PrivateAttributionImpressionOptions/conversionSite}}.
+    1.  If |conversionSite| is failure, return {{SyntaxError}}.
+1.  If the Private Attribution API is [[#opt-out|disabled]], return.
+1.  Construct |impression| as a [=impression|saved impression=] comprising:
+    *   [=impression/Filter Data=] set to
+        |options|.{{PrivateAttributionImpressionOptions/filterData}}.
+    *   [=impression/Impression Site=] set to |site|.
+    *   [=impression/Intermediary Site=] set to |intermediarySite|.
+    *   [=impression/Conversion Sites=] set to a single element [=set=]
+        containing |conversionSite|.
+    *   [=impression/Timestamp=] set to |timestamp|.
+    *   [=impression/Lifetime=] set to
+        |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
+        multiplied by a [=duration=] of one day.
+    *   [=impression/Histogram Index=] set to
+        |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}.
+1.  Save |impression| to the [=impression store=].
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
