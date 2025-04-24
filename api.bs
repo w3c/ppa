@@ -969,7 +969,7 @@ for each combination of [=user agent=] and [=site=].
 The start time for a given pair of [=user agent=] and [=site=]
 is chosen randomly by the [=user agent=] when an epoch is first needed--
 as a side effect of invoking the [=get the current epoch=] algorithm.
-The definition of an [=epoch=] is also reset
+The [=epochs=] for a given [=site=] will change
 if the [=user agent=] clears browsing history;
 see [[#clear-browsing-history]].
 
