@@ -1067,6 +1067,11 @@ returning an [=epoch index=]:
     for the earliest [=epoch index=]
     that is supported for attribution.
 
+    <p class=note>
+    This value is not a constant [=epoch index=].
+    A value is chosen for each site
+    based on [=user agent=] preferences or configuration.
+
 1.  If the [=last browsing history clear=] is set,
     perform the following steps:
 
