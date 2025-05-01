@@ -936,9 +936,9 @@ that are used to manage the expenditure of [=privacy budgets=]:
 
 
 *   The [=epoch start store=] records when each [=epoch=] starts
-    for [=impression sites=].
+    for [=conversion sites=].
     This store is initialized as a side effect
-    of invoking <a method for=PrivateAttribution>saveImpression()</a>.
+    of invoking <a method for=PrivateAttribution>measureConversion()</a>.
 
 *   A singleton [=last browsing history clear=] value
     that tracks when the browsing activity for a [=site=] was last cleared.
@@ -996,13 +996,13 @@ and integer |globalSensitivity|:
 ### Epoch Start Store ### {#s-epoch-start}
 
 An [=epoch=] starts at a randomly-selected time
-for each [=site=].
+for each [=conversion site=].
 This ensures that any bias in aggregates
 that arises from a [=privacy budget=] reaching zero
 is averaged across all the contributions from all [=users=].
 
 The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
-with values that are [=moments=]
+and contains values that are [=moments=]
 from the [=wall clock=].
 
 To <dfn>get the current epoch</dfn>
