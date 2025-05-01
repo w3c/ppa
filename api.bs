@@ -17,8 +17,20 @@ Status: ED
 Level: None
 </pre>
 <style>
-@media (prefers-color-scheme: dark) {
-  figure svg { background: white }
+/* dark mode haxx for diagrams */
+svg.diagram {
+  [stroke="black"], [stroke^="#000"] {
+    stroke: var(--text);
+  }
+  [stroke="white"], [stroke^="#fff"] {
+    stroke: var(--bg);
+  }
+  [fill="black"], [fill^="#000"], :not([fill]) {
+    fill: var(--text);
+  }
+  [fill="white"], [fill^="#fff"] {
+    fill: var(--bg);
+  }
 }
 </style>
 
