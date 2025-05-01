@@ -557,7 +557,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
     navigator.privateAttribution.saveImpression({
       histogramIndex: 3,
       filterData: 2,
-      conversionSite: "advertiser.example",
+      conversionSites: ["advertiser.example"],
       lifetimeDays: 7,
     });
   </xmp>
@@ -574,7 +574,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long filterData = 0;
-  required USVString conversionSite;
+  sequence<USVString> conversionSites = [];
   unsigned long lifetimeDays = 30;
 };
 
@@ -608,12 +608,12 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     there is a way to match any filter data, which would not be possible if
     there were a default integer value.
   </dd>
-  <dt><dfn>conversionSite</dfn></dt>
+  <dt><dfn>conversionSites</dfn></dt>
   <dd>
-    The site where [=conversions=] for this impression may occur, identified by
-    its domain name. The <a method for=PrivateAttribution>measureConversion()</a>
-    method will only attribute to this impression when called by the indicated
-    site.
+    The sites where [=conversions=] for this impression may occur, identified by
+    their domain names. The <a method for=PrivateAttribution>measureConversion()</a>
+    method will only attribute to this impression when called by one of the indicated
+    sites. If empty, any site will match.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
     A positive "time to live" (in days) after which the [=impression=] can no
@@ -777,7 +777,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>filterData</dfn></dt>
   <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=]. If omitted, all [=impression/filter data=] values will match.</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=].</dd>
+  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
     A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
@@ -856,7 +856,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 
 <div dfn-for=impression link-for-hint=PrivateAttribution>
 <pre class=simpledef>
-<dfn>Filter Data</dfn>: The {{PrivateAttributionConversionOptions/filterData}} value passed to <a>saveImpression()</a>.
+<dfn>Filter Data</dfn>: The {{PrivateAttributionImpressionOptions/filterData}} value passed to <a>saveImpression()</a>.
 <dfn>Impression Site</dfn>: The [=impression site=] where <a>saveImpression()</a> was called.
 <dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
@@ -957,7 +957,8 @@ that arises from a [=privacy budget=] reaching zero
 is averaged across all the contributions from all [=users=].
 
 The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
-with values that are [=moments=].
+with values that are [=moments=]
+from the [=wall clock=].
 
 A <dfn local-lt=epoch>privacy budget epoch</dfn> (or [=epoch=])
 identifies a period of time.
@@ -1023,9 +1024,10 @@ returning an [=epoch index=]:
 ### Last Browsing History Clear Time ### {#last-clear}
 
 The <dfn>last browsing history clear</dfn> is a [=moment=]
+using the [=wall clock=]
 that tracks when browsing history was last cleared.
 The [=last browsing history clear=] value is updated
-to the [=current high resolution time=]
+to the [=current coarsened wall time=]
 when any [=site=]-level state is cleared
 at the request of a [=user=].
 The value is initially unset.
@@ -1108,7 +1110,7 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  The timestamp is set to the [=current high resolution time=].
+    1.  The timestamp is set to |settings|'s [=environment settings object/current wall time=].
     1.  The [=impression site=] is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
@@ -1139,7 +1141,7 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |now| be the [=current high resolution time=].
+    1.  Let |now| be |settings|'s [=environment settings object/current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
@@ -1161,7 +1163,8 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
         </dl>
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
         throw a {{RangeError}}.
-1.  Let |report| be an [=create an all-zero histogram|all-zero histogram=].
+1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
+    |options|.{{PrivateAttributionConversionOptions/histogramSize}}.
 1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
     result of [=do attribution and fill a histogram=] with |options|,
     |topLevelSite|, and |now|.
@@ -1197,7 +1200,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
-        with |options|, |epoch|, and |now|.
+        with |options|, |topLevelSite|, |epoch|, and |now|.
 
     1.  If |impressions| [=set/is empty|is not empty=]:
 
@@ -1210,7 +1213,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
-1.  If |matchedImpressions| [=set/is empty=], return the the result of invoking
+1.  If |matchedImpressions| [=set/is empty=], return the result of invoking
     [=create an all-zero histogram=] with
     |options|.{{PrivateAttributionConversionOptions/histogramSize}}.
 
@@ -1231,8 +1234,8 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, [=epoch index=] |epoch|, and
-[=moment=] |now|:
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, 
+[=site=] |topLevelSite|, [=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
@@ -1248,12 +1251,17 @@ To perform <dfn>common matching logic</dfn>, given
     1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
         [=iteration/continue=].
 
+    1.  If |impression|'s [=impression/conversion sites=] [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |topLevelSite|,
+        [=iteration/continue=].
+
     1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=map/exists=],
         and it is not equal to |impression|'s [=impression/filter data=],
         [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
-        does not [=list/contain=] |impression|'s [=impression/impression site=],
+        [=list/is empty|is not empty=] and
+        [=list/contains|does not contain=] |impression|'s [=impression/impression site=],
         [=iteration/continue=].
 
     1.  [=set/Append=] |impression| to |matching|.
@@ -1852,6 +1860,15 @@ of candidate impressions.
 
 # Privacy Considerations # {#privacy}
 
+The main privacy goal of this API is
+to ensure that providing sites with the ability to perform attribution
+does not improve their ability to perform [=cross-site recognition=].
+
+This section provides more information
+about the protections necessary to achieve this goal.
+Additional discussion talks about secondary privacy goals,
+such as the prevention of [=same-site recognition=].
+
 
 ## Information Exposed by the Private Attribution API ## {#privacy-exposure}
 
@@ -1928,7 +1945,7 @@ by the site receiving the conversion report.
 
 Sites are able to encode some amount of data
 in impressions,
-using {{PrivateAttributionConversionOptions/filterData}}
+using {{PrivateAttributionImpressionOptions/filterData}}
 or other fields.
 The API does not prevent sites from encoding user identifiers
 in these fields.
@@ -1970,7 +1987,7 @@ These exist for two reasons:
 
 *   Privacy toward sites,
     so that the sites cannot recognize the [=user=] in future interactions
-    (that is, to prevent [=same site recognition=]).
+    (that is, to prevent [=same-site recognition=]).
 
 *   Removing traces of activity locally,
     so that other users of a computer
@@ -2085,6 +2102,49 @@ will not be able to use these [=impressions=].
 may be retained.
 
 
+## Choice of Clock ## {#why-wall-clock}
+
+This API uses a [=wall clock=] as its basis for time.
+This is primarily because the API relies on a persistent notion of time.
+A [=monotonic clock=] is only defined during a single execution of a [=user agent=],
+so it has no guarantee of consistency if a [=user agent=] is restarted.
+
+A [=wall clock=] can be adjusted to account for errors that might accumulate
+due to clock drift.
+A [=wall clock=] therefore is not guaranteed to always advance at a consistent rate,
+including the possibility that it might sometimes decrease.
+
+Decreases in the [=wall clock=] do not affect the privacy guarantees
+that this API provides.
+Only increases in the [=wall clock|clock=],
+can have an adverse privacy effect.
+Increases above the normal progress of time
+might result in the renewal of [=privacy budget=]
+more quickly than intended.
+
+For a clock that undergoes corrections within each [=epoch=],
+clock adjustments will have no privacy effect.
+A single correction that is sufficiently large
+might cause [=privacy budgets=] to be renewed
+ahead of schedule,
+resulting in a one-time increase in privacy loss.
+Continuous large corrections have the most serious effect on privacy,
+as each transition between epochs
+will release additional [=privacy budget=].
+
+<p class=note>A very large increase in time
+that skips entire [=epochs=]
+does not result in additional privacy loss.
+No privacy loss is possible
+unless an [=impression=] can be [[#save-impression-api|saved]].
+
+Of course, any [=user agent=] that has a need for large
+or continuous
+corrections to its clock will likely be highly identifiable
+as a result of the time that it reports.
+That alone is likely enough to enable unwanted [=cross-site recognition=].
+
+
 # Acknowledgements # {#ack}
 
 This specification is the result of a lot of work from many people.
@@ -2107,7 +2167,8 @@ urlPrefix: https://infra.spec.whatwg.org/; spec: infra; type: dfn;
 urlPrefix: https://storage.spec.whatwg.org/; spec: storage; type: dfn;
     text: storage key
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
-    text: same site recognition
+    text: cross-site recognition
+    text: same-site recognition
 </pre>
 <pre class=biblio>
 {
