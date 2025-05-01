@@ -1952,7 +1952,7 @@ not to participate in attribution measurement.
 As discussed in [[#opt-out]], the user agent must provide
 a mechanism for the user to disable the Private Attribution API.
 
-To minimize the risk of fingerprinting,
+To minimize the risk of [=fingerprinting=],
 and to prevent discrimination
 against users who choose to disable the Private Attribution API,
 sites must not be able to detect that the API is disabled.
@@ -1965,6 +1965,32 @@ will never report any [=conversion value=].
 Because the reports are encrypted,
 this difference cannot be detected
 by the site receiving the conversion report.
+
+
+## Unconfigured Browsers ## {#unconfigured}
+
+This API assumes that [=user agent=] instance
+have all of the configuration necessary
+to answer requests to <a for=PrivateAttribution>measureConversion()</a>.
+
+If the [=aggregation service=] configuration necessary
+for invoking <a for=PrivateAttribution>measureConversion()</a>
+is either absent or out of date,
+that could be observable to sites.
+Detecting stale or absent configuration might be used
+to [=fingerprint=] the [=user agent=].
+
+A [=user agent=] <span class=allow-2119>should</span> therefore
+prioritize the acquisition of [=aggregation service=] configuration
+in a way that is not observable to sites.
+This might be achieved by obtaining configuration at startup,
+before starting to load any content.
+
+If the necessary configuration cannot be obtained,
+or is obviously stale,
+an implementation can provide randomized responses
+that are indistinguishable from a real response
+when <a for=PrivateAttribution>measureConversion()</a> is invoked.
 
 
 ## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
@@ -2197,6 +2223,9 @@ urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
     text: cross-site recognition
     text: same-site recognition
+urlPrefix: https://www.w3.org/TR/fingerprinting-guidance/; type: dfn;
+    text: fingerprint; url: #dfn-browser-fingerprinting
+    text: fingerprinting; url: #dfn-browser-fingerprinting
 </pre>
 <pre class=biblio>
 {
