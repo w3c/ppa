@@ -1118,14 +1118,15 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |timestamp| be |settings|'s [=environment settings object/current wall time=].
+    1.  Let |timestamp| be |settings|' [=environment settings object/current wall time=].
     1.  The [=impression site=] |site| is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] |intermediarySite| is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
+             [=obtain a site|obtaining a site=]
+             from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
     1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
@@ -1165,14 +1166,15 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |now| be |settings|'s [=environment settings object/current wall time=].
+    1.  Let |now| be |settings|' [=environment settings object/current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
+             [=obtain a site|obtaining a site=]
+             from |settings|' [=environment settings object/origin=].
         <!-- TODO: the intermediary site is currently unused -->
 1. Validate the page-supplied API inputs:
     1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
