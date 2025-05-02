@@ -1969,7 +1969,7 @@ by the site receiving the conversion report.
 
 ## Unconfigured Browsers ## {#unconfigured}
 
-This API assumes that [=user agent=] instance
+This API assumes that [=user agent=] instances
 have all of the configuration necessary
 to answer requests to <a for=PrivateAttribution>measureConversion()</a>.
 
