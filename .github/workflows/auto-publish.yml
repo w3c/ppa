@@ -36,3 +36,4 @@ jobs:
           W3C_WG_DECISION_URL: https://github.com/w3c/patwg/issues/19
           W3C_BUILD_OVERRIDE: |
             status: WD
+            TR: https://www.w3.org/TR/ppa/
