@@ -29,6 +29,7 @@ jobs:
       - name: Build and validate index.html, push to gh-pages branch if needed
         uses: w3c/spec-prod@v2
         with:
+          SOURCE: api.bs
           GH_PAGES_BRANCH: gh-pages
           W3C_ECHIDNA_TOKEN: ${{ secrets.ECHIDNA_TOKEN }}
           W3C_WG_DECISION_URL: https://github.com/w3c/patwg/issues/19
