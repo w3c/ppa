@@ -1122,7 +1122,7 @@ set on a response requesting that the user agent invoke the
 <a method for=PrivateAttribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-site=advertiser.example, histogram-index=2, filter-data=12, lifetime-days=7
+Save-Impression: conversion-site="advertiser.example", histogram-index=2, filter-data=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
@@ -1133,7 +1133,10 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dt><code>conversion-site</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
-    a [=structured header/string=]. This key is required.
+    a [=structured header/string=].
+    The string value includes a domain name using A-labels only;
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]]. 
+    This key is required.
   </dd>
   <dt><code>histogram-index</code></dt>
   <dd>
@@ -1144,12 +1147,13 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
     a non-negative [=structured header/integer=]. This key is optional.
-    If not supplied, the filter data is zero.
+    If not supplied, a value of 0 is saved for [=impression/Filter Data=].
   </dd>
   <dt><code>lifetime-days</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
     a positive [=structured header/integer=]. This key is optional.
+    If not supplied, an [=implementation-defined=] value is saved for [=impression/Lifetime=].
   </dd>
 </dl>
 
