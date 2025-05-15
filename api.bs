@@ -397,6 +397,10 @@ it may be useful to examine the supported
 <a attribute for=PrivateAttribution>aggregationServices</a> in deciding
 whether to use the Private Attribution API.
 
+It is also possible to register an impression by including the
+[:Save-Impression:]
+header in the HTTP response when serving a resource to the user agent.
+
 To request a conversion report, a site calls
 <a method for=PrivateAttribution>measureConversion()</a>.
 Before calling this API, a site must
@@ -1353,6 +1357,52 @@ if the user has opted out of collection of diagnostic data.
 * User ability to view the impression store and past report submissions.
 
 
+# HTTP API # {#http-api}
+
+\`<dfn http-header><code>Save-Impression</code></dfn>\` is a
+[=structured header/dictionary|Dictionary Structured Header=]
+set on a response requesting that the user agent invoke the
+<a method for=PrivateAttribution>saveImpression()</a> API.
+
+<pre class=example id=ex-save-impression-header>
+Save-Impression: conversion-site="advertiser.example", histogram-index=2, filter-data=12, lifetime-days=7
+</pre>
+
+The following keys are defined, corresponding to the members of
+the {{PrivateAttributionImpressionOptions}} dictionary passed to
+<a method for=PrivateAttribution>saveImpression()</a>.
+
+<dl dfn-for=save-impression>
+  <dt><code>conversion-site</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
+    a [=structured header/string=].
+    The string value includes a domain name using A-labels only;
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]]. 
+    This key is required.
+  </dd>
+  <dt><code>histogram-index</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
+    a non-negative [=structured header/integer=]. This key is required.
+  </dd>
+  <dt><code>filter-data</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
+    a non-negative [=structured header/integer=]. This key is optional.
+    If not supplied, a value of 0 is saved for [=impression/Filter Data=].
+  </dd>
+  <dt><code>lifetime-days</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
+    a positive [=structured header/integer=]. This key is optional.
+    If not supplied, an [=implementation-defined=] value is saved for [=impression/Lifetime=].
+  </dd>
+</dl>
+
+TODO need to specify in more detail when and how this header is interpreted
+
+
 # Implementation Considerations # {#implementation-considerations}
 
 * Management and distribution of values for the following:
@@ -2211,6 +2261,16 @@ urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
     text: cross-site recognition
     text: same-site recognition
+</pre>
+<pre class=anchors>
+spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
+    text: structured header; url: #name-introduction
+    for: structured header
+        text: dictionary; url: #dictionary
+        text: string; url: #string
+        text: integer; url: #integer
+        text: item; url: #item
+        text: inner list; url: #inner-list
 </pre>
 <pre class=biblio>
 {
