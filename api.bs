@@ -562,7 +562,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
   identifying the advertiser (`advertiser.example`)
   and including information that is negotiated by the advertiser.
   In the following example,
-  this includes the {{PrivateAttributionImpressionOptions/filterData}} value (2)
+  this includes the {{PrivateAttributionImpressionOptions/matchValue}} value (2)
   that the advertiser might later use to select this advertisement,
   the index of the histogram ({{PrivateAttributionImpressionOptions/histogramIndex}} = 3)
   into which to include any attributed value,
@@ -572,7 +572,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
   <xmp highlight=js>
     navigator.privateAttribution.saveImpression({
       histogramIndex: 3,
-      filterData: 2,
+      matchValue: 2,
       conversionSites: ["advertiser.example"],
       lifetimeDays: 7,
     });
@@ -589,7 +589,7 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 <xmp class=idl>
 dictionary PrivateAttributionImpressionOptions {
   required unsigned long histogramIndex;
-  unsigned long filterData = 0;
+  unsigned long matchValue = 0;
   sequence<USVString> conversionSites = [];
   unsigned long lifetimeDays = 30;
 };
@@ -609,7 +609,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     [=impression=] with a subsequent [=conversion=], the [=conversion value=]
     will be added to the histogram bucket identified by this index.
   </dd>
-  <dt><dfn>filterData</dfn></dt>
+  <dt><dfn>matchValue</dfn></dt>
   <dd>
     An optional piece of metadata associated with the impression. The value
     can be used to identify which impressions may receive attribution
@@ -693,14 +693,14 @@ contribute to the histogram, i.e., will be uniformly zero.
       ({{PrivateAttributionConversionOptions/impressionSites}}),
       the [=intermediary sites=] that might have saved impressions
       ({{PrivateAttributionConversionOptions/intermediarySites}}),
-      and the choice of {{PrivateAttributionConversionOptions/filterData}}.
+      and the choice of {{PrivateAttributionConversionOptions/matchValue}}.
 
       <xmp highlight=js>
         const selectionDetails = {
           lookbackDays: 14,
           impressionSites: ["publisher.example", "other.example"],
           intermediarySites: ["ad-tech.example"],
-          filterData: [2],
+          matchValue: [2],
         };
       </xmp>
 
@@ -744,7 +744,7 @@ dictionary PrivateAttributionConversionOptions {
   required unsigned long histogramSize;
 
   unsigned long lookbackDays;
-  sequence<unsigned long> filterData = [];
+  sequence<unsigned long> matchValue = [];
   sequence<USVString> impressionSites = [];
   sequence<USVString> intermediarySites = [];
 
@@ -781,8 +781,8 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>The number of histogram buckets to use in the [=conversion report=].</dd>
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
-  <dt><dfn>filterData</dfn></dt>
-  <dd>A [=set=] of matching values. Only [=impressions=] having a [=impression/filter data=] value contained in this set will be eligible to match this [=conversion=]. If empty, all [=impression/filter data=] values will match.</dd>
+  <dt><dfn>matchValue</dfn></dt>
+  <dd>A [=set=] of matching values. Only [=impressions=] having a [=impression/match value=] value contained in this set will be eligible to match this [=conversion=]. If empty, all [=impression/match value=] values will match.</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
@@ -863,7 +863,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 
 <div dfn-for=impression link-for-hint=PrivateAttribution>
 <pre class=simpledef>
-<dfn>Filter Data</dfn>: The {{PrivateAttributionImpressionOptions/filterData}} value passed to <a>saveImpression()</a>.
+<dfn>Match Value</dfn>: The {{PrivateAttributionImpressionOptions/matchValue}} passed to <a>saveImpression()</a>.
 <dfn>Impression Site</dfn>: The [=impression site=] where <a>saveImpression()</a> was called.
 <dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
@@ -1144,8 +1144,8 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
     1.  If |conversionSite| is failure, return {{SyntaxError}}.
 1.  If the Private Attribution API is [[#opt-out|disabled]], return.
 1.  Construct |impression| as a [=impression|saved impression=] comprising:
-    *   [=impression/Filter Data=] set to
-        |options|.{{PrivateAttributionImpressionOptions/filterData}}.
+    *   [=impression/Match Value=] set to
+        |options|.{{PrivateAttributionImpressionOptions/matchValue}}.
     *   [=impression/Impression Site=] set to |site|.
     *   [=impression/Intermediary Site=] set to |intermediarySite|.
     *   [=impression/Conversion Sites=] set to a single element [=set=]
@@ -1288,8 +1288,8 @@ To perform <dfn>common matching logic</dfn>, given
         and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=set/is empty|is not empty=]
-        and [=set/contains|does not contain=] |impression|'s [=impression/filter data=],
+    1.  If |options|.{{PrivateAttributionConversionOptions/matchValue}} [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |impression|'s [=impression/match value=],
         [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
@@ -1356,7 +1356,7 @@ set on a response requesting that the user agent invoke the
 <a method for=PrivateAttribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-site="advertiser.example", histogram-index=2, filter-data=12, lifetime-days=7
+Save-Impression: conversion-site="advertiser.example", histogram-index=2, match-value=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
@@ -1369,7 +1369,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
     a [=structured header/string=].
     The string value includes a domain name using A-labels only;
-    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]]. 
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is required.
   </dd>
   <dt><code>histogram-index</code></dt>
@@ -1377,11 +1377,11 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
     Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
     a non-negative [=structured header/integer=]. This key is required.
   </dd>
-  <dt><code>filter-data</code></dt>
+  <dt><code>match-value</code></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>matchValue</a>,
     a non-negative [=structured header/integer=]. This key is optional.
-    If not supplied, a value of 0 is saved for [=impression/Filter Data=].
+    If not supplied, a value of 0 is saved for [=impression/Match Value=].
   </dd>
   <dt><code>lifetime-days</code></dt>
   <dd>
@@ -2026,7 +2026,7 @@ by the site receiving the conversion report.
 
 Sites are able to encode some amount of data
 in impressions,
-using {{PrivateAttributionImpressionOptions/filterData}}
+using {{PrivateAttributionImpressionOptions/matchValue}}
 or other fields.
 The API does not prevent sites from encoding user identifiers
 in these fields.
