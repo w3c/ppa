@@ -1356,7 +1356,7 @@ set on a response requesting that the user agent invoke the
 <a method for=PrivateAttribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, filter-data=12, lifetime-days=7
+Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, filter-data=(12), lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
@@ -1380,8 +1380,9 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dt><code>filter-data</code></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
-    a non-negative [=structured header/integer=]. This key is optional.
-    If not supplied, a value of 0 is saved for [=impression/Filter Data=].
+    a non-negative [=structured header/integer=] or an [=structured header/inner list=]
+    of non-negative integers. This key is optional.
+    If not supplied, the empty [=set=] is saved for [=impression/Filter Data=].
   </dd>
   <dt><code>lifetime-days</code></dt>
   <dd>
