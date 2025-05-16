@@ -1461,20 +1461,49 @@ This MPC configuration does not protect
 against the corruption of the outputs
 by either MPC operator.
 
+
 ### Prio and DAP ### {#prio}
 
 The <a enum-value for=PrivateAttributionProtocol>"dap-12-histogram"</a>
 aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
-the Prio3L1BoundSum instantiation [[PRIO-L1]]
+the <dfn>Prio3L1BoundSum</dfn> instantiation [[PRIO-L1]]
 of the Prio3 Verifiable Distributed Aggregation Function (VDAF) [[VDAF]].
 
-DAP and the Prio3L1BoundSum instantiation define how a report is prepared,
+DAP and the [=Prio3L1BoundSum=] instantiation define how a report is prepared,
 encrypted, and submitted for aggregation.
 DAP also defines how an aggregate is obtained
 and what configuration is necessary
 for a user agent to obtain about the aggregation service.
+
+In using [=Prio3L1BoundSum=],
+reports contain a distributed zero-knowledge proof
+that allows the nodes that participate in the MPC
+to confirm that the sum of the submitted histogram is less than a set value.
+[=Prio3L1BoundSum=] can only validate that the histogram sum
+is less than a power of two.
+That is, proofs confirm that
+the sum is less than 2<sup><var>n</var></sup> for positive integer values of |n|.
+
+To construct a report,
+proofs are generated based on a value
+that is the next power of two
+greater than {{PrivateAttributionConversionOptions/maxValue}}.
+This means that the [=aggregation service=] is unable to reject reports
+between {{PrivateAttributionConversionOptions/maxValue}}
+and the next power of two.
+Consequently, a malicious [=user agent=] might generate a report
+that contributes as much as double the value of {{PrivateAttributionConversionOptions/maxValue}}
+to the aggregate histogram.
+The proof ensures that there is no opportunity for excess contributions
+when {{PrivateAttributionConversionOptions/maxValue}} is equal to 2<sup><var>n</var></sup>-1;
+the relative effect of any such attack can be reduced
+by setting {{PrivateAttributionConversionOptions/maxValue}}
+as close to 2<sup><var>n</var></sup>-1 as other constraints allow.
+
+
+### DAP Extensions ### {#dap-extensions}
 
 Several extensions to DAP [[DAP-EXT]] are necessary for this application:
 
@@ -1495,8 +1524,8 @@ Several extensions to DAP [[DAP-EXT]] are necessary for this application:
     that received less privacy budget
     than the aggregation task was configured with.
 
-User agents need to include all of these extensions in reports
-that they generate.
+User agents MUST include all of these extensions
+in reports that they generate.
 
 
 ## Trusted Execution Environments ## {#s-tee}
