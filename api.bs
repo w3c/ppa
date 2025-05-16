@@ -1157,17 +1157,17 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
         throw a {{RangeError}}.
     1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
-    1.  Let |conversionSite| be the result of invoking [=parse a site=]
-        with |options|.{{PrivateAttributionImpressionOptions/conversionSite}}.
-    1.  If |conversionSite| is failure, return {{SyntaxError}}.
+    1.  Let |conversionSites| be the [=set=] that is the result
+        of invoking [=parse a site=]
+        for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
+    1.  If any result in |conversionSites| is failure, return {{SyntaxError}}.
 1.  If the Private Attribution API is [[#opt-out|disabled]], return.
 1.  Construct |impression| as a [=impression|saved impression=] comprising:
     *   [=impression/Filter Data=] set to
         |options|.{{PrivateAttributionImpressionOptions/filterData}}.
     *   [=impression/Impression Site=] set to |site|.
     *   [=impression/Intermediary Site=] set to |intermediarySite|.
-    *   [=impression/Conversion Sites=] set to a single element [=set=]
-        containing |conversionSite|.
+    *   [=impression/Conversion Sites=] set to |conversionSites|.
     *   [=impression/Timestamp=] set to |timestamp|.
     *   [=impression/Lifetime=] set to
         |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
