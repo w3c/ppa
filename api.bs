@@ -888,6 +888,50 @@ excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
 
 
+### `Clear-Site-Data` Integration ### {#impression-store-clear}
+
+The [:Clear-Site-Data:] field [[CLEAR-SITE-DATA]]
+gives sites the ability to remove state maintained by a [=user agent=].
+The \``"impressions"`\` type is added to the list of recognized types,
+defined in [[CLEAR-SITE-DATA#header]].
+
+When the [CLEAR-SITE_DATA#abstract-opdef-clear-site-data-for-response|clear site data for response]] algorithm is invoked,
+if the list of types [=set/contains=] \``"impressions"`\`,
+the [=clear impressions for a conversion site=] is invoked,
+passing the |origin|.
+
+To <dfn>clear impressions for a conversion site</dfn>,
+given an [=origin=] |origin|,
+run these steps:
+
+1.  If |origin| is not a [=tuple origin=] with a [=scheme=] of `https`,
+    return.
+
+1.  Let |site| be the value returned
+    by invoking [=registrable domain|obtain a registrable domain=],
+    passing the [=host=] part of the [=tuple origin|origin tuple=].
+
+1.  For each stored [=impression=], |impression|,
+    in the [=impression store=]:
+
+    1.  If |impression| has an [=impression/Intermediary Site=] equal to |site|,
+        [=set/remove=] |impression| from the [=impression store=] and continue.
+
+    1.  If |impression| has a [=impression/Conversion Sites=] [=set=]
+        that does not [=set/contain=] the value |site|, continue.
+
+    1.  If the [=set/size=] of the [=impression/Conversion Sites=] [=set=]
+        for the |impression|
+        is greater than one [=site=],
+        [=set/remove|remove=] |site| from [=impression/Conversion Sites=]
+        and continue.
+
+    1.  Otherwise, [=set/remove=] |impression| from the [=impression store=].
+
+<p class=note>This process does not remove impressions
+that are saved with an empty [=set=] of [=impression/Conversion Sites=].
+
+
 ### Site Names ### {#site-name-algorithm}
 
 The [=impression store=] saves information
@@ -1369,7 +1413,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
     a [=structured header/string=].
     The string value includes a domain name using A-labels only;
-    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]]. 
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is required.
   </dd>
   <dt><code>histogram-index</code></dt>
@@ -2228,6 +2272,8 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 
 <pre class=anchors>
+urlPrefix: https://fetch.spec.whatwg.org/; spec: html; type: dfn
+    text: request origin; url: #concept-request-origin
 urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: host; url: #concept-origin-host
     text: obtain a site
