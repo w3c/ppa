@@ -78,7 +78,7 @@ that was shown to the same person before the conversion occurred.
 
 If attribution information were directly revealed,
 it would enable unwanted
-[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
+[=cross-context recognition=],
 thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
 
 This document avoids cross-context recognition by ensuring that
@@ -144,7 +144,7 @@ that does not enable tracking.
 
 The measurement of advertising performance creates new cross-site flows of information.
 That information flow creates a privacy risk or cost--
-of [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]]--
+of [cross-context recognition=]--
 that needs to be justified in terms of benefits to end users.
 
 Any benefits realized by end users through the use of [=attribution=] are indirect.
@@ -213,7 +213,7 @@ if properly implemented--
 ensures that information provided to sites is about groups and not individuals.
 
 The introduction of this mechanism therefore represents collective decision-making,
-as described in [[PRIVACY-PRINCIPLES#collective-privacy]].
+in line with the idea of [=collective privacy=].
 
 Participation in attribution measurement carries a lower privacy cost
 when the group that participates is larger.
@@ -2250,6 +2250,8 @@ urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
     text: host parser; url: #concept-host-parser
     text: registrable domain; url: #host-registrable-domain
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
+    text: collective privacy
+    text: cross-context recognition
     text: cross-site recognition
     text: same-site recognition
 </pre>
