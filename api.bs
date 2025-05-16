@@ -1356,7 +1356,7 @@ set on a response requesting that the user agent invoke the
 <a method for=PrivateAttribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-site="advertiser.example", histogram-index=2, filter-data=12, lifetime-days=7
+Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, filter-data=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
@@ -1364,12 +1364,12 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
 <a method for=PrivateAttribution>saveImpression()</a>.
 
 <dl dfn-for=save-impression>
-  <dt><code>conversion-site</code></dt>
+  <dt><code>conversion-sites</code></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSite</a>,
-    a [=structured header/string=].
-    The string value includes a domain name using A-labels only;
-    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]]. 
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSites</a>,
+    a [=structured header/inner list=] containing [=structured header/string|strings=].
+    Each string value includes a domain name using A-labels only;
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is required.
   </dd>
   <dt><code>histogram-index</code></dt>
