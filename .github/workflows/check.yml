@@ -15,7 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
+    - uses: actions/cache@v4
       with:
-        cache: pip
-        cache-dependency-path: Makefile
+        path: venv
+        key: venv-${{ hashFiles('Makefile') }}
     - run: make
