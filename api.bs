@@ -1304,7 +1304,7 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, 
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
 [=site=] |topLevelSite|, [=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
@@ -2068,6 +2068,19 @@ If the [=aggregation service=] configuration necessary
 for invoking <a for=PrivateAttribution>measureConversion()</a>
 is either absent or out of date,
 that could be observable to sites.
+
+If the retrieval of configuration
+could delay the resolution of a call to <a for=PrivateAttribution>measureConversion()</a>,
+this creates a timing side channel.
+If a fake response is generated instead, differences between
+a response from a properly-configured [=user agent=]
+and a fake response
+might be observable.
+This might be the use of key identifiers or
+other unencrypted metadata.
+A difference in ciphertext length might also reveal changes to what is enciphered
+or changes in choice of algorithm.
+
 Detecting stale or absent configuration might be used
 to [=fingerprint=] the [=user agent=].
 
@@ -2079,9 +2092,10 @@ before starting to load any content.
 
 If the necessary configuration cannot be obtained,
 or is obviously stale,
-an implementation can provide randomized responses
-that are indistinguishable from a real response
+an implementation might choose to immediately reject
 when <a for=PrivateAttribution>measureConversion()</a> is invoked.
+This leaks information,
+but it could leak less than attempting to generate a fake value.
 
 
 ## Including Identifying Information with Saved Impressions ## {#privacy-impression-store}
