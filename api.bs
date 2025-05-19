@@ -1482,7 +1482,7 @@ reports contain a distributed zero-knowledge proof
 that allows the nodes that participate in the MPC
 to confirm that the sum of the submitted histogram is less than a set value.
 [=Prio3L1BoundSum=] can only validate that the histogram sum
-is less than a power of two.
+is strictly less than a power of two.
 That is, proofs confirm that
 the sum is less than 2<sup><var>n</var></sup> for positive integer values of |n|.
 
@@ -1497,10 +1497,10 @@ Consequently, a malicious [=user agent=] might generate a report
 that contributes as much as double the value of {{PrivateAttributionConversionOptions/maxValue}}
 to the aggregate histogram.
 The proof ensures that there is no opportunity for excess contributions
-when {{PrivateAttributionConversionOptions/maxValue}} is equal to 2<sup><var>n</var></sup>-1;
+when {{PrivateAttributionConversionOptions/maxValue}} is equal to 2<sup><var>n</var></sup> − 1;
 the relative effect of any such attack can be reduced
 by setting {{PrivateAttributionConversionOptions/maxValue}}
-as close to 2<sup><var>n</var></sup>-1 as other constraints allow.
+as close to 2<sup><var>n</var></sup> − 1 as other constraints allow.
 
 
 ### DAP Extensions ### {#dap-extensions}
