@@ -973,6 +973,9 @@ in units [=microepsilons=].
 A <dfn>microepsilon</dfn> is one-millionth of the unitary epsilon value
 used in differential privacy [[DP]].
 
+<p class=note>  The choice of a 32 bit integer restricts the setting of epsilon to be less than 4295.
+This should be more than sufficient for implementations.
+
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
 <dl dfn-for="privacy budget key">
