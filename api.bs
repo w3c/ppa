@@ -782,7 +782,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
   <dt><dfn>matchValue</dfn></dt>
-  <dd>A [=set=] of matching values. Only [=impressions=] having a [=impression/match value=] value contained in this set will be eligible to match this [=conversion=]. If empty, all [=impression/match value=] values will match.</dd>
+  <dd>A match value that can be used to select this [=impression=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
