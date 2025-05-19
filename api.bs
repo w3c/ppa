@@ -911,20 +911,19 @@ run these steps:
     by invoking [=registrable domain|obtain a registrable domain=],
     passing the [=host=] part of the [=tuple origin|origin tuple=].
 
-1.  For each stored [=impression=], |impression|,
-    in the [=impression store=]:
+1.  [=set/iterate|For each=] [=impression=] |impression| of
+    the [=impression store=]:
 
     1.  If |impression| has an [=impression/Intermediary Site=] equal to |site|,
-        [=set/remove=] |impression| from the [=impression store=] and continue.
+        [=set/remove=] |impression| from the [=impression store=] and [=iteration/continue=].
 
     1.  If |impression| has a [=impression/Conversion Sites=] [=set=]
-        that does not [=set/contain=] the value |site|, continue.
+        that does not [=set/contain=] the value |site|, [=iteration/continue=].
 
-    1.  If the [=set/size=] of the [=impression/Conversion Sites=] [=set=]
-        for the |impression|
-        is greater than one [=site=],
-        [=set/remove|remove=] |site| from [=impression/Conversion Sites=]
-        and continue.
+    1.  If the [=set/size=] of |impression|'s [=impression/Conversion Sites=]
+        is greater than one,
+        [=set/remove|remove=] |site| from |impression|'s [=impression/Conversion Sites=]
+        and [=iteration/continue=].
 
     1.  Otherwise, [=set/remove=] |impression| from the [=impression store=].
 
