@@ -1017,7 +1017,7 @@ and integer |globalSensitivity|:
     and return false.
 
 1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=]
-    to |currentValue| - |deduction|
+    to |currentValue| − |deduction|
     and return true.
 
 
