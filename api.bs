@@ -17,8 +17,20 @@ Status: ED
 Level: None
 </pre>
 <style>
-@media (prefers-color-scheme: dark) {
-  figure svg { background: white }
+/* dark mode haxx for diagrams */
+svg.diagram {
+  [stroke="black"], [stroke^="#000"] {
+    stroke: var(--text);
+  }
+  [stroke="white"], [stroke^="#fff"] {
+    stroke: var(--bg);
+  }
+  [fill="black"], [fill^="#000"], :not([fill]) {
+    fill: var(--text);
+  }
+  [fill="white"], [fill^="#fff"] {
+    fill: var(--bg);
+  }
 }
 </style>
 
@@ -66,7 +78,7 @@ that was shown to the same person before the conversion occurred.
 
 If attribution information were directly revealed,
 it would enable unwanted
-[[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]],
+[=cross-context recognition=],
 thereby enabling [[UNSANCTIONED-TRACKING|tracking]].
 
 This document avoids cross-context recognition by ensuring that
@@ -132,7 +144,7 @@ that does not enable tracking.
 
 The measurement of advertising performance creates new cross-site flows of information.
 That information flow creates a privacy risk or cost--
-of [[PRIVACY-PRINCIPLES#dfn-cross-context-recognition|cross-context recognition]]--
+of [cross-context recognition=]--
 that needs to be justified in terms of benefits to end users.
 
 Any benefits realized by end users through the use of [=attribution=] are indirect.
@@ -201,7 +213,7 @@ if properly implemented--
 ensures that information provided to sites is about groups and not individuals.
 
 The introduction of this mechanism therefore represents collective decision-making,
-as described in [[PRIVACY-PRINCIPLES#collective-privacy]].
+in line with the idea of [=collective privacy=].
 
 Participation in attribution measurement carries a lower privacy cost
 when the group that participates is larger.
@@ -384,6 +396,10 @@ required to use this API beyond collecting parameter values, although
 it may be useful to examine the supported
 <a attribute for=PrivateAttribution>aggregationServices</a> in deciding
 whether to use the Private Attribution API.
+
+It is also possible to register an impression by including the
+[:Save-Impression:]
+header in the HTTP response when serving a resource to the user agent.
 
 To request a conversion report, a site calls
 <a method for=PrivateAttribution>measureConversion()</a>.
@@ -598,15 +614,6 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
     An optional piece of metadata associated with the impression. The value
     can be used to identify which impressions may receive attribution
     from a [=conversion=].
-    <p class=note>It is intentional that on the impression side this field
-    defaults to 0, while on
-    {{PrivateAttributionConversionOptions/filterData|the conversion side}} it is
-    an <span class=allow-2119>optional</span> field without a default: A default
-    on the impression side means that implementations do not need to use a bit
-    to represent potential absence of the field for each impression in the
-    [=impression store=], while optionality on the conversion side means that
-    there is a way to match any filter data, which would not be possible if
-    there were a default integer value.
   </dd>
   <dt><dfn>conversionSites</dfn></dt>
   <dd>
@@ -693,7 +700,7 @@ contribute to the histogram, i.e., will be uniformly zero.
           lookbackDays: 14,
           impressionSites: ["publisher.example", "other.example"],
           intermediarySites: ["ad-tech.example"],
-          filterData: 2,
+          filterData: [2],
         };
       </xmp>
 
@@ -737,7 +744,7 @@ dictionary PrivateAttributionConversionOptions {
   required unsigned long histogramSize;
 
   unsigned long lookbackDays;
-  unsigned long filterData;
+  sequence<unsigned long> filterData = [];
   sequence<USVString> impressionSites = [];
   sequence<USVString> intermediarySites = [];
 
@@ -775,7 +782,7 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
   <dt><dfn>filterData</dfn></dt>
-  <dd>Only [=impressions=] having a [=impression/filter data=] value matching this value will be eligible to match this [=conversion=]. If omitted, all [=impression/filter data=] values will match.</dd>
+  <dd>A [=set=] of matching values. Only [=impressions=] having a [=impression/filter data=] value contained in this set will be eligible to match this [=conversion=]. If empty, all [=impression/filter data=] values will match.</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
@@ -847,7 +854,7 @@ for=PrivateAttribution>measureConversion()</a> method to find matching
 
 <p class=note>
 Though this API enables the storage of data by sites,
-this does not use a [=storage key=].
+the [=impression store=] does not use a [=storage key=].
 
 
 ### Contents ### {#impression-store-contents}
@@ -936,9 +943,9 @@ that are used to manage the expenditure of [=privacy budgets=]:
 
 
 *   The [=epoch start store=] records when each [=epoch=] starts
-    for [=impression sites=].
+    for [=conversion sites=].
     This store is initialized as a side effect
-    of invoking <a method for=PrivateAttribution>saveImpression()</a>.
+    of invoking <a method for=PrivateAttribution>measureConversion()</a>.
 
 *   A singleton [=last browsing history clear=] value
     that tracks when the browsing activity for a [=site=] was last cleared.
@@ -965,8 +972,8 @@ The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
 <dl dfn-for="privacy budget key">
-: <dfn ignore>epoch</dfn>
-:: A [=privacy budget epoch=]
+: <dfn ignore>epoch index</dfn>
+:: An [=epoch index=]
 : <dfn ignore>site</dfn>
 :: A [=site=]
 
@@ -996,30 +1003,72 @@ and integer |globalSensitivity|:
 ### Epoch Start Store ### {#s-epoch-start}
 
 An [=epoch=] starts at a randomly-selected time
-for each [=site=].
+for each [=conversion site=].
 This ensures that any bias in aggregates
 that arises from a [=privacy budget=] reaching zero
 is averaged across all the contributions from all [=users=].
 
 The <dfn>epoch start store</dfn> is a [=map=] keyed by [=site=]
-with values that are [=moments=]
+and contains values that are [=moments=]
 from the [=wall clock=].
+
+A <dfn local-lt=epoch>privacy budget epoch</dfn> (or [=epoch=])
+identifies a period of time.
+The length of an [=epoch=] is fixed at one week or 7 [=days=],
+where a <dfn>day</dfn> is defined as 86400 seconds.
+
+The exact time span for an [=epoch=] is different
+for each combination of [=user agent=] and [=site=].
+The start time for a given pair of [=user agent=] and [=site=]
+is chosen randomly by the [=user agent=] when an epoch is first needed--
+as a side effect of invoking the [=get the current epoch=] algorithm.
+The [=epochs=] for a given [=site=] will change
+if the [=user agent=] clears browsing history;
+see [[#clear-browsing-history]].
+
+An <dfn local-lt="epoch indices">epoch index</dfn> is an integer
+that refers to a given [=epoch=].
+An [=epoch index=] is used to access
+the [=impression store|impression=]
+and [=epoch start store|epoch start=] stores.
+
+<div class=note>
+In the same way that a [=moment=] is an abstract concept
+that can only be expressed as a [=duration=]
+relative to another [=moment=],
+[=epochs=] are abstract.
+
+[=Epoch indices=] are stored as integers
+relative to a set reference point.
+The [=epoch indices=] in this specification
+use the values from the [=epoch start store=]
+as a reference point.
+A [=user agent=] could choose to use a different [=moment=]
+to indicate a "zero" or reference [=epoch=].
+</div>
+
+The algorithms in this specification all use concrete [=epoch indices=],
+rather than the more abstract [=epoch=].
+[=moment|Points in time=] are translalated to an [=epoch index=]
+for the corresponding [=epoch=]
+using the [=get the current epoch=] algoritm.
 
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
-and [=moment=] |now|:
+and [=moment=] |t|,
+returning an [=epoch index=]:
 
 1.  Let |period| be the [=duration=] of one [=epoch=].
 
 1.  If the [=epoch start store=] does not [=map/contain=] |site|, [=map/set=]
-    its value to |now|, minus a [=duration=]
+    its value to |t|, minus a [=duration=]
     that is randomly selected
     from between 0 (inclusive) and |period| (exclusive).
 
 1.  Let |start| be the result of [=map/get|getting the value=] of |site|
     from the [=epoch start store=].
 
-1.  Let |elapsed| be (|now| - |start|) / |period|.
+1.  Let |elapsed| be (|t| - |start|) / |period|.
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
 
@@ -1035,24 +1084,9 @@ when any [=site=]-level state is cleared
 at the request of a [=user=].
 The value is initially unset.
 
-<div class=note>
-A [=user agent=] that offers selective deletion of history,
-such as the removal of state for a single site,
-could partition this value so that other sites remain unaffected.
-However, any choice to partition leaks some information
-that might reveal that a specific site had been visited
-to any entity that can access stored data.
-Strictly limiting the number of partitions
-might make this information less useful
-in terms of revealing that a particular site was visited.
-
-This specification describes algorithms that do not including partition.
-This guarantees that stored data does not reveal anything
-about browsing history.
-</div>
-
 As an optional optimization,
-updating the [=last browsing history clear=] can be skipped if:
+updating the [=last browsing history clear=] can be skipped if
+all of the following are true:
 
 *   All interactions that are cleared are with [=sites=]
     that have other uncleared interactions.
@@ -1065,7 +1099,8 @@ the [=last browsing history clear=] does not need to be updated.
 Instead, the [=privacy budget store=] must be updated
 by [=map/set|setting=] a value of 0
 for all [=privacy budget key=] combinations that can be formed
-from every affected [=site=] and [=epoch=].
+from every affected [=site=] and [=epoch=]
+(using the [=get the current epoch|corresponding=] [=epoch index=]).
 
 <p class=note>
 This optimization relies on the [=user agent=]
@@ -1074,13 +1109,22 @@ about interactions with affected [=sites=]
 in the affected [=epochs=].
 This only works because any of the retained interactions
 could have resulted in exhausting the budget.
+Resetting the budget is necessary to ensure
+that no information about the gap in browsing history
+is exposed.
 
 To <dfn>get the starting epoch for attribution</dfn>
-given [=site=] site:
+given [=site=] site,
+returning an [=epoch index=]:
 
 1.  Let |startEpoch| be a [=user agent=]-defined value
-    for the earliest [=epoch=]
+    for the earliest [=epoch index=]
     that is supported for attribution.
+
+    <p class=note>
+    This value is not a constant [=epoch index=].
+    A value is chosen for each site
+    based on [=user agent=] preferences or configuration.
 
 1.  If the [=last browsing history clear=] is set,
     perform the following steps:
@@ -1118,30 +1162,31 @@ and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |timestamp| be |settings|'s [=environment settings object/current wall time=].
+    1.  Let |timestamp| be |settings|' [=environment settings object/current wall time=].
     1.  The [=impression site=] |site| is set to the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] |intermediarySite| is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
+             [=obtain a site|obtaining a site=]
+             from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
     1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         throw a {{RangeError}}.
     1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
-    1.  Let |conversionSite| be the result of invoking [=parse a site=]
-        with |options|.{{PrivateAttributionImpressionOptions/conversionSite}}.
-    1.  If |conversionSite| is failure, return {{SyntaxError}}.
+    1.  Let |conversionSites| be the [=set=] that is the result
+        of invoking [=parse a site=]
+        for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
+    1.  If any result in |conversionSites| is failure, return {{SyntaxError}}.
 1.  If the Private Attribution API is [[#opt-out|disabled]], return.
 1.  Construct |impression| as a [=impression|saved impression=] comprising:
     *   [=impression/Filter Data=] set to
         |options|.{{PrivateAttributionImpressionOptions/filterData}}.
     *   [=impression/Impression Site=] set to |site|.
     *   [=impression/Intermediary Site=] set to |intermediarySite|.
-    *   [=impression/Conversion Sites=] set to a single element [=set=]
-        containing |conversionSite|.
+    *   [=impression/Conversion Sites=] set to |conversionSites|.
     *   [=impression/Timestamp=] set to |timestamp|.
     *   [=impression/Lifetime=] set to
         |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
@@ -1165,14 +1210,15 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
 1.  Collect the implicit API inputs from |settings|:
-    1.  Let |now| be |settings|'s [=environment settings object/current wall time=].
+    1.  Let |now| be |settings|' [=environment settings object/current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
     1.  The [=intermediary site=] is set to
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
-             [=obtain a site|obtaining a site=] from the [=origin=].
+             [=obtain a site|obtaining a site=]
+             from |settings|' [=environment settings object/origin=].
         <!-- TODO: the intermediary site is currently unused -->
 1. Validate the page-supplied API inputs:
     1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
@@ -1258,8 +1304,8 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 ### Common Impression Matching Logic ### {#logic-matching}
 
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
-[=site=] |topLevelSite|, [=epoch=] |epoch|, and [=moment=] |now|:
+<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>, 
+[=site=] |topLevelSite|, [=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
@@ -1279,8 +1325,8 @@ To perform <dfn>common matching logic</dfn>, given
         and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=map/exists=],
-        and it is not equal to |impression|'s [=impression/filter data=],
+    1.  If |options|.{{PrivateAttributionConversionOptions/filterData}} [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |impression|'s [=impression/filter data=],
         [=iteration/continue=].
 
     1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
@@ -1337,6 +1383,53 @@ if the user has opted out of collection of diagnostic data.
 ### Visibility ### {#visibility}
 
 * User ability to view the impression store and past report submissions.
+
+
+# HTTP API # {#http-api}
+
+\`<dfn http-header><code>Save-Impression</code></dfn>\` is a
+[=structured header/dictionary|Dictionary Structured Header=]
+set on a response requesting that the user agent invoke the
+<a method for=PrivateAttribution>saveImpression()</a> API.
+
+<pre class=example id=ex-save-impression-header>
+Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, filter-data=(12), lifetime-days=7
+</pre>
+
+The following keys are defined, corresponding to the members of
+the {{PrivateAttributionImpressionOptions}} dictionary passed to
+<a method for=PrivateAttribution>saveImpression()</a>.
+
+<dl dfn-for=save-impression>
+  <dt><code>conversion-sites</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSites</a>,
+    a [=structured header/inner list=] containing [=structured header/string|strings=].
+    Each string value includes a domain name using A-labels only;
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
+    This key is required.
+  </dd>
+  <dt><code>histogram-index</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
+    a non-negative [=structured header/integer=]. This key is required.
+  </dd>
+  <dt><code>filter-data</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>filterData</a>,
+    a non-negative [=structured header/integer=] or an [=structured header/inner list=]
+    of non-negative integers. This key is optional.
+    If not supplied, the empty [=set=] is saved for [=impression/Filter Data=].
+  </dd>
+  <dt><code>lifetime-days</code></dt>
+  <dd>
+    Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
+    a positive [=structured header/integer=]. This key is optional.
+    If not supplied, an [=implementation-defined=] value is saved for [=impression/Lifetime=].
+  </dd>
+</dl>
+
+TODO need to specify in more detail when and how this header is interpreted
 
 
 # Implementation Considerations # {#implementation-considerations}
@@ -1606,10 +1699,8 @@ to protect against those attacks.
 
 Sites receive a separate differential privacy budget
 that is used to query [=impressions=] recorded
-in each time interval.
-This period is called a <dfn local-lt=epoch>privacy budget epoch</dfn>
-(or simply [=epoch=])
-and its duration is one week (7 days), where a <dfn>day</dfn> is 86400 seconds.
+in each [=privacy budget epoch=]
+(or [=epoch=]).
 
 This budget applies to the [=impressions=]
 that are registered with the [=user agent=]
@@ -2063,11 +2154,17 @@ to ensure that [=privacy budgets=] are not inadvertently exceeded.
 
 ### Clearing Site Data ### {#clear-site-data}
 
-When clearing site data,
+When clearing site data at the request of a [=user=],
 but retaining browsing history,
 a [=user agent=] can [=map/set=] the value
 in the [=privacy budget store=] to 0 for all [=epochs=]
 for all affected [=sites=].
+
+When clearing site data at the request of a [=site=],
+through the use of the [:Clear-Site-Data:] header,
+A [=user agent=] only [[#removing-impressions|removes impressions]],
+without altering either the [=privacy budget store=]
+or the [=epoch start store=] for affected [=sites=].
 
 
 ### Clearing Browsing History ### {#clear-browsing-history}
@@ -2145,7 +2242,7 @@ A [=conversion site=] that has had state cleared
 will not be able to use these [=impressions=].
 
 [=Impressions=] that have a [=same site|matching=] [=impression/intermediary site=]
-may be cleared.
+may be retained.
 
 
 ## Choice of Clock ## {#why-wall-clock}
@@ -2221,11 +2318,23 @@ urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
     text: host parser; url: #concept-host-parser
     text: registrable domain; url: #host-registrable-domain
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
+    text: collective privacy
+    text: cross-context recognition
     text: cross-site recognition
     text: same-site recognition
 urlPrefix: https://www.w3.org/TR/fingerprinting-guidance/; type: dfn;
     text: fingerprint; url: #dfn-browser-fingerprinting
     text: fingerprinting; url: #dfn-browser-fingerprinting
+</pre>
+<pre class=anchors>
+spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
+    text: structured header; url: #name-introduction
+    for: structured header
+        text: dictionary; url: #dictionary
+        text: string; url: #string
+        text: integer; url: #integer
+        text: item; url: #item
+        text: inner list; url: #inner-list
 </pre>
 <pre class=biblio>
 {

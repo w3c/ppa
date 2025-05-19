@@ -3,8 +3,10 @@ name: "Check API"
 on:
   push:
     branches: [ "main" ]
+    paths: [ "Makefile", "api.bs", "images/**", ".github/workflows/check.yml" ]
   pull_request:
     branches: [ "main" ]
+    paths: [ "Makefile", "api.bs", "images/**", ".github/workflows/check.yml" ]
 
 jobs:
   build:
@@ -13,4 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
+    - uses: actions/cache@v4
+      with:
+        path: venv
+        key: venv-${{ hashFiles('Makefile') }}
     - run: make
