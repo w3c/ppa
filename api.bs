@@ -895,7 +895,7 @@ gives sites the ability to remove state maintained by a [=user agent=].
 The \``"impressions"`\` type is added to the list of recognized types,
 defined in [[CLEAR-SITE-DATA#header]].
 
-When the [CLEAR-SITE_DATA#abstract-opdef-clear-site-data-for-response|clear site data for response]] algorithm is invoked,
+When the [[CLEAR-SITE_DATA#abstract-opdef-clear-site-data-for-response|clear site data for response]] algorithm is invoked,
 if the list of types [=set/contains=] \``"impressions"`\`,
 the [=clear impressions for a conversion site=] is invoked,
 passing the |origin|.
