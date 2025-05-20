@@ -1010,7 +1010,14 @@ updated to refer to the [=privacy budget store=] as well.
 ### Privacy Budget Store ### {#s-privacy-budget-store}
 
 The <dfn>privacy budget store</dfn> is a [=map=] whose keys are
-[=privacy budget keys=] and whose values are [=floats=].
+[=privacy budget keys=] and whose values are [=32-bit unsigned integers=].
+These [=32-bit unsigned integer|integers=] store a value
+in units [=microepsilons=].
+A <dfn>microepsilon</dfn> is one-millionth of the unitary epsilon value
+used in differential privacy [[DP]].
+
+<p class=note>The choice of a 32-bit integer restricts the setting of epsilon to be less than 4295.
+This should be more than sufficient for implementations.
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
@@ -1024,23 +1031,37 @@ A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items
 
 To <dfn>deduct privacy budget</dfn>
 given a [=privacy budget key=] |key|,
-[=float=] |epsilon|,
+[[WEBIDL#idl-double|double]] |epsilon|,
 integer |sensitivity|,
 and integer |globalSensitivity|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
-    its value of |key| to be a [=user agent=]-defined value.
+    its value of |key| to be a [=user agent=]-defined value,
+    plus 1000.
+
+    <p class=note>The addition of 1000 to this value
+    ensures that the rounding errors added by this algorithm do not cause
+    the budget to be exceeded unnecessarily after multiple invocations.
+    The privacy loss from the additional one-thousandth of an epsilon is trivial.
 
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
 
-1.  If |currentValue| is less than or equal to 0, return false.
+1.  Let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
 
-1.  Let |newValue| be |currentValue| - |epsilon| * |sensitivity| / |globalSensitivity|.
+1.  If |deductionFp| is negative or greater than 4294,
+    [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
+    and return false.
 
-1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=] to |newValue|.
+1.  Let |deduction| be |deductionFp| * 1000000, rounded towards positive Infinity.
 
-1.  Return whether |newValue| is greater than or equal to 0.
+1.  If |deduction| is greater than |currentValue|,
+    [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
+    and return false.
+
+1.  [=map/set|Set=] the value of |key| in the [=privacy budget store=]
+    to |currentValue| − |deduction|
+    and return true.
 
 
 ### Epoch Start Store ### {#s-epoch-start}
@@ -1263,7 +1284,16 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
         <!-- TODO: the intermediary site is currently unused -->
-1. Validate the page-supplied API inputs:
+1. Validate |options|:
+    1.  If <a attribute for=PrivateAttribution>aggregationServices</a> does not [=map/exist|contain=]
+        an [=map/entry=] with a [=map/key=] of |options|.{{PrivateAttributionConversionOptions/aggregationService}},
+        throw a {{ReferenceError}}.
+    1.  If |options|.{{PrivateAttributionConversionOptions/epsilon}}
+        is negative or greater than 4294,
+        throw a {{RangeError}}.
+    1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
+        is 0 or greater than an [=implementation-defined=] maximum value,
+        throw a {{RangeError}}.
     1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
         <dl class="switch">
             :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
@@ -1806,10 +1836,12 @@ conversion report.
 When searching for [=impressions=] for the conversion report,
 the user agent deducts the specified &epsilon; value from
 the budget for the [=privacy budget epoch=] in which those impressions were saved.
-If the privacy budget for that [=privacy budget epoch|epoch=] is not sufficient,
-the impressions from that [=privacy budget epoch|epoch=] are not used.
+If the [=privacy budget=] for that [=epoch=] is not sufficient,
+the impressions from that [=epoch=] are not used.
 
-The details of how to [=deduct privacy budget=] is given below ... WIP
+Each time a [=conversion site=] invokes <a method for=PrivateAttribution>measureConversion()</a>
+the [=deduct privacy budget|privacy budget is deducted=]
+for [=epochs=] from which the [=attribution logic=] selected [=impressions=].
 
 <div class=example id=ex-budget>
     In the following figure,
@@ -1827,14 +1859,15 @@ The details of how to [=deduct privacy budget=] is given below ... WIP
     That conversion report selects impressions marked with black circles,
     corresponding to impressions from Sites B, C, and E.
 
-    As a result, privacy budget for the querying site is deducted
-    from [=privacy budget epoch|epochs=] 1, 3, 4, and 5.
-    No impressions were recorded for epoch 2,
-    so no budget is deducted from that epoch.
+    As a result, [=privacy budget=] for the [=conversion site=]
+    is [=deduct privacy budget|deducted=]
+    from [=epochs=] 1, 3, 4, and 5.
+    No impressions were recorded for [=epoch=] 2,
+    so no [=privacy budget|budget=] is deducted from that [=epoch=].
 </div>
 
-How a [=user agent=] manages exhaustion of a privacy budget
-depends on the [=attribution logic=] that was specified.
+How a [=user agent=] manages exhaustion of a [=privacy budget=]
+depends on the [=attribution logic=] that was chosen.
 
 
 ### Safety Limits ### {#dp-safety}
