@@ -2073,12 +2073,12 @@ If the retrieval of configuration
 could delay the resolution of a call to <a for=PrivateAttribution>measureConversion()</a>,
 this creates a timing side channel.
 If a fake response is generated instead, differences between
-a response from a properly-configured [=user agent=]
+a response from a properly configured [=user agent=]
 and a fake response
 might be observable.
 This might be the use of key identifiers or
 other unencrypted metadata.
-A difference in ciphertext length might also reveal changes to what is enciphered
+A difference in ciphertext length might also reveal changes to what is encrypted
 or changes in choice of algorithm.
 
 Detecting stale or absent configuration might be used
