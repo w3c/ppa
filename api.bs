@@ -1480,7 +1480,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
     a [=structured header/inner list=] containing [=structured header/string|strings=].
     Each string value includes a domain name using A-labels only;
     [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
-    This key is required.
+    This key is optional. If not supplied, an empty set is saved for [=impression/Conversion Sites=].
   </dd>
   <dt><code>histogram-index</code></dt>
   <dd>
