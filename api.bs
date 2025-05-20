@@ -895,7 +895,7 @@ gives sites the ability to remove state maintained by a [=user agent=].
 The \``"impressions"`\` type is added to the list of recognized types,
 defined in [[CLEAR-SITE-DATA#header]].
 
-When the [[CLEAR-SITE_DATA#abstract-opdef-clear-site-data-for-response|clear site data for response]] algorithm is invoked,
+When the [[CLEAR-SITE-DATA#clear-response|clear site data for response]] algorithm is invoked,
 if the list of types [=set/contains=] \``"impressions"`\`,
 the [=clear impressions for a conversion site=] is invoked,
 passing the |origin|.
@@ -1017,7 +1017,7 @@ A <dfn>microepsilon</dfn> is one-millionth of the unitary epsilon value
 used in differential privacy [[DP]].
 
 <p class=note>The choice of a 32-bit integer restricts the setting of epsilon to be less than 4295.
-This should be more than sufficient for implementations.
+This <span class=allow-2119>should</span> be more than sufficient for implementations.
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
 
