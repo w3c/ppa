@@ -888,6 +888,49 @@ excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
 
 
+### `Clear-Site-Data` Integration ### {#impression-store-clear}
+
+The [:Clear-Site-Data:] field [[CLEAR-SITE-DATA]]
+gives sites the ability to remove state maintained by a [=user agent=].
+The \``"impressions"`\` type is added to the list of recognized types,
+defined in [[CLEAR-SITE-DATA#header]].
+
+When the [[CLEAR-SITE_DATA#abstract-opdef-clear-site-data-for-response|clear site data for response]] algorithm is invoked,
+if the list of types [=set/contains=] \``"impressions"`\`,
+the [=clear impressions for a conversion site=] is invoked,
+passing the |origin|.
+
+To <dfn>clear impressions for a conversion site</dfn>,
+given an [=origin=] |origin|,
+run these steps:
+
+1.  If |origin| is not a [=tuple origin=] with a [=scheme=] of `https`,
+    return.
+
+1.  Let |site| be the value returned
+    by invoking [=registrable domain|obtain a registrable domain=],
+    passing the [=host=] part of the [=tuple origin|origin tuple=].
+
+1.  [=set/iterate|For each=] [=impression=] |impression| of
+    the [=impression store=]:
+
+    1.  If |impression| has an [=impression/Intermediary Site=] equal to |site|,
+        [=set/remove=] |impression| from the [=impression store=] and [=iteration/continue=].
+
+    1.  If |impression| has a [=impression/Conversion Sites=] [=set=]
+        that does not [=set/contain=] the value |site|, [=iteration/continue=].
+
+    1.  If the [=set/size=] of |impression|'s [=impression/Conversion Sites=]
+        is greater than one,
+        [=set/remove|remove=] |site| from |impression|'s [=impression/Conversion Sites=]
+        and [=iteration/continue=].
+
+    1.  Otherwise, [=set/remove=] |impression| from the [=impression store=].
+
+<p class=note>This process does not remove impressions
+that are saved with an empty [=set=] of [=impression/Conversion Sites=].
+
+
 ### Site Names ### {#site-name-algorithm}
 
 The [=impression store=] saves information
@@ -2309,6 +2352,8 @@ The privacy architecture is courtesy of the authors of [[PPA-DP]].
 
 
 <pre class=anchors>
+urlPrefix: https://fetch.spec.whatwg.org/; spec: html; type: dfn
+    text: request origin; url: #concept-request-origin
 urlPrefix: https://html.spec.whatwg.org/; spec: html; type: dfn
     text: host; url: #concept-origin-host
     text: obtain a site
