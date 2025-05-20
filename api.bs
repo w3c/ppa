@@ -1238,6 +1238,9 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
         throw a {{RangeError}}.
     1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
+    1.  If the [=list/size=] of
+        |options|.{{PrivateAttributionImpressionOptions/conversionSites}} is
+        greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
     1.  Let |conversionSites| be the [=set=] that is the result
         of invoking [=parse a site=]
         for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
