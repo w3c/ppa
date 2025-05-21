@@ -1289,7 +1289,7 @@ and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
         an [=map/entry=] with a [=map/key=] of |options|.{{PrivateAttributionConversionOptions/aggregationService}},
         throw a {{ReferenceError}}.
     1.  If |options|.{{PrivateAttributionConversionOptions/epsilon}}
-        is negative or greater than 4294,
+        is less than or equal to 0 or is greater than 4294,
         throw a {{RangeError}}.
     1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
         is 0 or greater than an [=implementation-defined=] maximum value,
