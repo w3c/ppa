@@ -551,7 +551,7 @@ used by different [=aggregation services=]. This document defines two protocols:
 
 ## Saving Impressions ## {#save-impression-api}
 
-The <dfn method for=PrivateAttribution>saveImpression()</dfn> method requests
+The <a method for=PrivateAttribution>saveImpression()</a> method requests
 that the [=user agent=] record an [=impression=] in the [=impression store=].
 
 <div class=example id=ex-save-impression>
@@ -631,15 +631,9 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   </dd>
 </dl>
 
-The <dfn for=PrivateAttribution method>saveImpression(|options|)</dfn> method
-causes the user agent to invoke the [=save an impression=] algorithm
-with [=this=]'s [=relevant settings object=]
-and the provided |options|.
-
-
 ## Requesting Attribution for a Conversion ## {#measure-conversion-api}
 
-The <dfn method for=PrivateAttribution>measureConversion()</dfn> method
+The <a method for=PrivateAttribution>measureConversion()</a> method
 requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
 and return a [=conversion report=].
 
@@ -810,12 +804,6 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
     to expend on this [=conversion report=].
   </dd>
 </dl>
-
-The <dfn for=PrivateAttribution method>measureConversion(|options|)</dfn> method
-causes the user agent to invoke the [=measure a conversion=] algorithm
-with [=this=]'s [=relevant settings object=]
-and the provided |options|.
-
 
 ## Permissions Policy Integration ## {#permission-policy}
 
@@ -1219,12 +1207,11 @@ returning an [=epoch index=]:
 
 ## Save Impression Algorithm ## {#save-impression-api-operation}
 
-To <dfn>save an impression</dfn>,
-given an [=environment settings object=] |settings|
-and given <a dictionary lt=PrivateAttributionImpressionOptions>|options|</a>:
+The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method steps are:
 
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
 
+1.  Let |settings| be [=this=]'s [=relevant settings object=].
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |timestamp| be |settings|' [=environment settings object/current wall time=].
     1.  The [=impression site=] |site| is set to the result of
@@ -1267,12 +1254,11 @@ API is [[#opt-out|disabled]].
 
 ## Measure Conversion Algorithm ## {#measure-conversion-api-operation}
 
-To <dfn>measure a conversion</dfn>,
-given a [=environment settings object=] |settings|
-and <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>:
+The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
 
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
 
+1.  Let |settings| be [=this=]'s [=relevant settings object=].
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |now| be |settings|' [=environment settings object/current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
