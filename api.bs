@@ -1,8 +1,11 @@
 <pre class=metadata>
 Title: Privacy-Preserving Attribution: Level 1
-Shortname: ppa
+Shortname: privacy-preserving-attribution
 Repository: w3c/ppa
 URL: https://w3c.github.io/ppa/
+Status: ED
+ED: https://w3c.github.io/ppa
+TR: https://www.w3.org/TR/privacy-preserving-attribution
 Editor: Andrew Paseltiner, w3cid 131329, Google https://www.google.com/, apaseltiner@chromium.org
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
@@ -16,21 +19,23 @@ Org: W3C
 Status: ED
 Level: None
 </pre>
+
 <style>
-/* dark mode haxx for diagrams */
-svg.diagram {
-  [stroke="black"], [stroke^="#000"] {
-    stroke: var(--text);
-  }
-  [stroke="white"], [stroke^="#fff"] {
-    stroke: var(--bg);
-  }
-  [fill="black"], [fill^="#000"], :not([fill]) {
-    fill: var(--text);
-  }
-  [fill="white"], [fill^="#fff"] {
-    fill: var(--bg);
-  }
+/* dark mode haxx for diagrams - unnested version */
+
+svg.diagram [stroke="black"], svg.diagram [stroke^="#000"] {
+	 stroke: var(--text);
+}
+svg.diagram [stroke="white"], svg.diagram [stroke^="#fff"] {
+	 stroke: var(--bg);
+}
+
+ svg.diagram [fill="black"], svg.diagram [fill^="#000"], svg.diagram :not([fill]) {
+	 fill: var(--text);
+}
+
+ svg.diagram [fill="white"], svg.diagram [fill^="#fff"] {
+	 fill: var(--bg);
 }
 </style>
 
