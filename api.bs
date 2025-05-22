@@ -886,8 +886,9 @@ defined in [[CLEAR-SITE-DATA#header]].
 When the [[CLEAR-SITE-DATA#clear-response|clear site data for response]] algorithm is invoked,
 if the list of types [=set/contains=] \``"impressions"`\`,
 the [=clear impressions for a conversion site=] is invoked,
-passing the |origin|.
+passing the <var ignore=''>origin</var>.
 
+<div algorithm>
 To <dfn>clear impressions for a conversion site</dfn>,
 given an [=origin=] |origin|,
 run these steps:
@@ -918,6 +919,7 @@ run these steps:
 <p class=note>This process does not remove impressions
 that are saved with an empty [=set=] of [=impression/Conversion Sites=].
 
+</div>
 
 ### Site Names ### {#site-name-algorithm}
 
@@ -939,6 +941,7 @@ It is also possible for an implementation to internally represent sites
 using just the [=host=] part of the tuple.
 </p>
 
+<div algorithm>
 To <dfn>parse a site</dfn>,
 returning either [=site=] or failure,
 given a [=string=] |input|,
@@ -962,6 +965,7 @@ that contain more [=domain labels=] than the [=registrable domain=].
 For example, "`extra.example.com`" is parsed as "`example.com`".
 </p>
 
+</div>
 
 ## State For Privacy Budget Management ## {#privacy-state}
 
@@ -1017,6 +1021,7 @@ A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items
 
 </dl>
 
+<div algorithm>
 To <dfn>deduct privacy budget</dfn>
 given a [=privacy budget key=] |key|,
 [[WEBIDL#idl-double|double]] |epsilon|,
@@ -1051,6 +1056,7 @@ and integer |globalSensitivity|:
     to |currentValue| − |deduction|
     and return true.
 
+</div>
 
 ### Epoch Start Store ### {#s-epoch-start}
 
@@ -1105,6 +1111,7 @@ rather than the more abstract [=epoch=].
 for the corresponding [=epoch=]
 using the [=get the current epoch=] algoritm.
 
+<div algorithm>
 To <dfn>get the current epoch</dfn>
 given a [=site=] |site|,
 and [=moment=] |t|,
@@ -1124,6 +1131,7 @@ returning an [=epoch index=]:
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
 
+</div>
 
 ### Last Browsing History Clear Time ### {#last-clear}
 
@@ -1165,8 +1173,9 @@ Resetting the budget is necessary to ensure
 that no information about the gap in browsing history
 is exposed.
 
+<div algorithm>
 To <dfn>get the starting epoch for attribution</dfn>
-given [=site=] site,
+given [=site=] |site|,
 returning an [=epoch index=]:
 
 1.  Let |startEpoch| be a [=user agent=]-defined value
@@ -1204,9 +1213,11 @@ returning an [=epoch index=]:
 
 1.  Return |startEpoch|.
 
+</div>
 
 ## Save Impression Algorithm ## {#save-impression-api-operation}
 
+<div algorithm>
 The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method steps are:
 
 <!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
@@ -1251,9 +1262,11 @@ does not return a status indicating whether the impression was recorded.
 This minimizes the ability to detect when the Private Attribution
 API is [[#opt-out|disabled]].
 
+</div>
 
 ## Measure Conversion Algorithm ## {#measure-conversion-api-operation}
 
+<div algorithm>
 The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
 
 <!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
@@ -1301,6 +1314,7 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
 <!-- TODO: Define "encrypting" -->
 1. Return |encryptedReport|.
 
+</div>
 
 ### Attribution Logic ### {#s-logic}
 
@@ -1313,7 +1327,7 @@ that specifies the [=attribution logic=].
 Each attribution logic specifies a process for allocating values to histogram buckets,
 after the [=common matching logic=] is applied and privacy budgeting occurs.
 
-
+<div algorithm>
 To <dfn>do attribution and fill a histogram</dfn>, given
   <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
   [=site=] |topLevelSite|, and [=moment=] |now|:
@@ -1355,13 +1369,18 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
       </dl>
 
+</div>
+
+<div algorithm>
 To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 1.  Return a [=list=] of [=list/size=] |size|, whose [=list/items=] are all 0.
 
+</div>
 
 ### Common Impression Matching Logic ### {#logic-matching}
 
+<div algorithm>
 To perform <dfn>common matching logic</dfn>, given
 <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
 [=site=] |topLevelSite|, [=epoch index=] |epoch|, and [=moment=] |now|:
@@ -1397,9 +1416,11 @@ To perform <dfn>common matching logic</dfn>, given
 
 1.  Return |matching|.
 
+</div>
 
 #### Last-Touch Attribution #### {#last-touch-attribution}
 
+<div algorithm>
 To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
   [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
 
@@ -1417,6 +1438,7 @@ To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
 
 1.  Return |histogram|.
 
+</div>
 
 ## User Control and Visibility ## {#user-control}
 
