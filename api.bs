@@ -1223,8 +1223,9 @@ returning an [=epoch index=]:
 <div algorithm>
 The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method steps are:
 
-<!-- TODO: Check the {{PermissionPolicy/save-impression}} policy. -->
-
+1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
+    [=allowed to use=] the [=policy-controlled feature=] named
+    "{{PermissionPolicy/save-impression}}", throw a {{"NotAllowedError"}} {{DOMException}}.
 1.  Let |settings| be [=this=]'s [=relevant settings object=].
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |timestamp| be |settings|' [=environment settings object/current wall time=].
@@ -1275,9 +1276,11 @@ asynchronously, queuing work on the <dfn>Private Attribution [=task source=]</df
 <div algorithm>
 The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
 
-<!-- TODO: Check the {{PermissionPolicy/measure-conversion}} policy. -->
-
 1.  Let |realm| be [=this=]'s [=relevant realm=].
+1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
+    [=allowed to use=] the [=policy-controlled feature=] named
+    "{{PermissionPolicy/measure-conversion}}", return [=a promise rejected with=]
+    a {{"NotAllowedError"}} {{DOMException}} in |realm|.
 1.  Let |settings| be [=this=]'s [=relevant settings object=].
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |now| be |settings|' [=environment settings object/current wall time=].
