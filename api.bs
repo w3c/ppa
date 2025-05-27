@@ -1247,17 +1247,21 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
     1.  If any result in |conversionSites| is failure, return {{SyntaxError}}.
 1.  If the Private Attribution API is [[#opt-out|disabled]], return.
 1.  Construct |impression| as a [=impression|saved impression=] comprising:
-    *   [=impression/Match Value=] set to
-        |options|.{{PrivateAttributionImpressionOptions/matchValue}}.
-    *   [=impression/Impression Site=] set to |site|.
-    *   [=impression/Intermediary Site=] set to |intermediarySite|.
-    *   [=impression/Conversion Sites=] set to |conversionSites|.
-    *   [=impression/Timestamp=] set to |timestamp|.
-    *   [=impression/Lifetime=] set to
-        |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
-        multiplied by a [=duration=] of one day.
-    *   [=impression/Histogram Index=] set to
-        |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}.
+    :   [=impression/Match Value=]
+    ::  |options|.{{PrivateAttributionImpressionOptions/matchValue}}
+    :   [=impression/Impression Site=]
+    ::  |site|
+    :   [=impression/Intermediary Site=]
+    ::  |intermediarySite|
+    :   [=impression/Conversion Sites=]
+    ::  |conversionSites|
+    :   [=impression/Timestamp=]
+    ::  |timestamp|
+    :   [=impression/Lifetime=]
+    ::  |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
+        multiplied by a [=duration=] of one day
+    :   [=impression/Histogram Index=]
+    ::  |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}
 1.  Save |impression| to the [=impression store=].
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
