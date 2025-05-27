@@ -1497,7 +1497,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
 <a method for=PrivateAttribution>saveImpression()</a>.
 
 <dl dfn-for=save-impression>
-  <dt><code>conversion-sites</code></dt>
+  <dt><dfn noexport><code>conversion-sites</code></dfn></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSites</a>,
     a [=structured header/inner list=] containing [=structured header/string|strings=].
@@ -1505,18 +1505,18 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
     [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is optional. If not supplied, an empty set is saved for [=impression/Conversion Sites=].
   </dd>
-  <dt><code>histogram-index</code></dt>
+  <dt><dfn noexport><code>histogram-index</code></dfn></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
     a non-negative [=structured header/integer=]. This key is required.
   </dd>
-  <dt><code>match-value</code></dt>
+  <dt><dfn noexport><code>match-value</code></dfn></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>matchValue</a>,
     a non-negative [=structured header/integer=]. This key is optional.
     If not supplied, a value of 0 is saved for [=impression/Match Value=].
   </dd>
-  <dt><code>lifetime-days</code></dt>
+  <dt><dfn noexport><code>lifetime-days</code></dfn></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
     a positive [=structured header/integer=]. This key is optional.
