@@ -1244,7 +1244,7 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
     1.  Let |conversionSites| be the [=set=] that is the result
         of invoking [=parse a site=]
         for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
-    1.  If any result in |conversionSites| is failure, return {{SyntaxError}}.
+    1.  If any result in |conversionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
 1.  If the Private Attribution API is [[#opt-out|disabled]], return.
 1.  Construct |impression| as a [=impression|saved impression=] comprising:
     *   [=impression/Match Value=] set to
