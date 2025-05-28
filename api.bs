@@ -1414,6 +1414,9 @@ To perform <dfn>common matching logic</dfn>, given
 1.  [=set/iterate|For each=] |impression| in the [=impression store=] for the |epoch|:
 <!-- TODO: Clarify "for the |epoch|" -->
 
+    1.  If |now| - |impression|'s [=impression/lifetime=] is after |impression|'s
+        [=impression/timestamp=], [=iteration/continue=].
+
     1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
         [=iteration/continue=].
 
