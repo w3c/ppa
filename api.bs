@@ -860,7 +860,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
     or `undefined` if the API was invoked by the [=impression site=].
 <dfn>Conversion Sites</dfn>: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
 <dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
-<dfn>Lifetime</dfn>: The number of days an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
+<dfn>Lifetime</dfn>: The [=duration=] an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 <dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
 </pre>
 </div>
