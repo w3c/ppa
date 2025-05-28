@@ -628,7 +628,6 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   <dd>
     A positive "time to live" (in days) after which the [=impression=] can no
     longer receive attribution.
-    If not specified, the default is 30 days.
     The [=user agent=] should impose an upper limit on the lifetime,
     and silently reduce the value specified here if it exceeds that limit.
   </dd>
@@ -1523,7 +1522,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
     a positive [=structured header/integer=]. This key is optional.
-    If not supplied, an [=implementation-defined=] value is saved for [=impression/Lifetime=].
+    If not supplied, 30 days is saved for [=impression/Lifetime=].
   </dd>
 </dl>
 
