@@ -435,7 +435,7 @@ Three types of sites are recognized:
     at the time that {{PrivateAttribution/measureConversion()}} is invoked.
 
 *   An <dfn>intermediary site</dfn> is a [=site=]
-    that calls the API from any cross-site frame, such an [=iframe=].
+    that calls the API from any cross-site frame, such as an [=iframe=].
     The [=intermediary site=] is derived from the [=origin=]
     of the [=relevant settings object=]
     at the time that either {{PrivateAttribution/saveImpression()}}
@@ -1110,9 +1110,9 @@ to indicate a "zero" or reference [=epoch=].
 
 The algorithms in this specification all use concrete [=epoch indices=],
 rather than the more abstract [=epoch=].
-[=moment|Points in time=] are translalated to an [=epoch index=]
+[=moment|Points in time=] are translated to an [=epoch index=]
 for the corresponding [=epoch=]
-using the [=get the current epoch=] algoritm.
+using the [=get the current epoch=] algorithm.
 
 <div algorithm>
 To <dfn>get the current epoch</dfn>
@@ -1503,7 +1503,7 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   <dt><dfn noexport><code>conversion-sites</code></dfn></dt>
   <dd>
     Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSites</a>,
-    a [=structured header/inner list=] containing [=structured header/string|strings=].
+    an [=structured header/inner list=] containing [=structured header/string|strings=].
     Each string value includes a domain name using A-labels only;
     [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is optional. If not supplied, an empty set is saved for [=impression/Conversion Sites=].
