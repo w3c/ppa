@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2022"],
+    "lib": ["ES2024", "dom"],
     "module": "nodenext",
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
