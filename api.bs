@@ -1330,8 +1330,11 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
          |topLevelSite|, and |now|.
      1.  Let |encryptedReport| be the result of encrypting |report|.
      <!-- TODO: Define "encrypting" -->
+     1.  Let |result| be a {{PrivateAttributionConversionResult}} with the following items:
+          : {{PrivateAttributionConversionResult/report}}
+          :: |encryptedReport|
      1.  [=Queue a task=] on the [=Private Attribution task source=] to
-         [=resolve=] |promise| with |encryptedReport|.
+         [=resolve=] |promise| with |result|.
 1. Return |promise|.
 
 </div>
