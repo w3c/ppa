@@ -1306,14 +1306,14 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
     1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
         is 0 or greater than an [=implementation-defined=] maximum value,
         return [=a promise rejected with=] a {{RangeError}} in |realm|.
-    1.  Switch on the value of <a dict-member for=PrivateAttributionConversionOptions>logic</a>:
+    1.  Switch on the value of |options|.{{PrivateAttributionConversionOptions/logic}}:
         <dl class="switch">
             :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
             ::  Perform the following steps:
-                1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a> is 0,
+                1.  If |options|.{{PrivateAttributionConversionOptions/value}} is 0,
                     return [=a promise rejected with=] a {{RangeError}} in |realm|.
-                1.  If <a dict-member for=PrivateAttributionConversionOptions>value</a>
-                    is greater than <a dict-member for=PrivateAttributionConversionOptions>maxValue</a>,
+                1.  If |options|.{{PrivateAttributionConversionOptions/value}}
+                    is greater than |options|.{{PrivateAttributionConversionOptions/maxValue}},
                     return [=a promise rejected with=] a {{RangeError}} in |realm|.
         </dl>
     1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
