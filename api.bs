@@ -1535,8 +1535,35 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   </dd>
 </dl>
 
-TODO need to specify in more detail when and how this header is interpreted
+<div algorithm>
+To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
+|input|, run these steps:
 
+1.  Let |dict| be the result of [=structured header/parsing structured fields=]
+    with <var ignore>input_bytes</var> set to |input| and
+    <var ignore>field_type</var> set to "`dictionary`".
+1.  If parsing failed, return an error.
+1.  If |dict|["<code>[=save-impression/histogram-index=]</code>"] does not [=map/exist=] or
+    is not an [=structured header/integer=] or is less than 0, return an error.
+1.  Let |histogramIndex| be |dict|["<code>[=save-impression/histogram-index=]</code>"].
+1.  Let |conversionSites| be |dict|["<code>[=save-impression/conversion-sites=]</code>"]
+    [=map/with default=] an empty [=structured header/inner list=].
+1.  If any of |conversionSites|' [=list/items=] is not a [=structured header/string=], return an error.
+1.  Let |matchValue| be |dict|["<code>[=save-impression/match-value=]</code>"] [=map/with default=] 0.
+1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
+1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
+1.  If |lifetimeDays| is not an [=structured header/integer=] or is less than or equal to 0, return an error.
+1.  Return a new {{PrivateAttributionImpressionOptions}} with the following items:
+     : {{PrivateAttributionImpressionOptions/histogramIndex}}
+     :: |histogramIndex|
+     : {{PrivateAttributionImpressionOptions/matchValue}}
+     :: |matchValue|
+     : {{PrivateAttributionImpressionOptions/conversionSites}}
+     :: |conversionSites|
+     : {{PrivateAttributionImpressionOptions/lifetimeDays}}
+     :: |lifetimeDays|
+
+</div>
 
 # Implementation Considerations # {#implementation-considerations}
 
@@ -2485,6 +2512,7 @@ spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
     text: structured header; url: #name-introduction
     for: structured header
         text: dictionary; url: #dictionary
+        text: parse structured fields; url: #text-parse
         text: string; url: #string
         text: integer; url: #integer
         text: item; url: #item
