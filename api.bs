@@ -1291,6 +1291,82 @@ whether the API is enabled.
 The <a method for=PrivateAttribution>measureConversion()</a> method completes
 asynchronously, queuing work on the <dfn>Private Attribution [=task source=]</dfn>.
 
+<dfn>Validated conversion options</dfn> is a [=struct=] with the following fields:
+
+<div dfn-for="validated conversion options">
+<pre class=simpledef>
+<dfn>Aggregation Service</dfn>: A [=URL=].
+<dfn>Epsilon</dfn>: A finite positive number.
+<dfn>Histogram Size</dfn>: A [=32-bit unsigned integer=].
+<dfn>Lookback</dfn>: A positive [=duration=].
+<dfn>Match Value</dfn>: A [=set=] of [=32-bit unsigned integers=].
+<dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
+<dfn>Intermediary Sites</dfn>: A [=set=] of [=sites=].
+<dfn>Logic</dfn>: A {{PrivateAttributionLogic}}.
+<dfn>Value</dfn>: A [=32-bit unsigned integer=].
+<dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
+</pre>
+</div>
+
+<div algorithm>
+To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
+
+1.  If <a attribute for=PrivateAttribution>aggregationServices</a> does not [=map/exist|contain=]
+    an [=map/entry=] with a [=map/key=] of |options|.{{PrivateAttributionConversionOptions/aggregationService}},
+    throw a {{ReferenceError}}.
+1.  If |options|.{{PrivateAttributionConversionOptions/epsilon}}
+    is less than or equal to 0 or is greater than 4294,
+    throw a {{RangeError}}.
+1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
+    is 0 or greater than an [=implementation-defined=] maximum value,
+    throw a {{RangeError}}.
+1.  Switch on the value of |options|.{{PrivateAttributionConversionOptions/logic}}:
+    <dl class="switch">
+        :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+        ::  Perform the following steps:
+            1.  If |options|.{{PrivateAttributionConversionOptions/value}} is 0,
+                throw a {{RangeError}}.
+            1.  If |options|.{{PrivateAttributionConversionOptions/value}}
+                is greater than |options|.{{PrivateAttributionConversionOptions/maxValue}},
+                throw a {{RangeError}}.
+    </dl>
+1.  Let |lookback| be |options|.{{PrivateAttributionConversionOptions/lookbackDays}} [=days=]
+    if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
+1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
+1.  Let |matchValue| be the result of running [=set/create|creating a set=] with
+    |options|.{{PrivateAttributionConversionOptions/matchValue}}.
+1.  Let |impressionSites| be the [=set=] that is the result
+    of invoking [=parse a site=]
+    for each value in |options|.{{PrivateAttributionConversionOptions/impressionSites}}.
+1.  If any result in |impressionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
+1.  Let |intermediarySites| be the [=set=] that is the result
+    of invoking [=parse a site=]
+    for each value in |options|.{{PrivateAttributionConversionOptions/intermediarySites}}.
+1.  If any result in |intermediarySites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
+1.  Return a [=validated conversion options=] with the following fields:
+    : [=validated conversion options/Aggregation Service=]
+    :: |options|.{{PrivateAttributionConversionOptions/aggregationService}}
+    : [=validated conversion options/Epsilon=]
+    :: |options|.{{PrivateAttributionConversionOptions/epsilon}}
+    : [=validated conversion options/Histogram Size=]
+    :: |options|.{{PrivateAttributionConversionOptions/histogramSize}}
+    : [=validated conversion options/Lookback=]
+    :: |lookback|
+    : [=validated conversion options/Match Value=]
+    :: |matchValue|
+    : [=validated conversion options/Impression Sites=]
+    :: |impressionSites|
+    : [=validated conversion options/Intermediary Sites=]
+    :: |intermediarySites|
+    : [=validated conversion options/Logic=]
+    :: |options|.{{PrivateAttributionConversionOptions/logic}}
+    : [=validated conversion options/Value=]
+    :: |options|.{{PrivateAttributionConversionOptions/value}}
+    : [=validated conversion options/Max Value=]
+    :: |options|.{{PrivateAttributionConversionOptions/maxValue}}
+
+</div>
+
 <div algorithm>
 The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
 
@@ -1311,34 +1387,15 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
         <!-- TODO: the intermediary site is currently unused -->
-1. Validate |options|:
-    1.  If <a attribute for=PrivateAttribution>aggregationServices</a> does not [=map/exist|contain=]
-        an [=map/entry=] with a [=map/key=] of |options|.{{PrivateAttributionConversionOptions/aggregationService}},
-        return [=a promise rejected with=] a {{ReferenceError}} in |realm|.
-    1.  If |options|.{{PrivateAttributionConversionOptions/epsilon}}
-        is less than or equal to 0 or is greater than 4294,
-        return [=a promise rejected with=] a {{RangeError}} in |realm|.
-    1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
-        is 0 or greater than an [=implementation-defined=] maximum value,
-        return [=a promise rejected with=] a {{RangeError}} in |realm|.
-    1.  Switch on the value of |options|.{{PrivateAttributionConversionOptions/logic}}:
-        <dl class="switch">
-            :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
-            ::  Perform the following steps:
-                1.  If |options|.{{PrivateAttributionConversionOptions/value}} is 0,
-                    return [=a promise rejected with=] a {{RangeError}} in |realm|.
-                1.  If |options|.{{PrivateAttributionConversionOptions/value}}
-                    is greater than |options|.{{PrivateAttributionConversionOptions/maxValue}},
-                    return [=a promise rejected with=] a {{RangeError}} in |realm|.
-        </dl>
-    1. If |options|.{{PrivateAttributionConversionOptions/lookbackDays}} is 0,
-        return [=a promise rejected with=] a {{RangeError}} in |realm|.
+1.  Let |validatedOptions| be the result of
+    [=validate PrivateAttributionConversionOptions|validating=] |options|,
+    returning [=a promise rejected with=] any thrown reason.
 1.  Let |promise| be [=a new promise=] in |realm|.
 1.  Run the following steps [=in parallel=]:
      1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
-         |options|.{{PrivateAttributionConversionOptions/histogramSize}}.
+         |validatedOptions|' [=validated conversion options/histogram size=].
      1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
-         result of [=do attribution and fill a histogram=] with |options|,
+         result of [=do attribution and fill a histogram=] with |validatedOptions|,
          |topLevelSite|, and |now|.
      1.  Let |encryptedReport| be the result of encrypting |report|.
      <!-- TODO: Define "encrypting" -->
@@ -1364,8 +1421,8 @@ after the [=common matching logic=] is applied and privacy budgeting occurs.
 
 <div algorithm>
 To <dfn>do attribution and fill a histogram</dfn>, given
-  <a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
-  [=site=] |topLevelSite|, and [=moment=] |now|:
+  [=validated conversion options=] |options|, [=site=] |topLevelSite|,
+  and [=moment=] |now|:
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
 
@@ -1385,22 +1442,22 @@ To <dfn>do attribution and fill a histogram</dfn>, given
         1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
 
         1.  Let |budgetOk| be the result of [=deduct privacy budget=]
-            with |key|, |options|.{{PrivateAttributionConversionOptions/epsilon}},
-            |options|.{{PrivateAttributionConversionOptions/value}},
-            and |options|.{{PrivateAttributionConversionOptions/maxValue}}.
+            with |key|, |options|' [=validated conversion options/epsilon=],
+            |options|' [=validated conversion options/value=],
+            and |options|'s [=validated conversion options/max value=].
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
 1.  If |matchedImpressions| [=set/is empty=], return the result of invoking
     [=create an all-zero histogram=] with
-    |options|.{{PrivateAttributionConversionOptions/histogramSize}}.
+    |options|' [=validated conversion options/histogram size=].
 
-1.  Switch on |options|.{{PrivateAttributionConversionOptions/logic}}:
+1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
       : <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
       :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
-        |options|.{{PrivateAttributionConversionOptions/histogramSize}}, and
-        |options|.{{PrivateAttributionConversionOptions/value}}.
+        |options|' [=validated conversion options/histogram size=], and
+        |options|' [=validated conversion options/value=].
 
       </dl>
 
@@ -1417,16 +1474,13 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 <div algorithm>
 To perform <dfn>common matching logic</dfn>, given
-<a dictionary lt=PrivateAttributionConversionOptions>|options|</a>,
-[=site=] |topLevelSite|, [=epoch index=] |epoch|, and [=moment=] |now|:
+[=validated conversion options=] |options|, [=site=] |topLevelSite|,
+[=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
-1.  Let |lookbackDays| be |options|.{{PrivateAttributionConversionOptions/lookbackDays}}
-    if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
-
-1.  If the number of [=days=] since the end of |epoch| exceeds |lookbackDays|,
-    return |matching|.
+1.  If the number of [=days=] since the end of |epoch| exceeds |options|'
+    [=validated conversion options/lookback=], return |matching|.
 
 1.  [=set/iterate|For each=] |impression| in the [=impression store=] for the |epoch|:
 <!-- TODO: Clarify "for the |epoch|" -->
@@ -1434,18 +1488,18 @@ To perform <dfn>common matching logic</dfn>, given
     1.  If |now| is after |impression|'s [=impression/timestamp=] plus |impression|'s
         [=impression/lifetime=], [=iteration/continue=].
 
-    1.  If |now| - |lookbackDays| is after |impression|'s [=impression/timestamp=],
+    1.  If |now| - |options|' [=validated conversion options/lookback=] is after |impression|'s [=impression/timestamp=],
         [=iteration/continue=].
 
     1.  If |impression|'s [=impression/conversion sites=] [=set/is empty|is not empty=]
         and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/matchValue}} [=set/is empty|is not empty=]
+    1.  If |options|' [=validated conversion options/match value=] [=set/is empty|is not empty=]
         and [=set/contains|does not contain=] |impression|'s [=impression/match value=],
         [=iteration/continue=].
 
-    1.  If |options|.{{PrivateAttributionConversionOptions/impressionSites}}
+    1.  If |options|' [=validated conversion options/impression sites=]
         [=list/is empty|is not empty=] and
         [=list/contains|does not contain=] |impression|'s [=impression/impression site=],
         [=iteration/continue=].
