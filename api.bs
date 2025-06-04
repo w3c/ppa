@@ -597,9 +597,12 @@ dictionary PrivateAttributionImpressionOptions {
   unsigned long lifetimeDays = 30;
 };
 
+dictionary PrivateAttributionImpressionResult {
+};
+
 [SecureContext, Exposed=Window]
 partial interface PrivateAttribution {
-  undefined saveImpression(PrivateAttributionImpressionOptions options);
+  Promise<PrivateAttributionImpressionResult> saveImpression(PrivateAttributionImpressionOptions options);
 };
 </xmp>
 
@@ -1222,9 +1225,11 @@ returning an [=epoch index=]:
 <div algorithm>
 The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method steps are:
 
+1.  Let |realm| be [=this=]'s [=relevant realm=].
 1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
     [=allowed to use=] the [=policy-controlled feature=] named
-    "{{PermissionPolicy/save-impression}}", throw a {{"NotAllowedError"}} {{DOMException}}.
+    "{{PermissionPolicy/save-impression}}", return [=a promise rejected with=]
+    a {{"NotAllowedError"}} {{DOMException}} in |realm|.
 1.  Let |settings| be [=this=]'s [=relevant settings object=].
 1.  Collect the implicit API inputs from |settings|:
     1.  Let |timestamp| be |settings|' [=environment settings object/current wall time=].
@@ -1238,7 +1243,7 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
              from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
     1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
-        throw a {{RangeError}}.
+        return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
     1.  If the [=list/size=] of
@@ -1247,30 +1252,37 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
     1.  Let |conversionSites| be the [=set=] that is the result
         of invoking [=parse a site=]
         for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
-    1.  If any result in |conversionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
-1.  If the Private Attribution API is [[#opt-out|disabled]], return.
-1.  Construct |impression| as a [=impression|saved impression=] comprising:
-    :   [=impression/Match Value=]
-    ::  |options|.{{PrivateAttributionImpressionOptions/matchValue}}
-    :   [=impression/Impression Site=]
-    ::  |site|
-    :   [=impression/Intermediary Site=]
-    ::  |intermediarySite|
-    :   [=impression/Conversion Sites=]
-    ::  |conversionSites|
-    :   [=impression/Timestamp=]
-    ::  |timestamp|
-    :   [=impression/Lifetime=]
-    ::  |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
-        multiplied by a [=duration=] of one day
-    :   [=impression/Histogram Index=]
-    ::  |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}
-1.  Save |impression| to the [=impression store=].
+    1.  If any result in |conversionSites| is failure, return
+        [=a promise rejected with=] a {{"SyntaxError"}} {{DOMException}} in |realm|.
+1.  Run the following steps [=in parallel=]:
+     1.  Construct |impression| as a [=impression|saved impression=] comprising:
+         :   [=impression/Match Value=]
+         ::  |options|.{{PrivateAttributionImpressionOptions/matchValue}}
+         :   [=impression/Impression Site=]
+         ::  |site|
+         :   [=impression/Intermediary Site=]
+         ::  |intermediarySite|
+         :   [=impression/Conversion Sites=]
+         ::  |conversionSites|
+         :   [=impression/Timestamp=]
+         ::  |timestamp|
+         :   [=impression/Lifetime=]
+         ::  |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
+             multiplied by a [=duration=] of one day
+         :   [=impression/Histogram Index=]
+         ::  |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}
+     1.  If the Private Attribution API is [[#opt-out|enabled]],
+         save |impression| to the [=impression store=].
+1.  Let |result| be a new {{PrivateAttributionImpressionResult}}.
+1.  Return [=a promise resolved with=] |result| in |realm|.
 
 <p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
 This minimizes the ability to detect when the Private Attribution
-API is [[#opt-out|disabled]].
+API is [[#opt-out|disabled]]. Similarly, resolution of the returned promise is
+not predicated on saving |impression| to the [=impression store=] in order to
+avoid timing [=side channels=] related to the number of existing impressions and
+whether the API is enabled.
 
 </div>
 
@@ -2029,7 +2041,7 @@ Note that explicit return values or thrown exceptions
 are not the only way that a site can learn from
 the Private Attribution APIs.
 It may be possible to infer sensitive information from
-<dfn ignore=''>side channels</dfn> like:
+<dfn>side channels</dfn> like:
 
 *   Variation in the time it takes for the APIs to complete.
 *   Consumption of memory or storage by the API, if that
