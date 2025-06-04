@@ -1291,6 +1291,47 @@ whether the API is enabled.
 The <a method for=PrivateAttribution>measureConversion()</a> method completes
 asynchronously, queuing work on the <dfn>Private Attribution [=task source=]</dfn>.
 
+<div algorithm>
+The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
+
+1.  Let |realm| be [=this=]'s [=relevant realm=].
+1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
+    [=allowed to use=] the [=policy-controlled feature=] named
+    "{{PermissionPolicy/measure-conversion}}", return [=a promise rejected with=]
+    a {{"NotAllowedError"}} {{DOMException}} in |realm|.
+1.  Let |settings| be [=this=]'s [=relevant settings object=].
+1.  Collect the implicit API inputs from |settings|:
+    1.  Let |now| be |settings|' [=environment settings object/current wall time=].
+    1.  Let |topLevelSite| (the [=conversion site=]) be the result of
+        [=obtain a site|obtaining a site=] from the [=top-level origin=].
+    1.  The [=intermediary site=] is set to
+        1.   a value of `undefined` if the [=origin=] is [=same site=]
+             with the [=top-level origin=],
+        1.   otherwise, the result of
+             [=obtain a site|obtaining a site=]
+             from |settings|' [=environment settings object/origin=].
+        <!-- TODO: the intermediary site is currently unused -->
+1.  Let |validatedOptions| be the result of
+    [=validate PrivateAttributionConversionOptions|validating=] |options|,
+    returning [=a promise rejected with=] any thrown reason.
+1.  Let |promise| be [=a new promise=] in |realm|.
+1.  Run the following steps [=in parallel=]:
+     1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
+         |validatedOptions|' [=validated conversion options/histogram size=].
+     1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
+         result of [=do attribution and fill a histogram=] with |validatedOptions|,
+         |topLevelSite|, and |now|.
+     1.  Let |encryptedReport| be the result of encrypting |report|.
+     <!-- TODO: Define "encrypting" -->
+     1.  Let |result| be a {{PrivateAttributionConversionResult}} with the following items:
+          : {{PrivateAttributionConversionResult/report}}
+          :: |encryptedReport|
+     1.  [=Queue a task=] on the [=Private Attribution task source=] to
+         [=resolve=] |promise| with |result|.
+1. Return |promise|.
+
+</div>
+
 <dfn>Validated conversion options</dfn> is a [=struct=] with the following fields:
 
 <div dfn-for="validated conversion options">
@@ -1367,46 +1408,6 @@ To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
 
 </div>
 
-<div algorithm>
-The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
-
-1.  Let |realm| be [=this=]'s [=relevant realm=].
-1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
-    [=allowed to use=] the [=policy-controlled feature=] named
-    "{{PermissionPolicy/measure-conversion}}", return [=a promise rejected with=]
-    a {{"NotAllowedError"}} {{DOMException}} in |realm|.
-1.  Let |settings| be [=this=]'s [=relevant settings object=].
-1.  Collect the implicit API inputs from |settings|:
-    1.  Let |now| be |settings|' [=environment settings object/current wall time=].
-    1.  Let |topLevelSite| (the [=conversion site=]) be the result of
-        [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    1.  The [=intermediary site=] is set to
-        1.   a value of `undefined` if the [=origin=] is [=same site=]
-             with the [=top-level origin=],
-        1.   otherwise, the result of
-             [=obtain a site|obtaining a site=]
-             from |settings|' [=environment settings object/origin=].
-        <!-- TODO: the intermediary site is currently unused -->
-1.  Let |validatedOptions| be the result of
-    [=validate PrivateAttributionConversionOptions|validating=] |options|,
-    returning [=a promise rejected with=] any thrown reason.
-1.  Let |promise| be [=a new promise=] in |realm|.
-1.  Run the following steps [=in parallel=]:
-     1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
-         |validatedOptions|' [=validated conversion options/histogram size=].
-     1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
-         result of [=do attribution and fill a histogram=] with |validatedOptions|,
-         |topLevelSite|, and |now|.
-     1.  Let |encryptedReport| be the result of encrypting |report|.
-     <!-- TODO: Define "encrypting" -->
-     1.  Let |result| be a {{PrivateAttributionConversionResult}} with the following items:
-          : {{PrivateAttributionConversionResult/report}}
-          :: |encryptedReport|
-     1.  [=Queue a task=] on the [=Private Attribution task source=] to
-         [=resolve=] |promise| with |result|.
-1. Return |promise|.
-
-</div>
 
 ### Attribution Logic ### {#s-logic}
 
