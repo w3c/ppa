@@ -1242,6 +1242,9 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
+    1.  If |options|.{{AttributionImpressionOptions/histogramIndex}} is
+        greater than or equal to the [=implementation-defined=] [=maximum histogram size=],
+        return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  If |options|.{{AttributionImpressionOptions/lifetimeDays}} is 0,
         return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Clamp |options|.{{AttributionImpressionOptions/lifetimeDays}} to
@@ -1350,7 +1353,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 </pre>
 </div>
 
-<div algorithm>
+<div algorithm="validate AttributionConversionOptions">
 To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
 
 1.  If <a attribute for=Attribution>aggregationServices</a> does not [=map/exist|contain=]
@@ -1360,7 +1363,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     is less than or equal to 0 or is greater than 4294,
     throw a {{RangeError}}.
 1.  If |options|.{{AttributionConversionOptions/histogramSize}}
-    is 0 or greater than an [=implementation-defined=] maximum value,
+    is 0 or greater than the [=implementation-defined=] <dfn>maximum histogram size</dfn>,
     throw a {{RangeError}}.
 1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
