@@ -1370,10 +1370,10 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
 
 1.  Let |currentEpoch| be the result of [=get the current epoch=]
-    with |site| and |now|.
+    with |topLevelSite| and |now|.
 
 1.  Let |startEpoch| be the result of [=get the starting epoch for attribution=]
-    with |site|.
+    with |topLevelSite|.
 
 1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
