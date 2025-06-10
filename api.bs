@@ -1132,7 +1132,7 @@ returning an [=epoch index=]:
 1.  Let |start| be the result of [=map/get|getting the value=] of |site|
     from the [=epoch start store=].
 
-1.  Let |elapsed| be (|t| - |start|) / |period|.
+1.  Let |elapsed| be (|t| − |start|) / |period|.
 
 1.  Return |elapsed| as an integer, rounded towards negative Infinity.
 
@@ -1490,7 +1490,7 @@ To perform <dfn>common matching logic</dfn>, given
     1.  If |now| is after |impression|'s [=impression/timestamp=] plus |impression|'s
         [=impression/lifetime=], [=iteration/continue=].
 
-    1.  If |now| - |options|' [=validated conversion options/lookback=] is after |impression|'s [=impression/timestamp=],
+    1.  If |now| is after |impression|'s [=impression/timestamp=] plus |options|' [=validated conversion options/lookback=],
         [=iteration/continue=].
 
     1.  If |impression|'s [=impression/conversion sites=] [=set/is empty|is not empty=]
