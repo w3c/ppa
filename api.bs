@@ -1241,6 +1241,9 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
+    1.  If |options|.{{PrivateAttributionImpressionOptions/histogramIndex}} is
+        greater than or equal to the [=implementation-defined=] [=maximum histogram size=],
+        return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
         return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
@@ -1349,7 +1352,7 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
 </pre>
 </div>
 
-<div algorithm>
+<div algorithm="validate PrivateAttributionConversionOptions">
 To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
 
 1.  If <a attribute for=PrivateAttribution>aggregationServices</a> does not [=map/exist|contain=]
@@ -1359,7 +1362,7 @@ To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
     is less than or equal to 0 or is greater than 4294,
     throw a {{RangeError}}.
 1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
-    is 0 or greater than an [=implementation-defined=] maximum value,
+    is 0 or greater than the [=implementation-defined=] <dfn>maximum histogram size</dfn>,
     throw a {{RangeError}}.
 1.  Switch on the value of |options|.{{PrivateAttributionConversionOptions/logic}}:
     <dl class="switch">
