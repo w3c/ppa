@@ -3,9 +3,9 @@ Title: Privacy-Preserving Attribution: Level 1
 Shortname: privacy-preserving-attribution
 Repository: w3c/ppa
 URL: https://w3c.github.io/ppa/
-Status: ED
-ED: https://w3c.github.io/ppa
-TR: https://www.w3.org/TR/privacy-preserving-attribution
+Status: w3c/WD
+Group: patwg
+TR: https://www.w3.org/TR/privacy-preserving-attribution/
 Editor: Andrew Paseltiner, w3cid 131329, Google https://www.google.com/, apaseltiner@chromium.org
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
