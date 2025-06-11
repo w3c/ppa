@@ -16,7 +16,6 @@ Complain About: accidental-2119 yes, missing-example-ids yes
 Markup Shorthands: markdown yes, css no, dfn yes
 Assume Explicit For: yes
 Org: W3C
-Status: ED
 Level: None
 </pre>
 
