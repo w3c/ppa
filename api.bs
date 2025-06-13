@@ -1314,21 +1314,47 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
 1.  Let |validatedOptions| be the result of
     [=validate PrivateAttributionConversionOptions|validating=] |options|,
     returning [=a promise rejected with=] any thrown reason.
-1.  Let |promise| be [=a new promise=] in |realm|.
+1.  Let |allZeroReport| be the result of invoking [=create an all-zero histogram=]
+    with |validatedOptions|' [=validated conversion options/histogram size=].
+1.  Let |timeoutPromise| be [=a new promise=] in |realm|.
 1.  Run the following steps [=in parallel=]:
-     1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
-         |validatedOptions|' [=validated conversion options/histogram size=].
-     1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
+     1.  Wait an [=implementation-defined=] amount of time.
+         The chosen value MUST be invariant with respect to any API state in
+         order to avoid timing-based [=side channels=] that can reveal that state.
+     1.  [=Queue a task=] on the [=Private Attribution task source=] to
+         [=resolve=] |timeoutPromise| with |allZeroReport|.
+1.  Let |attributionPromise| be [=a new promise=] in |realm|.
+1.  Run the following steps [=in parallel=]:
+     1.  Let |nonTimeoutReport| be |allZeroReport|.
+     1.  If the Private Attribution API is [[#opt-out|enabled]], set |nonTimeoutReport| to the
          result of [=do attribution and fill a histogram=] with |validatedOptions|,
          |topLevelSite|, and |now|.
+     1.  [=Queue a task=] on the [=Private Attribution task source=] to
+         [=resolve=] |attributionPromise| with |nonTimeoutReport|.
+1.  Let |unencryptedReportPromise| be a promise that is the result of
+    <a href="https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-promise.race">racing</a>
+    |attributionPromise| and |timeoutPromise|.
+1.  Let |promise| be [=a new promise=] in |realm|.
+1.  [=Upon fulfillment=] of |unencryptedReportPromise| with |report|:
      1.  Let |encryptedReport| be the result of encrypting |report|.
      <!-- TODO: Define "encrypting" -->
      1.  Let |result| be a {{PrivateAttributionConversionResult}} with the following items:
           : {{PrivateAttributionConversionResult/report}}
           :: |encryptedReport|
+     1.  [=Wait for all=] of |timeoutPromise|.
      1.  [=Queue a task=] on the [=Private Attribution task source=] to
          [=resolve=] |promise| with |result|.
 1. Return |promise|.
+
+<p class=advisement>The effect of the operations involving |timeoutPromise|,
+|attributionPromise|, and |unencryptedReportPromise| above is to ensure that the
+operations involving the API's persistent state (i.e. [=do attribution and fill a histogram=])
+do not vary in execution time based on that state. This includes the logic
+conditioned on whether the API is enabled in order to avoid leaking that bit.
+When the chosen timeout is exceeded, an all-zero report is produced. As a
+consequence of this design, user agents with fuller [=impression stores=] are
+more likely to exceed the timeout and exhibit loss of real reports. Implementations
+will likely want to choose a timeout that minimizes that loss.
 
 </div>
 
