@@ -1,11 +1,11 @@
 <pre class=metadata>
-Title: Privacy-Preserving Attribution: Level 1
-Shortname: privacy-preserving-attribution
-Repository: w3c/ppa
-URL: https://w3c.github.io/ppa/
+Title: Attribution: Level 1
+Shortname: attribution
+Repository: w3c/attribution
+URL: https://w3c.github.io/attribution/
 Status: w3c/WD
 Group: patwg
-TR: https://www.w3.org/TR/privacy-preserving-attribution/
+TR: https://www.w3.org/TR/attribution/
 Editor: Andrew Paseltiner, w3cid 131329, Google https://www.google.com/, apaseltiner@chromium.org
 Editor: Andy Leiserson, w3cid 147715, Mozilla https://mozilla.org/, aleiserson@mozilla.com
 Editor: Benjamin Savage, w3cid 114877, Meta https://www.meta.com/, btsavage@meta.com
@@ -47,7 +47,8 @@ The primary goal of this API is to enable attribution for advertising.
 
 ## Attribution ## {#s-attribution}
 
-In advertising, <dfn lt=attribution|attributed>attribution</dfn> is the process of identifying [=actions=]
+In advertising, <dfn id=concept-attribution lt=attribution|attributed>attribution</dfn>
+is the process of identifying [=actions=]
 that precede an [=outcome=] of interest,
 and allocating value to those [=actions=].
 
@@ -298,7 +299,7 @@ though this capability is not presently supported in the API.
 
 # Overview of Operation # {#overview}
 
-The Private Attribution API provides aggregate information about the
+The Attribution API provides aggregate information about the
 association between two classes of events: [=impressions=] and [=conversions=].
 
 An [=impression=] is any action that an advertiser takes on any website.
@@ -318,7 +319,7 @@ Typical outcomes that advertisers might seek to measure include:
 *   Visiting a webpage.
 
 The remainder of this section describes
-how the Private Attribution API operates
+how the Attribution API operates
 in conjunction with an [=aggregation service=]
 to produce an aggregate attribution measurement.
 That operation is illustrated in the following figure.
@@ -327,11 +328,11 @@ That operation is illustrated in the following figure.
 <pre class=include-raw>
 path:images/overview.svg
 </pre>
-<figcaption>Overview of Private Attribution Operation</figcaption>
+<figcaption>Overview of Attribution Operation</figcaption>
 </figure>
 
 When an [=impression=] occurs,
-the <a method for=PrivateAttribution>saveImpression()</a> method can be used
+the <a method for=Attribution>saveImpression()</a> method can be used
 to request that the browser save information.
 This includes an identifier for the impression
 and some additional information about the impression.
@@ -342,7 +343,7 @@ At [=conversion=] time, a [=conversion report=] is created.
 A <dfn>conversion report</dfn> is an encrypted histogram contribution
 that includes information from any [=impressions=] that the browser previously stored.
 
-The <a method for=PrivateAttribution>measureConversion()</a> method accepts a simple query that is used
+The <a method for=Attribution>measureConversion()</a> method accepts a simple query that is used
 to tell the browser how to construct a [=conversion report=].
 That includes a simple query that selects from the [=impressions=]
 that the browser has stored,
@@ -388,31 +389,31 @@ Upon receiving a set of encrypted histograms from a site, the aggregation servic
 
 # API Usage # {#api}
 
-A site using the Private Attribution API will typically register either
+A site using the Attribution API will typically register either
 [=impressions=] or [=conversions=], but in some cases the same site may
 do both.
 
 To register an impression, a site calls
-<a method for=PrivateAttribution>saveImpression()</a>. No preparation is
+<a method for=Attribution>saveImpression()</a>. No preparation is
 required to use this API beyond collecting parameter values, although
 it may be useful to examine the supported
-<a attribute for=PrivateAttribution>aggregationServices</a> in deciding
-whether to use the Private Attribution API.
+<a attribute for=Attribution>aggregationServices</a> in deciding
+whether to use the Attribution API.
 
 It is also possible to register an impression by including the
 [:Save-Impression:]
 header in the HTTP response when serving a resource to the user agent.
 
 To request a conversion report, a site calls
-<a method for=PrivateAttribution>measureConversion()</a>.
+<a method for=Attribution>measureConversion()</a>.
 Before calling this API, a site must
 select a supported [=aggregation service=].
 The page may select any of the supported services found in
-<a attribute for=PrivateAttribution>aggregationServices</a>.
+<a attribute for=Attribution>aggregationServices</a>.
 The name of the selected service must be supplied as
-the {{PrivateAttributionConversionOptions/aggregationService}} member of the
-{{PrivateAttributionConversionOptions}} dictionary when calling the
-<a method for=PrivateAttribution>measureConversion()</a> method.
+the {{AttributionConversionOptions/aggregationService}} member of the
+{{AttributionConversionOptions}} dictionary when calling the
+<a method for=Attribution>measureConversion()</a> method.
 
 ## Site Identities ## {#sites}
 
@@ -424,21 +425,21 @@ Three types of sites are recognized:
     that registers an impression.
     This [=impression site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
-    at the time that {{PrivateAttribution/saveImpression()}}
+    at the time that {{Attribution/saveImpression()}}
     is invoked to store an [=impression=].
 
 *   A <dfn>conversion site</dfn> is the [=site=]
     where a conversion occurs.
     The [=conversion site=] is derived from the [=top-level origin=]
     of the [=relevant settings object=]
-    at the time that {{PrivateAttribution/measureConversion()}} is invoked.
+    at the time that {{Attribution/measureConversion()}} is invoked.
 
 *   An <dfn>intermediary site</dfn> is a [=site=]
     that calls the API from any cross-site frame, such as an [=iframe=].
     The [=intermediary site=] is derived from the [=origin=]
     of the [=relevant settings object=]
-    at the time that either {{PrivateAttribution/saveImpression()}}
-    or {{PrivateAttribution/measureConversion()}} is invoked,
+    at the time that either {{Attribution/saveImpression()}}
+    or {{Attribution/measureConversion()}} is invoked,
     unless this origin is [=same site=] with the [=impression site=]
     or [=conversion site=], respectively.
 
@@ -453,11 +454,11 @@ which could otherwise be used to exceed [=privacy budgets=].
 ## Navigator Interface ## {#navigator-interface}
 
 All functionality for this API is attached
-to the <code>{{Navigator|navigator}}.{{Navigator/privateAttribution|privateAttribution}}</code> attribute.
+to the <code>{{Navigator|navigator}}.{{Navigator/attribution|attribution}}</code> attribute.
 
 <xmp class=idl>
 partial interface Navigator {
-  [SecureContext, SameObject] readonly attribute PrivateAttribution privateAttribution;
+  [SecureContext, SameObject] readonly attribute Attribution attribution;
 };
 </xmp>
 
@@ -470,10 +471,10 @@ This provides three key functions:
 
 ## Finding a Supported Aggregation Service ## {#find-aggregation-service}
 
-The <dfn attribute for=PrivateAttribution>aggregationServices</dfn> attribute
+The <dfn attribute for=Attribution>aggregationServices</dfn> attribute
 contains a set of aggregation services supported by the [=user agent=]. The page
 must select and specify one of these services when calling the
-<a method for=PrivateAttribution>measureConversion()</a> method.
+<a method for=Attribution>measureConversion()</a> method.
 It may also be useful to query the supported services
 before registering an impression,
 but that is not required,
@@ -492,7 +493,7 @@ and impressions are not scoped to a single aggregation service.
     "https://aggregator.example/dap",
     "https://example.com/aggregator",
   ];
-  const supportedServices = navigator.privateAttribution?.aggregationServices;
+  const supportedServices = navigator.attribution?.aggregationServices;
   const serviceUrl = preferredServices.find(url => supportedServices?.has(url));
   </xmp>
 
@@ -507,26 +508,26 @@ and impressions are not scoped to a single aggregation service.
 <xmp class=idl>
 enum PrivateAttributionAggregationProtocol { "dap-12-histogram", "tee-00" };
 
-dictionary PrivateAttributionAggregationService {
+dictionary AttributionAggregationService {
   required DOMString protocol;
 };
 
 [SecureContext, Exposed=Window]
-interface PrivateAttributionAggregationServices {
-  readonly maplike<USVString, PrivateAttributionAggregationService>;
+interface AttributionAggregationServices {
+  readonly maplike<USVString, AttributionAggregationService>;
 };
 
 [SecureContext, Exposed=Window]
-interface PrivateAttribution {
-  readonly attribute PrivateAttributionAggregationServices aggregationServices;
+interface Attribution {
+  readonly attribute AttributionAggregationServices aggregationServices;
 };
 </xmp>
 
-The <a attribute for=PrivateAttribution>aggregationServices</a> attribute is
+The <a attribute for=Attribution>aggregationServices</a> attribute is
 a mapping from URLs that identify an [=aggregation service=] to metadata about
 that service:
 
-<dl dfn-for=PrivateAttributionAggregationService dfn-type=dict-member>
+<dl dfn-for=AttributionAggregationService dfn-type=dict-member>
   <dt><dfn>protocol</dfn></dt>
   <dd>
     The {{PrivateAttributionAggregationProtocol|protocol}} that the [=aggregation service=] uses.
@@ -538,8 +539,8 @@ that service:
   </dd>
 </dl>
 
-The URL is passed as the {{PrivateAttributionConversionOptions/aggregationService}} parameter
-to <a method for=PrivateAttribution>measureConversion()</a> to select the identified aggregation service.
+The URL is passed as the {{AttributionConversionOptions/aggregationService}} parameter
+to <a method for=Attribution>measureConversion()</a> to select the identified aggregation service.
 
 The <dfn enum>PrivateAttributionAggregationProtocol</dfn> describes the submission protocol
 used by different [=aggregation services=]. This document defines two protocols:
@@ -553,7 +554,7 @@ used by different [=aggregation services=]. This document defines two protocols:
 
 ## Saving Impressions ## {#save-impression-api}
 
-The <a method for=PrivateAttribution>saveImpression()</a> method requests
+The <a method for=Attribution>saveImpression()</a> method requests
 that the [=user agent=] record an [=impression=] in the [=impression store=].
 
 <div class=example id=ex-save-impression>
@@ -564,15 +565,15 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
   identifying the advertiser (`advertiser.example`)
   and including information that is negotiated by the advertiser.
   In the following example,
-  this includes the {{PrivateAttributionImpressionOptions/matchValue}} value (2)
+  this includes the {{AttributionImpressionOptions/matchValue}} value (2)
   that the advertiser might later use to select this advertisement,
-  the index of the histogram ({{PrivateAttributionImpressionOptions/histogramIndex}} = 3)
+  the index of the histogram ({{AttributionImpressionOptions/histogramIndex}} = 3)
   into which to include any attributed value,
-  and a retention period ({{PrivateAttributionImpressionOptions/lifetimeDays}} = 7)
+  and a retention period ({{AttributionImpressionOptions/lifetimeDays}} = 7)
   that is at least as long as the advertiser requires.
 
   <xmp highlight=js>
-    navigator.privateAttribution.saveImpression({
+    navigator.attribution.saveImpression({
       histogramIndex: 3,
       matchValue: 2,
       conversionSites: ["advertiser.example"],
@@ -589,28 +590,28 @@ that the [=user agent=] record an [=impression=] in the [=impression store=].
 </div>
 
 <xmp class=idl>
-dictionary PrivateAttributionImpressionOptions {
+dictionary AttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long matchValue = 0;
   sequence<USVString> conversionSites = [];
   unsigned long lifetimeDays = 30;
 };
 
-dictionary PrivateAttributionImpressionResult {
+dictionary AttributionImpressionResult {
 };
 
 [SecureContext, Exposed=Window]
-partial interface PrivateAttribution {
-  Promise<PrivateAttributionImpressionResult> saveImpression(PrivateAttributionImpressionOptions options);
+partial interface Attribution {
+  Promise<AttributionImpressionResult> saveImpression(AttributionImpressionOptions options);
 };
 </xmp>
 
-The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as follows:
+The arguments to <a method for=Attribution>saveImpression()</a> are as follows:
 
-<dl dfn-for=PrivateAttributionImpressionOptions dfn-type=dict-member>
+<dl dfn-for=AttributionImpressionOptions dfn-type=dict-member>
   <dt><dfn>histogramIndex</dfn></dt>
   <dd>
-    If <a method for=PrivateAttribution>measureConversion()</a> matches this
+    If <a method for=Attribution>measureConversion()</a> matches this
     [=impression=] with a subsequent [=conversion=], the [=conversion value=]
     will be added to the histogram bucket identified by this index.
   </dd>
@@ -623,7 +624,7 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
   <dt><dfn>conversionSites</dfn></dt>
   <dd>
     The sites where [=conversions=] for this impression may occur, identified by
-    their domain names. The <a method for=PrivateAttribution>measureConversion()</a>
+    their domain names. The <a method for=Attribution>measureConversion()</a>
     method will only attribute to this impression when called by one of the indicated
     sites. If empty, any site will match.
   <dt><dfn>lifetimeDays</dfn></dt>
@@ -637,11 +638,11 @@ The arguments to <a method for=PrivateAttribution>saveImpression()</a> are as fo
 
 ## Requesting Attribution for a Conversion ## {#measure-conversion-api}
 
-The <a method for=PrivateAttribution>measureConversion()</a> method
+The <a method for=Attribution>measureConversion()</a> method
 requests that the [=user agent=] perform [=attribution=] for a [=conversion=],
 and return a [=conversion report=].
 
-The <a method for=PrivateAttribution>measureConversion()</a> method
+The <a method for=Attribution>measureConversion()</a> method
 always returns a conversion report,
 regardless of whether matching [=impression|impression(s)=] are found.
 If there is no match, or if [[#dp|differential privacy]] disallows
@@ -654,7 +655,7 @@ contribute to the histogram, i.e., will be uniformly zero.
   of the effect of different [=impression store|stored=] [=impressions=].
 
   To request the creation of an encrypted measurement,
-  the site invokes the {{PrivateAttribution/measureConversion()}} method.
+  the site invokes the {{Attribution/measureConversion()}} method.
 
   This function takes four different types of input:
 
@@ -686,12 +687,12 @@ contribute to the histogram, i.e., will be uniformly zero.
       all <span class=allow-2119>optional</span>,
       that select the [=impressions=] to consider.
       This includes how old impressions can be
-      ({{PrivateAttributionConversionOptions/lookbackDays}}),
+      ({{AttributionConversionOptions/lookbackDays}}),
       the [=impression sites=] that might have saved impressions
-      ({{PrivateAttributionConversionOptions/impressionSites}}),
+      ({{AttributionConversionOptions/impressionSites}}),
       the [=intermediary sites=] that might have saved impressions
-      ({{PrivateAttributionConversionOptions/intermediarySites}}),
-      and the choice of {{PrivateAttributionConversionOptions/matchValue}}.
+      ({{AttributionConversionOptions/intermediarySites}}),
+      and the choice of {{AttributionConversionOptions/matchValue}}.
 
       <xmp highlight=js>
         const selectionDetails = {
@@ -718,7 +719,7 @@ contribute to the histogram, i.e., will be uniformly zero.
   the site invokes the API to obtain an encrypted [=conversion report=].
 
   <xmp highlight=js>
-    const measurement = await navigator.privateAttribution.measureConversion({
+    const measurement = await navigator.attribution.measureConversion({
       ...serviceDetails,
       ...aggregatedMeasurementDetails,
       ...selectionDetails,
@@ -735,7 +736,7 @@ contribute to the histogram, i.e., will be uniformly zero.
 </div>
 
 <xmp class=idl>
-dictionary PrivateAttributionConversionOptions {
+dictionary AttributionConversionOptions {
   required USVString aggregationService;
   double epsilon = 1.0;
 
@@ -746,32 +747,32 @@ dictionary PrivateAttributionConversionOptions {
   sequence<USVString> impressionSites = [];
   sequence<USVString> intermediarySites = [];
 
-  PrivateAttributionLogic logic = "last-touch";
+  AttributionLogic logic = "last-touch";
   unsigned long value = 1;
   unsigned long maxValue = 1;
 };
 
-enum PrivateAttributionLogic {
+enum AttributionLogic {
   "last-touch",
 };
 
-dictionary PrivateAttributionConversionResult {
+dictionary AttributionConversionResult {
   required Uint8Array report;
 };
 
 [SecureContext, Exposed=Window]
-partial interface PrivateAttribution {
-  Promise<PrivateAttributionConversionResult> measureConversion(PrivateAttributionConversionOptions options);
+partial interface Attribution {
+  Promise<AttributionConversionResult> measureConversion(AttributionConversionOptions options);
 };
 </xmp>
 
-The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as follows:
+The arguments to <a method for=Attribution>measureConversion()</a> are as follows:
 
-<dl dfn-for=PrivateAttributionConversionOptions dfn-type=dict-member>
+<dl dfn-for=AttributionConversionOptions dfn-type=dict-member>
   <dt><dfn>aggregationService</dfn></dt>
   <dd>
     A selection from the [=aggregation services=] that can be found in <a
-    attribute for=PrivateAttribution>aggregationServices</a>.
+    attribute for=Attribution>aggregationServices</a>.
   </dd>
   <dt><dfn>epsilon</dfn></dt>
   <dd>The amount of [=privacy budget=] to expend on this [=conversion report=].</dd>
@@ -785,13 +786,13 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
   <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
   <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A [=set=] of sites which called the <a method for=PrivateAttribution>saveImpression()</a> API.
+    A [=set=] of sites which called the <a method for=Attribution>saveImpression()</a> API.
     Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
     are eligible to match this [=conversion=].
   </dd>
   <dt><dfn>logic</dfn></dt>
   <dd>
-    A selection from <a enum>PrivateAttributionLogic</a> indicating the
+    A selection from <a enum>AttributionLogic</a> indicating the
     [=attribution logic=] to use.
   </dd>
   <dt><dfn>value</dfn></dt>
@@ -813,10 +814,10 @@ The arguments to <a method for=PrivateAttribution>measureConversion()</a> are as
 
 This specification defines two [=policy-controlled features=]:
 
-*   Invocation of the <a method for=PrivateAttribution>saveImpression()</a> API,
+*   Invocation of the <a method for=Attribution>saveImpression()</a> API,
     identified by the string "<code><dfn export for="PermissionPolicy"
     enum-value>save-impression</dfn></code>".
-*   Invocation of the <a method for=PrivateAttribution>measureConversion()</a> API,
+*   Invocation of the <a method for=Attribution>measureConversion()</a> API,
     identified by the string "<code><dfn export for="PermissionPolicy"
     enum-value>measure-conversion</dfn></code>".
 
@@ -824,8 +825,8 @@ The [=policy-controlled feature/default allowlist=] for both of these features i
 <code><a dfn for="default allowlist">*</a></code>.
 
 <p class=note>Having separate permissions for
-<a method for=PrivateAttribution>saveImpression()</a> and
-<a method for=PrivateAttribution>measureConversion()</a>
+<a method for=Attribution>saveImpression()</a> and
+<a method for=Attribution>measureConversion()</a>
 allows pages that do both to limit subresources
 to the expected kind of activity.
 
@@ -841,7 +842,7 @@ it does not enable delegation of a portion of privacy budget.
 ## Impression Store ## {#s-impression-store}
 
 The <dfn>impression store</dfn> is used by the <a method
-for=PrivateAttribution>measureConversion()</a> method to find matching
+for=Attribution>measureConversion()</a> method to find matching
 [=impressions=].
 
 <p class=note>
@@ -853,9 +854,9 @@ the [=impression store=] does not use a [=storage key=].
 
 The [=impression store=] is a [=set=] of [=impression|impressions=]:
 
-<div dfn-for=impression link-for-hint=PrivateAttribution>
+<div dfn-for=impression link-for-hint=Attribution>
 <pre class=simpledef>
-<dfn>Match Value</dfn>: The {{PrivateAttributionImpressionOptions/matchValue}} passed to <a>saveImpression()</a>.
+<dfn>Match Value</dfn>: The {{AttributionImpressionOptions/matchValue}} passed to <a>saveImpression()</a>.
 <dfn>Impression Site</dfn>: The [=impression site=] where <a>saveImpression()</a> was called.
 <dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
@@ -875,7 +876,7 @@ to identify and delete any [=impressions=] in the [=impression store=]
 that have expired.
 
 It is not necessary to remove [=impressions=] immediately upon expiry,
-as long as <a method for=PrivateAttribution>measureConversion()</a>
+as long as <a method for=Attribution>measureConversion()</a>
 excludes expired [=impressions=] from [=attribution=]. However, the
 [=user agent=] should not retain expired [=impressions=] indefinitely.
 
@@ -984,7 +985,7 @@ that are used to manage the expenditure of [=privacy budgets=]:
 *   The [=epoch start store=] records when each [=epoch=] starts
     for [=conversion sites=].
     This store is initialized as a side effect
-    of invoking <a method for=PrivateAttribution>measureConversion()</a>.
+    of invoking <a method for=Attribution>measureConversion()</a>.
 
 *   A singleton [=last browsing history clear=] value
     that tracks when the browsing activity for a [=site=] was last cleared.
@@ -1222,7 +1223,7 @@ returning an [=epoch index=]:
 ## Save Impression Algorithm ## {#save-impression-api-operation}
 
 <div algorithm>
-The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method steps are:
+The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are:
 
 1.  Let |realm| be [=this=]'s [=relevant realm=].
 1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
@@ -1241,23 +1242,23 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
 1.  Validate the page-supplied API inputs:
-    1.  If |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} is 0,
+    1.  If |options|.{{AttributionImpressionOptions/lifetimeDays}} is 0,
         return [=a promise rejected with=] a {{RangeError}} in |realm|.
-    1.  Clamp |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}} to
+    1.  Clamp |options|.{{AttributionImpressionOptions/lifetimeDays}} to
         the [=user agent=]'s upper limit.
     1.  If the [=list/size=] of
-        |options|.{{PrivateAttributionImpressionOptions/conversionSites}} is
+        |options|.{{AttributionImpressionOptions/conversionSites}} is
         greater than an [=implementation-defined=] maximum value, return
         [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Let |conversionSites| be the [=set=] that is the result
         of invoking [=parse a site=]
-        for each value in |options|.{{PrivateAttributionImpressionOptions/conversionSites}}.
+        for each value in |options|.{{AttributionImpressionOptions/conversionSites}}.
     1.  If any result in |conversionSites| is failure, return
         [=a promise rejected with=] a {{"SyntaxError"}} {{DOMException}} in |realm|.
 1.  Run the following steps [=in parallel=]:
      1.  Construct |impression| as a [=impression|saved impression=] comprising:
          :   [=impression/Match Value=]
-         ::  |options|.{{PrivateAttributionImpressionOptions/matchValue}}
+         ::  |options|.{{AttributionImpressionOptions/matchValue}}
          :   [=impression/Impression Site=]
          ::  |site|
          :   [=impression/Intermediary Site=]
@@ -1267,18 +1268,18 @@ The <dfn method for=PrivateAttribution>saveImpression(|options|)</dfn> method st
          :   [=impression/Timestamp=]
          ::  |timestamp|
          :   [=impression/Lifetime=]
-         ::  |options|.{{PrivateAttributionImpressionOptions/lifetimeDays}},
+         ::  |options|.{{AttributionImpressionOptions/lifetimeDays}},
              multiplied by a [=duration=] of one day
          :   [=impression/Histogram Index=]
-         ::  |options|.{{PrivateAttributionImpressionOptions/histogramIndex}}
-     1.  If the Private Attribution API is [[#opt-out|enabled]],
+         ::  |options|.{{AttributionImpressionOptions/histogramIndex}}
+     1.  If the Attribution API is [[#opt-out|enabled]],
          save |impression| to the [=impression store=].
-1.  Let |result| be a new {{PrivateAttributionImpressionResult}}.
+1.  Let |result| be a new {{AttributionImpressionResult}}.
 1.  Return [=a promise resolved with=] |result| in |realm|.
 
-<p class=advisement><a method for=PrivateAttribution>saveImpression()</a>
+<p class=advisement><a method for=Attribution>saveImpression()</a>
 does not return a status indicating whether the impression was recorded.
-This minimizes the ability to detect when the Private Attribution
+This minimizes the ability to detect when the Attribution
 API is [[#opt-out|disabled]]. Similarly, resolution of the returned promise is
 not predicated on saving |impression| to the [=impression store=] in order to
 avoid timing [=side channels=] related to the number of existing impressions and
@@ -1288,11 +1289,11 @@ whether the API is enabled.
 
 ## Measure Conversion Algorithm ## {#measure-conversion-api-operation}
 
-The <a method for=PrivateAttribution>measureConversion()</a> method completes
-asynchronously, queuing work on the <dfn>Private Attribution [=task source=]</dfn>.
+The <a method for=Attribution>measureConversion()</a> method completes
+asynchronously, queuing work on the <dfn>Attribution [=task source=]</dfn>.
 
 <div algorithm>
-The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method steps are:
+The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps are:
 
 1.  Let |realm| be [=this=]'s [=relevant realm=].
 1.  If [=this=]'s [=relevant global object=]'s [=associated Document=] is not
@@ -1312,21 +1313,21 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
              from |settings|' [=environment settings object/origin=].
         <!-- TODO: the intermediary site is currently unused -->
 1.  Let |validatedOptions| be the result of
-    [=validate PrivateAttributionConversionOptions|validating=] |options|,
+    [=validate AttributionConversionOptions|validating=] |options|,
     returning [=a promise rejected with=] any thrown reason.
 1.  Let |promise| be [=a new promise=] in |realm|.
 1.  Run the following steps [=in parallel=]:
      1.  Let |report| be the result of invoking [=create an all-zero histogram=] with
          |validatedOptions|' [=validated conversion options/histogram size=].
-     1.  If the Private Attribution API is [[#opt-out|enabled]], set |report| to the
+     1.  If the Attribution API is [[#opt-out|enabled]], set |report| to the
          result of [=do attribution and fill a histogram=] with |validatedOptions|,
          |topLevelSite|, and |now|.
      1.  Let |encryptedReport| be the result of encrypting |report|.
      <!-- TODO: Define "encrypting" -->
-     1.  Let |result| be a {{PrivateAttributionConversionResult}} with the following items:
-          : {{PrivateAttributionConversionResult/report}}
+     1.  Let |result| be a {{AttributionConversionResult}} with the following items:
+          : {{AttributionConversionResult/report}}
           :: |encryptedReport|
-     1.  [=Queue a task=] on the [=Private Attribution task source=] to
+     1.  [=Queue a task=] on the [=Attribution task source=] to
          [=resolve=] |promise| with |result|.
 1. Return |promise|.
 
@@ -1343,54 +1344,54 @@ The <dfn method for=PrivateAttribution>measureConversion(|options|)</dfn> method
 <dfn>Match Value</dfn>: A [=set=] of [=32-bit unsigned integers=].
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Intermediary Sites</dfn>: A [=set=] of [=sites=].
-<dfn>Logic</dfn>: A {{PrivateAttributionLogic}}.
+<dfn>Logic</dfn>: A {{AttributionLogic}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
 </pre>
 </div>
 
 <div algorithm>
-To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
+To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
 
-1.  If <a attribute for=PrivateAttribution>aggregationServices</a> does not [=map/exist|contain=]
-    an [=map/entry=] with a [=map/key=] of |options|.{{PrivateAttributionConversionOptions/aggregationService}},
+1.  If <a attribute for=Attribution>aggregationServices</a> does not [=map/exist|contain=]
+    an [=map/entry=] with a [=map/key=] of |options|.{{AttributionConversionOptions/aggregationService}},
     throw a {{ReferenceError}}.
-1.  If |options|.{{PrivateAttributionConversionOptions/epsilon}}
+1.  If |options|.{{AttributionConversionOptions/epsilon}}
     is less than or equal to 0 or is greater than 4294,
     throw a {{RangeError}}.
-1.  If |options|.{{PrivateAttributionConversionOptions/histogramSize}}
+1.  If |options|.{{AttributionConversionOptions/histogramSize}}
     is 0 or greater than an [=implementation-defined=] maximum value,
     throw a {{RangeError}}.
-1.  Switch on the value of |options|.{{PrivateAttributionConversionOptions/logic}}:
+1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
-        :   <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+        :   <a enum-value for=AttributionLogic>"last-touch"</a>
         ::  Perform the following steps:
-            1.  If |options|.{{PrivateAttributionConversionOptions/value}} is 0,
+            1.  If |options|.{{AttributionConversionOptions/value}} is 0,
                 throw a {{RangeError}}.
-            1.  If |options|.{{PrivateAttributionConversionOptions/value}}
-                is greater than |options|.{{PrivateAttributionConversionOptions/maxValue}},
+            1.  If |options|.{{AttributionConversionOptions/value}}
+                is greater than |options|.{{AttributionConversionOptions/maxValue}},
                 throw a {{RangeError}}.
     </dl>
-1.  Let |lookback| be |options|.{{PrivateAttributionConversionOptions/lookbackDays}} [=days=]
+1.  Let |lookback| be |options|.{{AttributionConversionOptions/lookbackDays}} [=days=]
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
 1.  Let |matchValue| be the result of running [=set/create|creating a set=] with
-    |options|.{{PrivateAttributionConversionOptions/matchValue}}.
+    |options|.{{AttributionConversionOptions/matchValue}}.
 1.  Let |impressionSites| be the [=set=] that is the result
     of invoking [=parse a site=]
-    for each value in |options|.{{PrivateAttributionConversionOptions/impressionSites}}.
+    for each value in |options|.{{AttributionConversionOptions/impressionSites}}.
 1.  If any result in |impressionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
 1.  Let |intermediarySites| be the [=set=] that is the result
     of invoking [=parse a site=]
-    for each value in |options|.{{PrivateAttributionConversionOptions/intermediarySites}}.
+    for each value in |options|.{{AttributionConversionOptions/intermediarySites}}.
 1.  If any result in |intermediarySites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
 1.  Return a [=validated conversion options=] with the following fields:
     : [=validated conversion options/Aggregation Service=]
-    :: |options|.{{PrivateAttributionConversionOptions/aggregationService}}
+    :: |options|.{{AttributionConversionOptions/aggregationService}}
     : [=validated conversion options/Epsilon=]
-    :: |options|.{{PrivateAttributionConversionOptions/epsilon}}
+    :: |options|.{{AttributionConversionOptions/epsilon}}
     : [=validated conversion options/Histogram Size=]
-    :: |options|.{{PrivateAttributionConversionOptions/histogramSize}}
+    :: |options|.{{AttributionConversionOptions/histogramSize}}
     : [=validated conversion options/Lookback=]
     :: |lookback|
     : [=validated conversion options/Match Value=]
@@ -1400,11 +1401,11 @@ To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
     : [=validated conversion options/Intermediary Sites=]
     :: |intermediarySites|
     : [=validated conversion options/Logic=]
-    :: |options|.{{PrivateAttributionConversionOptions/logic}}
+    :: |options|.{{AttributionConversionOptions/logic}}
     : [=validated conversion options/Value=]
-    :: |options|.{{PrivateAttributionConversionOptions/value}}
+    :: |options|.{{AttributionConversionOptions/value}}
     : [=validated conversion options/Max Value=]
-    :: |options|.{{PrivateAttributionConversionOptions/maxValue}}
+    :: |options|.{{AttributionConversionOptions/maxValue}}
 
 </div>
 
@@ -1413,8 +1414,8 @@ To <dfn>validate {{PrivateAttributionConversionOptions}}</dfn> |options|:
 
 A site that measures conversions can specify <dfn>attribution logic</dfn>,
 which determines how the [=conversion value=] is allocated to histogram buckets.
-The <a method for=PrivateAttribution>measureConversion()</a> function
-accepts a <a dict-member for=PrivateAttributionConversionOptions>logic</a> parameter
+The <a method for=Attribution>measureConversion()</a> function
+accepts a <a dict-member for=AttributionConversionOptions>logic</a> parameter
 that specifies the [=attribution logic=].
 
 Each attribution logic specifies a process for allocating values to histogram buckets,
@@ -1455,7 +1456,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
-      : <a enum-value for=PrivateAttributionLogic>"last-touch"</a>
+      : <a enum-value for=AttributionLogic>"last-touch"</a>
       :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
         |options|' [=validated conversion options/histogram size=], and
         |options|' [=validated conversion options/value=].
@@ -1544,12 +1545,12 @@ Consider merging this section with [[#privacy-opt-out]].
 * Users should be able to opt out. Opt out should be undetectable.
 
 This mechanism may be a dedicated control
-for the Private Attribution API,
+for the Attribution API,
 or it may be a consolidated privacy control
 that applies to multiple features,
-including Private Attribution.
+including Attribution.
 Further, user agent developers should consider interaction
-of other privacy modes with the Private Attribution API.
+of other privacy modes with the Attribution API.
 For example, attribution might be disabled in a private browsing mode,
 or it might be disabled
 if the user has opted out of collection of diagnostic data.
@@ -1564,20 +1565,20 @@ if the user has opted out of collection of diagnostic data.
 \`<dfn http-header><code>Save-Impression</code></dfn>\` is a
 [=structured header/dictionary|Dictionary Structured Header=]
 set on a response requesting that the user agent invoke the
-<a method for=PrivateAttribution>saveImpression()</a> API.
+<a method for=Attribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
 Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, match-value=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
-the {{PrivateAttributionImpressionOptions}} dictionary passed to
-<a method for=PrivateAttribution>saveImpression()</a>.
+the {{AttributionImpressionOptions}} dictionary passed to
+<a method for=Attribution>saveImpression()</a>.
 
 <dl dfn-for=save-impression>
   <dt><dfn noexport><code>conversion-sites</code></dfn></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>conversionSites</a>,
+    Value of <a dict-member for=AttributionImpressionOptions>conversionSites</a>,
     an [=structured header/inner list=] containing [=structured header/string|strings=].
     Each string value includes a domain name using A-labels only;
     [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
@@ -1585,18 +1586,18 @@ the {{PrivateAttributionImpressionOptions}} dictionary passed to
   </dd>
   <dt><dfn noexport><code>histogram-index</code></dfn></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>,
+    Value of <a dict-member for=AttributionImpressionOptions>histogramIndex</a>,
     a non-negative [=structured header/integer=]. This key is required.
   </dd>
   <dt><dfn noexport><code>match-value</code></dfn></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>matchValue</a>,
+    Value of <a dict-member for=AttributionImpressionOptions>matchValue</a>,
     a non-negative [=structured header/integer=]. This key is optional.
     If not supplied, a value of 0 is saved for [=impression/Match Value=].
   </dd>
   <dt><dfn noexport><code>lifetime-days</code></dfn></dt>
   <dd>
-    Value of <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>,
+    Value of <a dict-member for=AttributionImpressionOptions>lifetimeDays</a>,
     a positive [=structured header/integer=]. This key is optional.
     If not supplied, 30 days is saved for [=impression/Lifetime=].
   </dd>
@@ -1620,14 +1621,14 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
 1.  If |lifetimeDays| is not an [=structured header/integer=] or is less than or equal to 0, return an error.
-1.  Return a new {{PrivateAttributionImpressionOptions}} with the following items:
-     : {{PrivateAttributionImpressionOptions/histogramIndex}}
+1.  Return a new {{AttributionImpressionOptions}} with the following items:
+     : {{AttributionImpressionOptions/histogramIndex}}
      :: |histogramIndex|
-     : {{PrivateAttributionImpressionOptions/matchValue}}
+     : {{AttributionImpressionOptions/matchValue}}
      :: |matchValue|
-     : {{PrivateAttributionImpressionOptions/conversionSites}}
+     : {{AttributionImpressionOptions/conversionSites}}
      :: |conversionSites|
-     : {{PrivateAttributionImpressionOptions/lifetimeDays}}
+     : {{AttributionImpressionOptions/lifetimeDays}}
      :: |lifetimeDays|
 
 </div>
@@ -1727,17 +1728,17 @@ the sum is less than 2<sup><var>n</var></sup> for positive integer values of |n|
 To construct a report,
 proofs are generated based on a value
 that is the next power of two
-greater than {{PrivateAttributionConversionOptions/maxValue}}.
+greater than {{AttributionConversionOptions/maxValue}}.
 This means that the [=aggregation service=] is unable to reject reports
-between {{PrivateAttributionConversionOptions/maxValue}}
+between {{AttributionConversionOptions/maxValue}}
 and the next power of two.
 Consequently, a malicious [=user agent=] might generate a report
-that contributes as much as double the value of {{PrivateAttributionConversionOptions/maxValue}}
+that contributes as much as double the value of {{AttributionConversionOptions/maxValue}}
 to the aggregate histogram.
 The proof ensures that there is no opportunity for excess contributions
-when {{PrivateAttributionConversionOptions/maxValue}} is equal to 2<sup><var>n</var></sup> − 1;
+when {{AttributionConversionOptions/maxValue}} is equal to 2<sup><var>n</var></sup> − 1;
 the relative effect of any such attack can be reduced
-by setting {{PrivateAttributionConversionOptions/maxValue}}
+by setting {{AttributionConversionOptions/maxValue}}
 as close to 2<sup><var>n</var></sup> − 1 as other constraints allow.
 
 
@@ -1996,7 +1997,7 @@ the budget for the [=privacy budget epoch=] in which those impressions were save
 If the [=privacy budget=] for that [=epoch=] is not sufficient,
 the impressions from that [=epoch=] are not used.
 
-Each time a [=conversion site=] invokes <a method for=PrivateAttribution>measureConversion()</a>
+Each time a [=conversion site=] invokes <a method for=Attribution>measureConversion()</a>
 the [=deduct privacy budget|privacy budget is deducted=]
 for [=epochs=] from which the [=attribution logic=] selected [=impressions=].
 
@@ -2075,7 +2076,7 @@ depend on the type of [=aggregation service=].
 
 ## Impression Store ## {#security-impression-store}
 
-The [=impression store=] used by the Private Attribution API
+The [=impression store=] used by the Attribution API
 holds information related to browsing activity
 and persists across browsing sessions.
 Although the flow of information
@@ -2102,26 +2103,26 @@ of harmful information flow through the impression store:
     data can persist in the impression store,
     even absent explicit user action,
     by imposing a maximum value of
-    <a dict-member for=PrivateAttributionImpressionOptions>lifetimeDays</a>.
+    <a dict-member for=AttributionImpressionOptions>lifetimeDays</a>.
 
 
 ## API Implementation ## {#security-api-implementation}
 
-The Private Attribution APIs must be implemented carefully
+The Attribution APIs must be implemented carefully
 to maintain the required security and privacy properties.
 A site calling the APIs must not be able to learn:
 
-*   Whether the Private Attribution APIs are [[#opt-out|enabled]].
+*   Whether the Attribution APIs are [[#opt-out|enabled]].
 *   Whether an attribution occurred.
 *   Whether the [=privacy budget=] is exhausted.
 *   Whether the [=conversion report=] reflects a non-zero
     [=conversion value=].
-*   Which <a dict-member for=PrivateAttributionImpressionOptions>histogramIndex</a>
+*   Which <a dict-member for=AttributionImpressionOptions>histogramIndex</a>
     is assigned the [=conversion value=].
 
 Note that explicit return values or thrown exceptions
 are not the only way that a site can learn from
-the Private Attribution APIs.
+the Attribution APIs.
 It may be possible to infer sensitive information from
 <dfn>side channels</dfn> like:
 
@@ -2137,7 +2138,7 @@ Strategies to prevent leakage include:
 *   Fully validating all API inputs, even when the API
     is disabled.
 *   Avoiding conditional logic. For example,
-    <a method for=PrivateAttribution>measureConversion()</a>
+    <a method for=Attribution>measureConversion()</a>
     should always go through the full process of constructing
     a conversion report, even when the [=conversion value=] to be
     reported is zero.
@@ -2147,9 +2148,9 @@ Strategies to prevent leakage include:
 
 Although not part of the web platform,
 security of aggregation services is quite important
-to the overall security of the Private Attribution mechanism.
+to the overall security of the Attribution mechanism.
 [=Conversion reports=]
-produced by <a method for=PrivateAttribution>measureConversion()</a>
+produced by <a method for=Attribution>measureConversion()</a>
 are encrypted using cryptographic key(s) of the aggregation service.
 Thus, much of the potential for disclosure
 of the information contained in these reports
@@ -2158,24 +2159,24 @@ depends on the details of the aggregation service.
 [=User agent=] developers should carefully consider
 the design of an aggregation service
 and the trustworthiness of the aggregation service operator
-before adding it as a supported service for the Private Attribution API.
+before adding it as a supported service for the Attribution API.
 Additional discussion of these issues
 may be found in [[#aggregation]] and [[#privacy]].
 
 
 ## Combining Reports from Multiple Sites ## {#security-multiple-sites}
 
-The privacy mechanisms in the Private Attribution API
+The privacy mechanisms in the Attribution API
 operate primarily at the granularity of [=sites=].
 A malicious operator
 may attempt to register [=impressions=] for multiple sites,
 thus exceeding the amount of information that would otherwise
-be released through private attribution.
+be released through attribution.
 [[#dp-safety]] discusses establishing additional cross-site
 privacy budgets to mitigate this possibility.
 
 <p class=issue>
-Rate limits on calls to the Private Attribution APIs
+Rate limits on calls to the Attribution APIs
 could also be an effective mechanism to prevent
 harvesting information through overuse of the APIs.
 
@@ -2187,7 +2188,7 @@ advertising on the web
 has been the subject of various kinds of fraud.
 
 Fraudulent registration of impressions
-is a particular concern with the Private Attribution API,
+is a particular concern with the Attribution API,
 because impressions are stored only on the device.
 It is not possible to apply server-side intelligence
 to identify fraudulent impressions and exclude them
@@ -2198,7 +2199,7 @@ the conversion is likely fraudulent and exclude it from
 aggregation.
 
 An important mitigation against malicious use
-of the Private Attribution APIs is the explicit specification
+of the Attribution APIs is the explicit specification
 of eligible conversion sites when registering an impression,
 and of eligible impression sites and [=impression/histogram indexes=]
 when registering a conversion.
@@ -2219,7 +2220,7 @@ Additional discussion talks about secondary privacy goals,
 such as the prevention of [=same-site recognition=].
 
 
-## Information Exposed by the Private Attribution API ## {#privacy-exposure}
+## Information Exposed by the Attribution API ## {#privacy-exposure}
 
 The [=impression store=] and [=privacy budget store=]
 contain information about a cross-section of browsing activity.
@@ -2230,7 +2231,7 @@ is never disclosed.
 Because attribution is performed on the device
 (<dfn ignore=''>on-device attribution</dfn>),
 only information about attributed conversions is exposed by the
-Private Attribution API. This contrasts with other schemes in which
+Attribution API. This contrasts with other schemes in which
 information about both impressions and conversions is sent to the
 aggregation service for <dfn ignore=''>off-device attribution</dfn>.
 In the latter class of schemes, the amount of information
@@ -2238,11 +2239,11 @@ that could be revealed in a compromise of the aggregation service
 (or in a compromise of communication with the aggregation service)
 is significantly larger.
 
-When the Private Attribution API makes an attribution, information
+When the Attribution API makes an attribution, information
 about that attribution is released from the device
 only to the extent the [[#dp|differential privacy]] restrictions allow.
 
-While the Private Attribution API is intended to measure
+While the Attribution API is intended to measure
 the association of relatively infrequent conversion events
 with a limited set of related impression candidates,
 it is important to consider how the API might be misused
@@ -2263,9 +2264,9 @@ depleted privacy budget is maintained until that budget is no longer relevant
 (i.e. the end of the [=privacy budget epoch=]).
 
 
-## Disabling the Private Attribution API ## {#privacy-opt-out}
+## Disabling the Attribution API ## {#privacy-opt-out}
 
-The Private Attribution API
+The Attribution API
 is designed to reveal only aggregate information.
 The use of [[#dp|differential privacy]]
 limits the chance of determining whether any particular user
@@ -2273,13 +2274,13 @@ contributed to the aggregated output.
 However, some users may still prefer
 not to participate in attribution measurement.
 As discussed in [[#opt-out]], the user agent must provide
-a mechanism for the user to disable the Private Attribution API.
+a mechanism for the user to disable the Attribution API.
 
 To minimize the risk of [=fingerprinting=],
 and to prevent discrimination
-against users who choose to disable the Private Attribution API,
+against users who choose to disable the Attribution API,
 sites must not be able to detect that the API is disabled.
-Specifically, all calls to the Private Attribution API
+Specifically, all calls to the Attribution API
 that are otherwise valid
 must complete successfully, even when the API is disabled.
 The only difference in behavior
@@ -2294,15 +2295,15 @@ by the site receiving the conversion report.
 
 This API assumes that [=user agent=] instances
 have all of the configuration necessary
-to answer requests to <a for=PrivateAttribution>measureConversion()</a>.
+to answer requests to <a for=Attribution>measureConversion()</a>.
 
 If the [=aggregation service=] configuration necessary
-for invoking <a for=PrivateAttribution>measureConversion()</a>
+for invoking <a for=Attribution>measureConversion()</a>
 is either absent or out of date,
 that could be observable to sites.
 
 If the retrieval of configuration
-could delay the resolution of a call to <a for=PrivateAttribution>measureConversion()</a>,
+could delay the resolution of a call to <a for=Attribution>measureConversion()</a>,
 this creates a timing side channel.
 If a fake response is generated instead, differences between
 a response from a properly configured [=user agent=]
@@ -2325,7 +2326,7 @@ before starting to load any content.
 If the necessary configuration cannot be obtained,
 or is obviously stale,
 an implementation might choose to immediately reject
-when <a for=PrivateAttribution>measureConversion()</a> is invoked.
+when <a for=Attribution>measureConversion()</a> is invoked.
 This leaks information,
 but it could leak less than attempting to generate a fake value.
 
@@ -2334,7 +2335,7 @@ but it could leak less than attempting to generate a fake value.
 
 Sites are able to encode some amount of data
 in impressions,
-using {{PrivateAttributionImpressionOptions/matchValue}}
+using {{AttributionImpressionOptions/matchValue}}
 or other fields.
 The API does not prevent sites from encoding user identifiers
 in these fields.
@@ -2352,14 +2353,14 @@ The following measures mitigate this risk:
     after aggregation and the addition of noise.
 *   Users have the ability to [[#removing-impressions|clear the impression store]].
 *   No impressions are saved to the impression store
-    when the Private Attribution API is [[#opt-out|disabled]].
+    when the Attribution API is [[#opt-out|disabled]].
 
 
 ## Use in Third-party Contexts ## {#privacy-third-party-contexts}
 
-The Private Attribution API is available even in third-party contexts.
+The Attribution API is available even in third-party contexts.
 In particular, a third-party iframe
-may call <a method for=PrivateAttribution>saveImpression()</a>.
+may call <a method for=Attribution>saveImpression()</a>.
 Note, however, that the impression is recorded with the [=site=]
 of the top-level navigation context, not the [=origin=] of the iframe.
 
@@ -2469,7 +2470,7 @@ from when state is cleared.
 A mechanism must be provided to clear the [=impression store=].
 For example, the impression store could be cleared
 upon activation of the control that
-[[#opt-out|disables]] the Private Attribution API.
+[[#opt-out|disables]] the Attribution API.
 
 It is recommended that any mechanism a [=user agent=] provides
 to clear stored data (history, cookies, etc.)
