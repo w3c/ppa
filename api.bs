@@ -506,7 +506,7 @@ and impressions are not scoped to a single aggregation service.
 </div>
 
 <xmp class=idl>
-enum AttributionProtocol { "dap-12-histogram", "tee-00" };
+enum PrivateAttributionAggregationProtocol { "dap-12-histogram", "tee-00" };
 
 dictionary AttributionAggregationService {
   required DOMString protocol;
@@ -530,7 +530,7 @@ that service:
 <dl dfn-for=AttributionAggregationService dfn-type=dict-member>
   <dt><dfn>protocol</dfn></dt>
   <dd>
-    The {{AttributionProtocol|protocol}} that the [=aggregation service=] uses.
+    The {{PrivateAttributionAggregationProtocol|protocol}} that the [=aggregation service=] uses.
     Different versions of the same protocol use different values.
     Even if a single service provider supports multiple protocols,
     each needs to use a different URL.
@@ -542,10 +542,10 @@ that service:
 The URL is passed as the {{AttributionConversionOptions/aggregationService}} parameter
 to <a method for=Attribution>measureConversion()</a> to select the identified aggregation service.
 
-The <dfn enum>AttributionProtocol</dfn> describes the submission protocol
+The <dfn enum>PrivateAttributionAggregationProtocol</dfn> describes the submission protocol
 used by different [=aggregation services=]. This document defines two protocols:
 
-<dl dfn-for=AttributionProtocol dfn-type=enum-value>
+<dl dfn-for=PrivateAttributionAggregationProtocol dfn-type=enum-value>
   <dt><dfn>dap-12-histogram</dfn></dt>
   <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
   <dt><dfn>tee-00</dfn></dt>
@@ -1703,7 +1703,7 @@ by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
-The <a enum-value for=AttributionProtocol>"dap-12-histogram"</a>
+The <a enum-value for=PrivateAttributionAggregationProtocol>"dap-12-histogram"</a>
 aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
