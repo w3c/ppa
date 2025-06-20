@@ -2568,9 +2568,9 @@ urlPrefix: https://url.spec.whatwg.org/; spec: url; type: dfn;
     text: registrable domain; url: #host-registrable-domain
 urlPrefix: https://w3ctag.github.io/privacy-principles/; type: dfn;
     text: collective privacy
-    text: cross-context recognition
-    text: cross-site recognition
-    text: same-site recognition
+    text: cross-context recognition; url: #dfn-cross-context-recognition
+    text: cross-site recognition; url: #dfn-cross-site-recognition
+    text: same-site recognition; url: #dfn-same-site-recognition
 urlPrefix: https://www.w3.org/TR/fingerprinting-guidance/; type: dfn;
     text: fingerprint; url: #dfn-browser-fingerprinting
     text: fingerprinting; url: #dfn-browser-fingerprinting
