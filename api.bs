@@ -1031,7 +1031,8 @@ To <dfn>deduct privacy budget</dfn>
 given a [=privacy budget key=] |key|,
 [[WEBIDL#idl-double|double]] |epsilon|,
 integer |sensitivity|,
-and integer |globalSensitivity|:
+integer |globalSensitivity|,
+and integer |epochCount|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
     its value of |key| to be a [=user agent=]-defined value,
@@ -1045,7 +1046,9 @@ and integer |globalSensitivity|:
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
 
-1.  Let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
+1.  If |epochCount| is 1,
+    let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
+    Otherwise, let |deductionFp| be |epsilon|.
 
 1.  If |deductionFp| is negative or greater than 4294,
     [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
@@ -1434,6 +1437,20 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  Let |startEpoch| be the result of [=get the starting epoch for attribution=]
     with |topLevelSite|.
 
+1.  Let |epochCount| be 0.
+
+1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
+
+    1.  Let |impressions| be the result of invoking [=common matching logic=]
+        with |options|, |topLevelSite|, |epoch|, and |now|.
+
+    1.  If |impressions| [=set/is empty|is not empty=],
+        add 1 to |epochCount|.
+
+1.  If |epochCount| is 0,
+    return the result of invoking [=create an all-zero histogram=]
+    with |options|' [=validated conversion options/histogram size=].
+
 1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
@@ -1446,13 +1463,10 @@ To <dfn>do attribution and fill a histogram</dfn>, given
         1.  Let |budgetOk| be the result of [=deduct privacy budget=]
             with |key|, |options|' [=validated conversion options/epsilon=],
             |options|' [=validated conversion options/value=],
-            and |options|'s [=validated conversion options/max value=].
+            |options|'s [=validated conversion options/max value=],
+            and |epochCount|.
 
         1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
-
-1.  If |matchedImpressions| [=set/is empty=], return the result of invoking
-    [=create an all-zero histogram=] with
-    |options|' [=validated conversion options/histogram size=].
 
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
