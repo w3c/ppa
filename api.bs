@@ -806,7 +806,7 @@ The arguments to <a method for=Attribution>measureConversion()</a> are as follow
     A [=set=] of sites,
     both [=impression sites=] and [=intermediary sites=],
     that might have called the <a method for=Attribution>saveImpression()</a> API.
-    If specified,
+    If not empty,
     only [=impressions=] recorded by scripts originating from one of the listed sites
     are eligible to match this [=conversion=].
   </dd>
