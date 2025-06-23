@@ -1364,6 +1364,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     throw a {{RangeError}}.
 1.  If |options|.{{AttributionConversionOptions/histogramSize}}
     is 0 or greater than the [=implementation-defined=] <dfn>maximum histogram size</dfn>,
+    or is greater than the <dfn ignore>maximum aggregation-service histogram size</dfn>,
+    if any, for |options|.{{AttributionConversionOptions/aggregationService}},
     throw a {{RangeError}}.
 1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
