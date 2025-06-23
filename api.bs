@@ -871,10 +871,12 @@ For saved [=impressions=]:
     by histogram definition.
 
 *   Use of an [=impression=] for [=conversion=] can be restricted
-    to a [=impression/Conversion Sites|set of conversion sites=].
+    to be visible only to {{PrivateAttribution/measureConversion()}}
+    on a [=impression/Conversion Sites|set of conversion sites=].
 
 *   Use of an [=impression=] for [=conversion=] can be restricted
-    to use by a [=impression/Conversion Callers|set of sites=].
+    to be visible only to {{PrivateAttribution/measureConversion()}}
+    invoked by a [=impression/Conversion Callers|set of sites=].
 
 As part of [=common matching logic=] at the point of [=conversion=]:
 
