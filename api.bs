@@ -1587,14 +1587,21 @@ To perform <dfn>common matching logic</dfn>, given
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
-1.  If the number of [=days=] since the end of |epoch| exceeds |options|'
-    [=validated conversion options/lookback=], return |matching|.
+1.  Let |earliestEpoch| be the result of calling [=get the current epoch=],
+    passing |topLevelSite| and (|now| − |options|' [=validated conversion options/lookback=]).
 
-1.  [=set/iterate|For each=] |impression| in the [=impression store=] for the |epoch|:
-<!-- TODO: Clarify "for the |epoch|" -->
+1.  If |earliestEpoch| is greater than |epoch|, return |matching|.
 
-    1.  If |now| is after |impression|'s [=impression/timestamp=] plus |impression|'s
-        [=impression/lifetime=], [=iteration/continue=].
+1.  [=set/iterate|For each=] |impression| in the [=impression store=]:
+
+    1.  Let |impressionEpoch| be the result of calling [=get the current epoch=],
+        passing |topLevelSite| and |impression|'s [=impression/timestamp=].
+
+    1.  If |impressionEpoch| is not equal to |epoch|, [=iteration/continue=].
+
+    1.  If |now| is after |impression|'s [=impression/timestamp=]
+        plus |impression|'s [=impression/lifetime=],
+        [=iteration/continue=].
 
     1.  If |now| is after |impression|'s [=impression/timestamp=] plus |options|' [=validated conversion options/lookback=],
         [=iteration/continue=].
