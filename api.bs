@@ -297,6 +297,7 @@ though this capability is not presently supported in the API.
 * As histogram size increases, noise becomes a problem
 -->
 
+
 # Overview of Operation # {#overview}
 
 The Attribution API provides aggregate information about the
@@ -434,7 +435,7 @@ Three types of sites are recognized:
     of the [=relevant settings object=]
     at the time that {{Attribution/measureConversion()}} is invoked.
 
-*   An <dfn>intermediary site</dfn> is a [=site=]
+*   An <dfn local-lt=intermediary|intermediaries>intermediary site</dfn> is a [=site=]
     that calls the API from any cross-site frame, such as an [=iframe=].
     The [=intermediary site=] is derived from the [=origin=]
     of the [=relevant settings object=]
@@ -594,6 +595,7 @@ dictionary AttributionImpressionOptions {
   required unsigned long histogramIndex;
   unsigned long matchValue = 0;
   sequence<USVString> conversionSites = [];
+  sequence<USVString> conversionCallers = [];
   unsigned long lifetimeDays = 30;
 };
 
@@ -623,10 +625,20 @@ The arguments to <a method for=Attribution>saveImpression()</a> are as follows:
   </dd>
   <dt><dfn>conversionSites</dfn></dt>
   <dd>
-    The sites where [=conversions=] for this impression may occur, identified by
-    their domain names. The <a method for=Attribution>measureConversion()</a>
-    method will only attribute to this impression when called by one of the indicated
-    sites. If empty, any site will match.
+    The top-level [=conversion sites=] where [=conversions=] for this impression may occur,
+    identified by their domain names.
+    The <a method for=Attribution>measureConversion()</a> method
+    will only attribute to this impression when called by one of the indicated sites.
+    If empty, any [=conversion site=] will match.
+  <dt><dfn>conversionCallers</dfn></dt>
+  <dd>
+    The [=intermediary sites=] or [=conversion sites=]
+    that are able to [=common matching logic|select=] this impression for [=conversion=],
+    identified by their domain names.
+    The <a method for=Attribution>measureConversion()</a> method
+    will only attribute to this impression when called by one of the indicated sites.
+    This option includes both [=conversion sites=] and [=intermediary sites=].
+    If empty, any site that invokes the API will match.
   <dt><dfn>lifetimeDays</dfn></dt>
   <dd>
     A positive "time to live" (in days) after which the [=impression=] can no
@@ -691,14 +703,14 @@ contribute to the histogram, i.e., will be uniformly zero.
       the [=impression sites=] that might have saved impressions
       ({{AttributionConversionOptions/impressionSites}}),
       the [=intermediary sites=] that might have saved impressions
-      ({{AttributionConversionOptions/intermediarySites}}),
+      ({{AttributionConversionOptions/impressionCallers}}),
       and the choice of {{AttributionConversionOptions/matchValue}}.
 
       <xmp highlight=js>
         const selectionDetails = {
           lookbackDays: 14,
           impressionSites: ["publisher.example", "other.example"],
-          intermediarySites: ["ad-tech.example"],
+          impressionCallers: ["ad-tech.example"],
           matchValue: [2],
         };
       </xmp>
@@ -745,7 +757,7 @@ dictionary AttributionConversionOptions {
   unsigned long lookbackDays;
   sequence<unsigned long> matchValue = [];
   sequence<USVString> impressionSites = [];
-  sequence<USVString> intermediarySites = [];
+  sequence<USVString> impressionCallers = [];
 
   AttributionLogic logic = "last-touch";
   unsigned long value = 1;
@@ -783,11 +795,19 @@ The arguments to <a method for=Attribution>measureConversion()</a> are as follow
   <dt><dfn>matchValue</dfn></dt>
   <dd>A match value that can be used to select this [=impression=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
-  <dd>A [=set=] of impression sites. Only [=impressions=] recorded where the [=impression site=] is in this set are eligible to match this [=conversion=]. If empty, any site will match.</dd>
-  <dt><dfn>intermediarySites</dfn></dt>
   <dd>
-    A [=set=] of sites which called the <a method for=Attribution>saveImpression()</a> API.
-    Only [=impressions=] recorded by scripts originating from one of the [=intermediary sites=]
+    A [=set=] of impression sites.
+    Only [=impressions=] recorded where the [=impression site=] is in this set
+    are eligible to match this [=conversion=].
+    If empty, any site will match.
+  </dd>
+  <dt><dfn>impressionCallers</dfn></dt>
+  <dd>
+    A [=set=] of sites,
+    both [=impression sites=] and [=intermediary sites=],
+    that might have called the <a method for=Attribution>saveImpression()</a> API.
+    If not empty,
+    only [=impressions=] recorded by one of the listed sites
     are eligible to match this [=conversion=].
   </dd>
   <dt><dfn>logic</dfn></dt>
@@ -810,7 +830,80 @@ The arguments to <a method for=Attribution>measureConversion()</a> are as follow
   </dd>
 </dl>
 
+
+## Role of Intermediaries ## {#intermediaries}
+
+This API has support for its operation by [=intermediaries=]
+on behalf of [=top-level origin|top-level=] [[#sites|sites]].
+Advertising is frequently delegated to independent operators
+that are responsible for placement, bidding, and measurement.
+
+[=Impressions=] that are saved by an intermediary
+record the identity of the [=intermediary site=].
+When [[#logic-matching|selecting]] impressions
+for [[#measure-conversion-api-operation|conversion measurement]],
+the [=intermediary site|intermediary site identity=] can be used to select impressions.
+
+
+## Histogram Construction ## {#histogram-definition}
+
+Conceptually, each saved [=impression=] has a single histogram definition.
+Each [=impression=] has a single [=impression/Histogram Index=] attribute
+that determines where the [=validated conversion options/Value|value=]
+allocated to that [=impression=] appears in [[#histograms|the resulting histgram]].
+
+Each invocation of {{PrivateAttribution/measureConversion()}}
+therefore needs to select [=impressions=] that have the same histogram definition.
+Though this applies to all uses of the API,
+consistent definition of histograms is especially important when [=impressions=]
+are [[#save-impression-api|saved]] and [[#measure-conversion-api|measured]]
+by multiple [=intermediaries=].
+
+All [=impressions=] that might be [=common matching logic|selected=]
+when invoking {{PrivateAttribution/measureConversion()}}
+need to use the same histogram definition.
+The API provides several tools
+for ensuring that only the right [=impressions=] are chosen.
+
+For saved [=impressions=]:
+
+*   [=impression/Match Value|Match values=] can be used to separate [=impressions=]
+    by histogram definition.
+
+*   Use of an [=impression=] for [=conversion=] can be restricted
+    to be visible only to {{PrivateAttribution/measureConversion()}}
+    on a [=impression/Conversion Sites|set of conversion sites=].
+
+*   Use of an [=impression=] for [=conversion=] can be restricted
+    to be visible only to {{PrivateAttribution/measureConversion()}}
+    invoked by a [=impression/Conversion Callers|set of sites=].
+
+As part of [=common matching logic=] at the point of [=conversion=]:
+
+*   [=validated conversion options/Match Values|a set of match values=],
+    limits the set of [=impressions=].
+
+*   A set of [=validated conversion options/Impression Sites=],
+    restricts the [=impression sites=] where [=impressions=] were saved.
+
+*   A set of [=validated conversion options/Impression Callers=],
+    restricts the set of [=conversion sites=] or [=intermediary sites=]
+    that saved [=impressions=].
+
+These options provide sites with flexibility in how attribution selects histograms.
+It does not preclude the use of different histograms by a [=conversion site=].
+Multiple [=impressions=] can be saved
+with different histogram definitions
+provided that {{PrivateAttribution/measureConversion()}} invocations
+never [=common matching logic|select=] [=impressions=] with different histogram definitions.
+This ensures that [=conversions=] can be [=attribution|attributed=] to multiple histograms
+by invoking {{PrivateAttribution/measureConversion()}} multiple times.
+
+
 ## Permissions Policy Integration ## {#permission-policy}
+
+The ability to delegate to an intermediary
+is controlled by [[#permission-policy|Permission Policy]].
 
 This specification defines two [=policy-controlled features=]:
 
@@ -861,6 +954,9 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 <dfn>Intermediary Site</dfn>: The [=intermediary site=] that called <a>saveImpression()</a>,
     or `undefined` if the API was invoked by the [=impression site=].
 <dfn>Conversion Sites</dfn>: The [=set=] of [=conversion sites=] that were passed to <a>saveImpression()</a>.
+<dfn>Conversion Callers</dfn>: The [=set=] of sites,
+    either [=conversion sites=] or [=intermediary sites=],
+    that can select this [=impression=] when invoking <a>measureConversion()</a>.
 <dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
 <dfn>Lifetime</dfn>: The [=duration=] an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 <dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
@@ -1255,6 +1351,11 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
         for each value in |options|.{{AttributionImpressionOptions/conversionSites}}.
     1.  If any result in |conversionSites| is failure, return
         [=a promise rejected with=] a {{"SyntaxError"}} {{DOMException}} in |realm|.
+    1.  Let |conversionCallers| be the [=set=] that is the result
+        of invoking [=parse a site=]
+        for each value in |options|.{{AttributionImpressionOptions/conversionCallers}}.
+    1.  If any result in |conversionCallers| is failure, return
+        [=a promise rejected with=] a {{"SyntaxError"}} {{DOMException}} in |realm|.
 1.  Run the following steps [=in parallel=]:
      1.  Construct |impression| as a [=impression|saved impression=] comprising:
          :   [=impression/Match Value=]
@@ -1265,6 +1366,8 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
          ::  |intermediarySite|
          :   [=impression/Conversion Sites=]
          ::  |conversionSites|
+         :   [=impression/Conversion Callers=]
+         ::  |conversionCallers|
          :   [=impression/Timestamp=]
          ::  |timestamp|
          :   [=impression/Lifetime=]
@@ -1305,13 +1408,12 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
     1.  Let |now| be |settings|' [=environment settings object/current wall time=].
     1.  Let |topLevelSite| (the [=conversion site=]) be the result of
         [=obtain a site|obtaining a site=] from the [=top-level origin=].
-    1.  The [=intermediary site=] is set to
+    1.  Let |intermediarySite| be:
         1.   a value of `undefined` if the [=origin=] is [=same site=]
              with the [=top-level origin=],
         1.   otherwise, the result of
              [=obtain a site|obtaining a site=]
              from |settings|' [=environment settings object/origin=].
-        <!-- TODO: the intermediary site is currently unused -->
 1.  Let |validatedOptions| be the result of
     [=validate AttributionConversionOptions|validating=] |options|,
     returning [=a promise rejected with=] any thrown reason.
@@ -1321,7 +1423,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
          |validatedOptions|' [=validated conversion options/histogram size=].
      1.  If the Attribution API is [[#opt-out|enabled]], set |report| to the
          result of [=do attribution and fill a histogram=] with |validatedOptions|,
-         |topLevelSite|, and |now|.
+         |topLevelSite|, |intermediarySite|, and |now|.
      1.  Let |encryptedReport| be the result of encrypting |report|.
      <!-- TODO: Define "encrypting" -->
      1.  Let |result| be a {{AttributionConversionResult}} with the following items:
@@ -1343,7 +1445,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Lookback</dfn>: A positive [=duration=].
 <dfn>Match Value</dfn>: A [=set=] of [=32-bit unsigned integers=].
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
-<dfn>Intermediary Sites</dfn>: A [=set=] of [=sites=].
+<dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
 <dfn>Logic</dfn>: A {{AttributionLogic}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
@@ -1381,10 +1483,10 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     of invoking [=parse a site=]
     for each value in |options|.{{AttributionConversionOptions/impressionSites}}.
 1.  If any result in |impressionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
-1.  Let |intermediarySites| be the [=set=] that is the result
+1.  Let |impressionCallers| be the [=set=] that is the result
     of invoking [=parse a site=]
-    for each value in |options|.{{AttributionConversionOptions/intermediarySites}}.
-1.  If any result in |intermediarySites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
+    for each value in |options|.{{AttributionConversionOptions/impressionCallers}}.
+1.  If any result in |impressionCallers| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
 1.  Return a [=validated conversion options=] with the following fields:
     : [=validated conversion options/Aggregation Service=]
     :: |options|.{{AttributionConversionOptions/aggregationService}}
@@ -1398,8 +1500,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     :: |matchValue|
     : [=validated conversion options/Impression Sites=]
     :: |impressionSites|
-    : [=validated conversion options/Intermediary Sites=]
-    :: |intermediarySites|
+    : [=validated conversion options/Impression Callers=]
+    :: |impressionCallers|
     : [=validated conversion options/Logic=]
     :: |options|.{{AttributionConversionOptions/logic}}
     : [=validated conversion options/Value=]
@@ -1423,7 +1525,9 @@ after the [=common matching logic=] is applied and privacy budgeting occurs.
 
 <div algorithm>
 To <dfn>do attribution and fill a histogram</dfn>, given
-  [=validated conversion options=] |options|, [=site=] |topLevelSite|,
+  [=validated conversion options=] |options|,
+  [=site=] |topLevelSite|,
+  [=site=] |intermediarySite|,
   and [=moment=] |now|:
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
@@ -1437,7 +1541,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
     1.  Let |impressions| be the result of invoking [=common matching logic=]
-        with |options|, |topLevelSite|, |epoch|, and |now|.
+        with |options|, |topLevelSite|, |intermediarySite|, |epoch|, and |now|.
 
     1.  If |impressions| [=set/is empty|is not empty=]:
 
@@ -1476,7 +1580,9 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 
 <div algorithm>
 To perform <dfn>common matching logic</dfn>, given
-[=validated conversion options=] |options|, [=site=] |topLevelSite|,
+[=validated conversion options=] |options|,
+[=site=] |topLevelSite|,
+[=site=] |intermediarySite|,
 [=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
@@ -1497,6 +1603,13 @@ To perform <dfn>common matching logic</dfn>, given
         and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
+    1.  If |intermediarySite| is not `undefined`, let |caller| be |intermediarySite|.
+        Otherwise, let |caller| be |topLevelSite|.
+
+    1.  If |impression|'s [=impression/conversion callers=] [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |caller|,
+        [=iteration/continue=].
+
     1.  If |options|' [=validated conversion options/match value=] [=set/is empty|is not empty=]
         and [=set/contains|does not contain=] |impression|'s [=impression/match value=],
         [=iteration/continue=].
@@ -1504,6 +1617,11 @@ To perform <dfn>common matching logic</dfn>, given
     1.  If |options|' [=validated conversion options/impression sites=]
         [=list/is empty|is not empty=] and
         [=list/contains|does not contain=] |impression|'s [=impression/impression site=],
+        [=iteration/continue=].
+
+    1.  If |options|' [=validated conversion options/impression callers=] [=set/is empty|is not empty=]
+        and [=set/contains|does not contain=] |impression|'s [=impression/intermediary site=]
+        or |impression|'s [=impression/impression site=],
         [=iteration/continue=].
 
     1.  [=set/Append=] |impression| to |matching|.
@@ -1568,7 +1686,7 @@ set on a response requesting that the user agent invoke the
 <a method for=Attribution>saveImpression()</a> API.
 
 <pre class=example id=ex-save-impression-header>
-Save-Impression: conversion-sites=("advertiser.example"), histogram-index=2, match-value=12, lifetime-days=7
+Save-Impression: conversion-sites=("advertiser.example"), conversion-callers=("intermediary.example"), histogram-index=2, match-value=12, lifetime-days=7
 </pre>
 
 The following keys are defined, corresponding to the members of
@@ -1583,6 +1701,14 @@ the {{AttributionImpressionOptions}} dictionary passed to
     Each string value includes a domain name using A-labels only;
     [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
     This key is optional. If not supplied, an empty set is saved for [=impression/Conversion Sites=].
+  </dd>
+  <dt><dfn noexport><code>conversion-callers</code></dfn></dt>
+  <dd>
+    Value of <a dict-member for=AttributionImpressionOptions>conversionCallers</a>,
+    an [=structured header/inner list=] containing [=structured header/string|strings=].
+    Each string value includes a domain name using A-labels only;
+    [[RFC5890|Internationalized Domain Names]] therefore need to use [[RFC3492|punycode]].
+    This key is optional. If not supplied, an empty set is saved for [=impression/Conversion Callers=].
   </dd>
   <dt><dfn noexport><code>histogram-index</code></dfn></dt>
   <dd>
@@ -1616,6 +1742,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  Let |histogramIndex| be |dict|["<code>[=save-impression/histogram-index=]</code>"].
 1.  Let |conversionSites| be |dict|["<code>[=save-impression/conversion-sites=]</code>"]
     [=map/with default=] an empty [=structured header/inner list=].
+1.  Let |conversionCallers| be |dict|["<code>[=save-impression/conversion-callers=]</code>"]
+    [=map/with default=] an empty [=structured header/inner list=].
 1.  If any of |conversionSites|' [=list/items=] is not a [=structured header/string=], return an error.
 1.  Let |matchValue| be |dict|["<code>[=save-impression/match-value=]</code>"] [=map/with default=] 0.
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
@@ -1628,6 +1756,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
      :: |matchValue|
      : {{AttributionImpressionOptions/conversionSites}}
      :: |conversionSites|
+     : {{AttributionImpressionOptions/conversionCallers}}
+     :: |conversionCallers|
      : {{AttributionImpressionOptions/lifetimeDays}}
      :: |lifetimeDays|
 
