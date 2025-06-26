@@ -1354,6 +1354,10 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
         for each value in |options|.{{AttributionImpressionOptions/conversionSites}}.
     1.  If any result in |conversionSites| is failure, return
         [=a promise rejected with=] a {{"SyntaxError"}} {{DOMException}} in |realm|.
+    1.  If the [=list/size=] of
+        |options|.{{AttributionImpressionOptions/conversionCallers}} is
+        greater than an [=implementation-defined=] maximum value, return
+        [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Let |conversionCallers| be the [=set=] that is the result
         of invoking [=parse a site=]
         for each value in |options|.{{AttributionImpressionOptions/conversionCallers}}.
@@ -1482,12 +1486,21 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
 1.  Let |lookback| be |options|.{{AttributionConversionOptions/lookbackDays}} [=days=]
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
+1.  If the [=list/size=] of
+    |options|.{{AttributionConversionOptions/matchValue}} is
+    greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
 1.  Let |matchValue| be the result of running [=set/create|creating a set=] with
     |options|.{{AttributionConversionOptions/matchValue}}.
+1.  If the [=list/size=] of
+    |options|.{{AttributionConversionOptions/impressionSites}} is
+    greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
 1.  Let |impressionSites| be the [=set=] that is the result
     of invoking [=parse a site=]
     for each value in |options|.{{AttributionConversionOptions/impressionSites}}.
 1.  If any result in |impressionSites| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
+1.  If the [=list/size=] of
+    |options|.{{AttributionConversionOptions/impressionCallers}} is
+    greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
 1.  Let |impressionCallers| be the [=set=] that is the result
     of invoking [=parse a site=]
     for each value in |options|.{{AttributionConversionOptions/impressionCallers}}.
