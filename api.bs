@@ -1,5 +1,5 @@
 <pre class=metadata>
-Title: Attribution: Level 1
+Title: Attribution Level 1
 Shortname: attribution
 Repository: w3c/attribution
 URL: https://w3c.github.io/attribution/
