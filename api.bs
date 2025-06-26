@@ -704,14 +704,14 @@ contribute to the histogram, i.e., will be uniformly zero.
       ({{AttributionConversionOptions/impressionSites}}),
       the [=intermediary sites=] that might have saved impressions
       ({{AttributionConversionOptions/impressionCallers}}),
-      and the choice of {{AttributionConversionOptions/matchValue}}.
+      and the choice of {{AttributionConversionOptions/matchValues}}.
 
       <xmp highlight=js>
         const selectionDetails = {
           lookbackDays: 14,
           impressionSites: ["publisher.example", "other.example"],
           impressionCallers: ["ad-tech.example"],
-          matchValue: [2],
+          matchValues: [2],
         };
       </xmp>
 
@@ -755,7 +755,7 @@ dictionary AttributionConversionOptions {
   required unsigned long histogramSize;
 
   unsigned long lookbackDays;
-  sequence<unsigned long> matchValue = [];
+  sequence<unsigned long> matchValues = [];
   sequence<USVString> impressionSites = [];
   sequence<USVString> impressionCallers = [];
 
@@ -792,8 +792,8 @@ The arguments to <a method for=Attribution>measureConversion()</a> are as follow
   <dd>The number of histogram buckets to use in the [=conversion report=].</dd>
   <dt><dfn>lookbackDays</dfn></dt>
   <dd>A positive integer number of days. Only impressions occurring within the past `lookbackDays` may match this [=conversion=]. If omitted, it is equivalent to an [=implementation-defined=] maximum.</dd>
-  <dt><dfn>matchValue</dfn></dt>
-  <dd>A match value that can be used to select this [=impression=].</dd>
+  <dt><dfn>matchValues</dfn></dt>
+  <dd>A [=set=] of match values that can be used to select this [=impression=].</dd>
   <dt><dfn>impressionSites</dfn></dt>
   <dd>
     A [=set=] of impression sites.
@@ -1450,7 +1450,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Epsilon</dfn>: A finite positive number.
 <dfn>Histogram Size</dfn>: A [=32-bit unsigned integer=].
 <dfn>Lookback</dfn>: A positive [=duration=].
-<dfn>Match Value</dfn>: A [=set=] of [=32-bit unsigned integers=].
+<dfn>Match Values</dfn>: A [=set=] of [=32-bit unsigned integers=].
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
 <dfn>Logic</dfn>: A {{AttributionLogic}}.
@@ -1487,10 +1487,10 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
 1.  If the [=list/size=] of
-    |options|.{{AttributionConversionOptions/matchValue}} is
+    |options|.{{AttributionConversionOptions/matchValues}} is
     greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
-1.  Let |matchValue| be the result of running [=set/create|creating a set=] with
-    |options|.{{AttributionConversionOptions/matchValue}}.
+1.  Let |matchValues| be the result of running [=set/create|creating a set=] with
+    |options|.{{AttributionConversionOptions/matchValues}}.
 1.  If the [=list/size=] of
     |options|.{{AttributionConversionOptions/impressionSites}} is
     greater than an [=implementation-defined=] maximum value, throw a {{RangeError}}.
@@ -1514,8 +1514,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     :: |options|.{{AttributionConversionOptions/histogramSize}}
     : [=validated conversion options/Lookback=]
     :: |lookback|
-    : [=validated conversion options/Match Value=]
-    :: |matchValue|
+    : [=validated conversion options/Match Values=]
+    :: |matchValues|
     : [=validated conversion options/Impression Sites=]
     :: |impressionSites|
     : [=validated conversion options/Impression Callers=]
@@ -1635,7 +1635,7 @@ To perform <dfn>common matching logic</dfn>, given
         and [=set/contains|does not contain=] |caller|,
         [=iteration/continue=].
 
-    1.  If |options|' [=validated conversion options/match value=] [=set/is empty|is not empty=]
+    1.  If |options|' [=validated conversion options/match values=] [=set/is empty|is not empty=]
         and [=set/contains|does not contain=] |impression|'s [=impression/match value=],
         [=iteration/continue=].
 
