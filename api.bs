@@ -1979,7 +1979,7 @@ and a [=list=] of [=integers=] |histogram|:
 1.  Let |nonce| be 128 bytes sampled from a cryptographically-secure random source [[RFC4086]].
 
 1.  Let |publicShare|, |inputShares| be the result of invoking |vdaf|.[`shard()`](),
-    as defined in [Section 4.1](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-14#section-4.1)
+    as defined in [Section 4.1](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15#section-4.1)
     of [[VDAF]],
     with |ctx|, |histogram|, |reportID|, and |nonce|.
 
@@ -2053,9 +2053,6 @@ and a [=list=] of [=integers=] |histogram|:
 1.  Return |report|.
 
 </div>
-
-
-
 
 
 ## Trusted Execution Environments ## {#s-tee}
@@ -3004,8 +3001,8 @@ spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
       "Phillipp Schoppmann"
     ],
     "title": "Verifiable Distributed Aggregation Functions",
-    "date": "2024-10-04",
-    "href": "https://datatracker.ietf.org/doc/draft-irtf-cfrg-vdaf/"
+    "date": "2025-06-17",
+    "href": "https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15"
   }
 }
 </pre>
