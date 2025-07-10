@@ -1668,13 +1668,13 @@ To perform <dfn>common matching logic</dfn>, given
 <div algorithm>
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
 1.  Multiply each entry in |credit| by |value|.
-1.  Let |sumCredit| be the sum of all the entries in |credit|.
-1.  Let |normalizedCredit| be the result of element-wise dividing each entry in |credit| with |sumCredit|, rounding towards positive Infinity.
-1.  Let |shuffledIndices| be [=list/get the indices|the indices=] of |credit|, sorted in random order.
+1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
+1.  Let |normalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|, rounding towards positive Infinity.
+1.  Let |shuffledIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
 1.  [=list/iterate|For each=] |index| of |shuffledIndices|:
-      1. If the sum of |normalizedCredit| is equal to |value|, break.
-      1. Decrement |normalizedCredit|[|index|]
-1.  Return |normalizedCredit|
+      1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
+      1. Decrement |normalizedCredit|[|index|] by 1.
+1.  Return |normalizedCredit|.
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
     2) never bias towards any particular credit assignment in rounding, and
     3) never incur an error greater than 1 to any assignment
@@ -1696,8 +1696,8 @@ To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
     with |histogramSize|.
 
 1. [=list/iterate|For each=] |i| of [=list/get the indices|the indices=] of |lastNImpressions|:
-    1.  Let |impression| be |lastNImpressions|[|i|]
-    1.  Let |value| be |normalizedCredit|[|i|]
+    1.  Let |impression| be |lastNImpressions|[|i|].
+    1.  Let |value| be |normalizedCredit|[|i|].
     1.  Let |index| be |impression|'s [=impression/histogram index=].
     1.  If |index| is less than |histogram|'s [=list/size=], increment |histogram|[|index|] by |value|.
 
