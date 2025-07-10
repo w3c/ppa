@@ -1462,7 +1462,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
 <dfn>Logic</dfn>: A {{AttributionLogic}}.
-<dfn>Logic Options</dfn>: A {{AttributionLogicOptions}}.
+<dfn>Logic Options</dfn>: An {{AttributionLogicOptions}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
 </pre>
