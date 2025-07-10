@@ -597,6 +597,7 @@ dictionary AttributionImpressionOptions {
   sequence<USVString> conversionSites = [];
   sequence<USVString> conversionCallers = [];
   unsigned long lifetimeDays = 30;
+  long priority = 0;
 };
 
 dictionary AttributionImpressionResult {
@@ -968,6 +969,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 <dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
 <dfn>Lifetime</dfn>: The [=duration=] an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 <dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
+<dfn>Priority</dfn>: An integer which aids in attribution.
 </pre>
 </div>
 
@@ -1390,6 +1392,8 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
              multiplied by a [=duration=] of one day
          :   [=impression/Histogram Index=]
          ::  |options|.{{AttributionImpressionOptions/histogramIndex}}
+         :   [=impression/Priority=]
+         ::  |options|.{{AttributionImpressionOptions/priority}}
      1.  If the Attribution API is [[#opt-out|enabled]],
          save |impression| to the [=impression store=].
 1.  Let |result| be a new {{AttributionImpressionResult}}.
@@ -1701,7 +1705,8 @@ To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
   a [=list=] of doubles |credit|:
 
 1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
-1.  Let |sortedImpressions| be |matchedImpressions|, [=list/sorted in ascending order=] by [=impression/timestamp=].
+1.  Let |sortedImpressions| be |matchedImpressions|, [=list/sorted in ascending order=]
+    by [=impression/priority=], then by [=impression/timestamp=].
 1.  Let |N| be the minimum of the [=list/size=] of |credit|, and the [=list/size=] of |sortedImpressions|.
 1.  Let |lastNImpressions| be the last |N| entries of |sortedImpressions|.
 1.  [=list/remove|Remove=] all but the last |N| entries of |credit|.
