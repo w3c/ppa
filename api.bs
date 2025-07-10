@@ -1462,6 +1462,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
 <dfn>Logic</dfn>: A {{AttributionLogic}}.
+<dfn>Logic Options</dfn>: A {{AttributionLogicOptions}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
 </pre>
@@ -1481,6 +1482,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     or is greater than the <dfn ignore>maximum aggregation-service histogram size</dfn>,
     if any, for |options|.{{AttributionConversionOptions/aggregationService}},
     throw a {{RangeError}}.
+1.  Let |credit| be «1».
 1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
         :   <a enum-value for=AttributionLogic>"last-n-touch"</a>
@@ -1490,7 +1492,15 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
             1.  If |options|.{{AttributionConversionOptions/value}}
                 is greater than |options|.{{AttributionConversionOptions/maxValue}},
                 throw a {{RangeError}}.
+            1.  If |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}} [=map/exists=]:
+                1.  Set |credit| to |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}}.
+                1.  If |credit| is not a list or is the [=list/is empty=] list, throw a {{RangeError}}.
+                1.  If any of the [=list/items=] of |credit| are less than or equal to 0, throw a {{RangeError}}.
+                1.  If the [=list/size=] of |credit| exceeds an implementation defined maximum, throw a {{RangeError}}.
     </dl>
+1.  Let |validatedLogicOptions| be a {{AttributionLogicOptions}} with the following fields:
+    : {{AttributionLogicOptions/credit}}
+    :: |credit|
 1.  Let |lookback| be |options|.{{AttributionConversionOptions/lookbackDays}} [=days=]
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
@@ -1530,6 +1540,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     :: |impressionCallers|
     : [=validated conversion options/Logic=]
     :: |options|.{{AttributionConversionOptions/logic}}
+    : [=validated conversion options/Logic Options=]
+    :: |validatedLogicOptions|
     : [=validated conversion options/Value=]
     :: |options|.{{AttributionConversionOptions/value}}
     : [=validated conversion options/Max Value=]
@@ -1588,8 +1600,9 @@ To <dfn>do attribution and fill a histogram</dfn>, given
       <dl class="switch">
       : <a enum-value for=AttributionLogic>"last-n-touch"</a>
       :: Return the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
-        |options|' [=validated conversion options/histogram size=], and
-        |options|' [=validated conversion options/value=].
+        |options|' [=validated conversion options/histogram size=],
+        |options|' [=validated conversion options/value=], and
+        |options|' [=validated conversion options/logic options=]["credit"]
 
       </dl>
 
@@ -1669,7 +1682,8 @@ To perform <dfn>common matching logic</dfn>, given
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
 1.  Multiply each entry in |credit| by |value|.
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
-1.  Let |normalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|, rounding towards positive Infinity.
+1.  Let |normalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|,
+    rounding towards positive Infinity and converting to an integer.
 1.  Let |shuffledIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
 1.  [=list/iterate|For each=] |index| of |shuffledIndices|:
       1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
