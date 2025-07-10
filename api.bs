@@ -358,7 +358,7 @@ The histogram created by the [=conversion report=] is constructed as follows:
     a histogram consisting entirely of zeros (0) is constructed.
 
 *   If one or more matching impressions is found, the browser runs the attribution
-    logic (default last-touch) to select the most recent impression. The provided conversion
+    logic (default last-n-touch) to select the most recent impression. The provided conversion
     value is added to a histogram at the bucket that was specified at the time of the
     attributed impression. All other buckets are set to zero.
 
@@ -721,7 +721,10 @@ contribute to the histogram, i.e., will be uniformly zero.
 
       <xmp highlight=js>
         const attributionDetails = {
-          logic: "last-touch",
+          logic: "last-n-touch",
+          logicOptions: {
+            credit: [.25, .25, .5]
+          }
           value: 3,
           maxValue: 7,
         };
@@ -759,13 +762,18 @@ dictionary AttributionConversionOptions {
   sequence<USVString> impressionSites = [];
   sequence<USVString> impressionCallers = [];
 
-  AttributionLogic logic = "last-touch";
+  AttributionLogic logic = "last-n-touch";
+  AttributionLogicOptions logicOptions;
   unsigned long value = 1;
   unsigned long maxValue = 1;
 };
 
 enum AttributionLogic {
-  "last-touch",
+  "last-n-touch",
+};
+
+dictionary AttributionLogicOptions {
+  sequence<double> credit;
 };
 
 dictionary AttributionConversionResult {
@@ -1475,7 +1483,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     throw a {{RangeError}}.
 1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
-        :   <a enum-value for=AttributionLogic>"last-touch"</a>
+        :   <a enum-value for=AttributionLogic>"last-n-touch"</a>
         ::  Perform the following steps:
             1.  If |options|.{{AttributionConversionOptions/value}} is 0,
                 throw a {{RangeError}}.
@@ -1578,8 +1586,8 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
-      : <a enum-value for=AttributionLogic>"last-touch"</a>
-      :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
+      : <a enum-value for=AttributionLogic>"last-n-touch"</a>
+      :: Return the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
         |options|' [=validated conversion options/histogram size=], and
         |options|' [=validated conversion options/value=].
 
@@ -1655,23 +1663,43 @@ To perform <dfn>common matching logic</dfn>, given
 
 </div>
 
-#### Last-Touch Attribution #### {#last-touch-attribution}
+#### Last-N-Touch Attribution #### {#last-n-touch-attribution}
 
 <div algorithm>
-To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
-  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
+To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
+1.  Multiply each entry in |credit| by |value|.
+1.  Let |sumCredit| be the sum of all the entries in |credit|.
+1.  Let |normalizedCredit| be the result of element-wise dividing each entry in |credit| with |sumCredit|, rounding towards positive Infinity.
+1.  Let |shuffledIndices| be [=list/get the indices|the indices=] of |credit|, sorted in random order.
+1.  [=list/iterate|For each=] |index| of |shuffledIndices|:
+      1. If the sum of |normalizedCredit| is equal to |value|, break.
+      1. Decrement |normalizedCredit|[|index|]
+1.  Return |normalizedCredit|
+    <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
+    2) never bias towards any particular credit assignment in rounding, and
+    3) never incur an error greater than 1 to any assignment
+
+</div>
+
+<div algorithm>
+To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
+  [=impressions=] |matchedImpressions|, an integer |histogramSize|, an integer |value|, and
+  a [=list=] of doubles |credit|:
 
 1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
-
-1.  Let |impression| be the value in |matchedImpressions| with the most recent
-    [=impression/timestamp=].
-
+1.  Let |sortedImpressions| be |matchedImpressions|, [=list/sorted in ascending order=] by [=impression/timestamp=].
+1.  Let |N| be the minimum of the [=list/size=] of |credit|, and the [=list/size=] of |sortedImpressions|.
+1.  Let |lastNImpressions| be the last |N| entries of |sortedImpressions|.
+1.  [=list/remove|Remove=] all but the last |N| entries of |credit|.
+1.  Let |normalizedCredit| be the result of [=fairly allocate credit|fairly allocating credit=] with |credit| and |value|.
 1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
     with |histogramSize|.
 
-1.  Let |index| be |impression|'s [=impression/histogram index=].
-
-1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
+1. [=list/iterate|For each=] |i| of [=list/get the indices|the indices=] of |lastNImpressions|:
+    1.  Let |impression| be |lastNImpressions|[|i|]
+    1.  Let |value| be |normalizedCredit|[|i|]
+    1.  Let |index| be |impression|'s [=impression/histogram index=].
+    1.  If |index| is less than |histogram|'s [=list/size=], increment |histogram|[|index|] by |value|.
 
 1.  Return |histogram|.
 
