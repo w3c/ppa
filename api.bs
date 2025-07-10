@@ -1977,12 +1977,12 @@ and a [=list=] of [=integers=] |histogram|:
 
 1.  Let |reportID| be 16 bytes sampled from a cryptographically-secure random source [[RFC4086]].
 
-1.  Let |nonce| be 128 bytes sampled from a cryptographically-secure random source [[RFC4086]].
+1.  Let |rand| be 128 bytes sampled from a cryptographically-secure random source [[RFC4086]].
 
 1.  Let |publicShare|, |inputShares| be the result of invoking |vdaf|.[`shard()`](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf#section-4.1),
     as defined in [Section 4.1](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15#section-4.1)
     of [[VDAF]],
-    with |ctx|, |histogram|, |reportID|, and |nonce|.
+    with |ctx|, |histogram|, |reportID| (as the VDAF "nonce" parameter), and |rand|.
 
 1.  Let |time| be |now| as a [=duration=] since the [=Unix epoch=],
     divided by a [=duration=] of 5 seconds.
@@ -2047,7 +2047,8 @@ and a [=list=] of [=integers=] |histogram|:
     1.  [=list/Append=] |encryptedShare| to |encryptedInputShares|.
 
 1.  Let |report| be an encoded DAP [`Report`](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
-    generated from |reportMetadata|, |publicShare|, |encryptedInputShares|,
+    generated from |reportMetadata|, |publicShare|, |encryptedInputShares|
+    (the two values being the leader and helper encrypted input shares respectively),
     and [=aggregation service=] [HPKE configuration](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.1)
     obtained from the DAP aggregators.
 
