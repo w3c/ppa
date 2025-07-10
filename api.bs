@@ -1434,12 +1434,13 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
      1.  Let |aggregationService| be |validatedOptions|'s [=validated conversion options/aggregation service=].
      1.  Switch on the value of |aggregationService|.{{AttributionAggregationService/protocol}}:
          <dl class="switch">
-            :   <a enum-value for=PrivateAttributionAggregationProtocol>"dap-15-histogram"</a>
+            :   <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
             ::  Perform the following steps:
                 1.  Let |encryptedReport| be the result of invoking <a>construct a DAP report</a>,
                     given |validatedOptions|, |topLevelSite|, |now|, and |report|.
 
-            :   <a enum-value for=PrivateAttributionAggregationProtocol>"tee-00"</a>
+            :   <a enum-value for=PrivateAttributionAggregationProtocol>`tee-00`</a>
+            ::  Perform the following steps:
                 1.  TODO: see [#130](https://github.com/w3c/ppa/issues/130)
          </dl>
      1.  Let |result| be a {{AttributionConversionResult}} with the following items:
@@ -1871,7 +1872,7 @@ by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
-The <a enum-value for=PrivateAttributionAggregationProtocol>"dap-15-histogram"</a>
+The <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
 aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
@@ -1954,8 +1955,8 @@ and a [=list=] of [=integers=] |histogram|:
 
 1.  Let |length| be the [=list/size=] of |histogram|.
 
-1.  Let |bits| be the base 2 logarithm
-    of |options|.[=validated conversion options/max value=]
+1.  Let |bits| be the base-2 logarithm
+    of |options|.[=validated conversion options/max value=],
     rounded toward positive Infinity.
 
 1.  Let |chunkLength| be the square root of (|bits| + 1) * |length|,
@@ -1969,8 +1970,8 @@ and a [=list=] of [=integers=] |histogram|:
     [[DAP-EXT]].
 
 1.  Let |ctx| be the [=byte sequence=] formed by concatenating
-    of the [=isomorphic encode|encoded=] string "dap-15"
-    and |taskID|
+    the [=isomorphic encode|encoded=] string `dap-15`
+    and |taskID|,
     as defined in [Section 4.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
     of [[DAP]].
 
@@ -1978,12 +1979,12 @@ and a [=list=] of [=integers=] |histogram|:
 
 1.  Let |nonce| be 128 bytes sampled from a cryptographically-secure random source [[RFC4086]].
 
-1.  Let |publicShare|, |inputShares| be the result of invoking |vdaf|.[`shard()`](),
+1.  Let |publicShare|, |inputShares| be the result of invoking |vdaf|.[`shard()`](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf#section-4.1),
     as defined in [Section 4.1](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15#section-4.1)
     of [[VDAF]],
     with |ctx|, |histogram|, |reportID|, and |nonce|.
 
-1.  Let |time| be |now| as a [=duration=] since the [=unix epoch=],
+1.  Let |time| be |now| as a [=duration=] since the [=Unix epoch=],
     divided by a [=duration=] of 5 seconds.
     <!-- TODO: confirm fixed time resolution -->
 
@@ -1991,14 +1992,14 @@ and a [=list=] of [=integers=] |histogram|:
     comprised of:
 
     *   The extension codepoint for [[DAP-EXT#name-late-task-binding|late task binding]],
-        mapped to an [=list/empty=] [=byte sequence=].
+        mapped to an [=list/is empty|empty=] [=byte sequence=].
 
     *   The extension codepoint for [[DAP-EXT#name-privacy-budget-consumption|privacy budget]],
         mapped to the value of |encodedEpsilon|, derived as follows:
 
         1.  Let |scaledEpsilon| be the [=32-bit unsigned integer=]
             that is |options|.[=validated conversion options/epsilon=],
-            multiplied by 1000000 then rounded towards positive Infinity.
+            multiplied by 1,000,000, then rounded toward positive Infinity.
 
         1.  Let |encodedEpsilon| be the result of invoking
             [`NumericToRawBytes`](https://tc39.es/ecma262/multipage/structured-data.html#sec-numerictorawbytes)
@@ -2010,9 +2011,9 @@ and a [=list=] of [=integers=] |histogram|:
 1.  Let |reportMetadata| be encoded DAP [`ReportMetadata`](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
     generated from |reportID|, |time|, and |extensions|.
 
-1.  Let |encryptedInputShares| be an [=list/empty=] [=list=].
+1.  Let |encryptedInputShares| be an [=list/is empty|empty=] [=list=].
 
-1.  For each |share| in |inputShares|,
+1.  [=list/iterate|For each=] |share| of |inputShares|,
     follow the method for encrypting shares
     described in [Section 4.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2):
 
@@ -2023,15 +2024,15 @@ and a [=list=] of [=integers=] |histogram|:
 
         <p class=note>The URL for <a enum-value for=PrivateAttributionAggregationProtocol>"dap-15-histogram"</a> is expected to identify the DAP Leader role.
         Implementations need to obtain HPKE configuration for both Aggregators statically.
-        The HPKE configuration <span class=allow-2119>must not</span> be fetched on demand as the time that takes
+        The HPKE configuration <span class=allow-2119>must not</span> be fetched on demand, as the time that takes
         will leak information to callers of <a method for=Attribution>measureConversion()</a>.
 
-    1.  Let |serverRole| of 2 for the first item (the Leader)
+    1.  Let |serverRole| be 2 for the first item (the Leader)
         and 3 for the second (the Helper role).
 
     1.  Let |info| be the [=byte sequence=] formed by concatenating:
-        the [=isomorphic encode|encoded=] value of the string "dap-15 input share",
-        a byte with the value 1, and |serverRole|.
+        the [=isomorphic encode|encoded=] value of the string `dap-15 input share`,
+        a byte with the value 0x01, and |serverRole|.
 
     1.  Let |inputShareAAD| be constructed from
         |taskID|, |reportMetadata|, and |publicShare|,
