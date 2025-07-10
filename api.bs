@@ -507,7 +507,7 @@ and impressions are not scoped to a single aggregation service.
 </div>
 
 <xmp class=idl>
-enum PrivateAttributionAggregationProtocol { "dap-12-histogram", "tee-00" };
+enum PrivateAttributionAggregationProtocol { "dap-15-histogram", "tee-00" };
 
 dictionary AttributionAggregationService {
   required DOMString protocol;
@@ -547,7 +547,7 @@ The <dfn enum>PrivateAttributionAggregationProtocol</dfn> describes the submissi
 used by different [=aggregation services=]. This document defines two protocols:
 
 <dl dfn-for=PrivateAttributionAggregationProtocol dfn-type=enum-value>
-  <dt><dfn>dap-12-histogram</dfn></dt>
+  <dt><dfn>dap-15-histogram</dfn></dt>
   <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
   <dt><dfn>tee-00</dfn></dt>
   <dd>A protocol for submission to a [=TEE=]; see [[#s-tee]].</dd>
@@ -1431,8 +1431,18 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
      1.  If the Attribution API is [[#opt-out|enabled]], set |report| to the
          result of [=do attribution and fill a histogram=] with |validatedOptions|,
          |topLevelSite|, |intermediarySite|, and |now|.
-     1.  Let |encryptedReport| be the result of encrypting |report|.
-     <!-- TODO: Define "encrypting" -->
+     1.  Let |aggregationService| be |validatedOptions|'s [=validated conversion options/aggregation service=].
+     1.  Switch on the value of |aggregationService|.{{AttributionAggregationService/protocol}}:
+         <dl class="switch">
+            :   <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
+            ::  Perform the following steps:
+                1.  Let |encryptedReport| be the result of invoking <a>construct a DAP report</a>,
+                    given |validatedOptions|, |topLevelSite|, |now|, and |report|.
+
+            :   <a enum-value for=PrivateAttributionAggregationProtocol>`tee-00`</a>
+            ::  Perform the following steps:
+                1.  TODO: see [#130](https://github.com/w3c/ppa/issues/130)
+         </dl>
      1.  Let |result| be a {{AttributionConversionResult}} with the following items:
           : {{AttributionConversionResult/report}}
           :: |encryptedReport|
@@ -1446,7 +1456,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 
 <div dfn-for="validated conversion options">
 <pre class=simpledef>
-<dfn>Aggregation Service</dfn>: A [=URL=].
+<dfn>Aggregation Service</dfn>: An instance of {{AttributionAggregationService}}.
 <dfn>Epsilon</dfn>: A finite positive number.
 <dfn>Histogram Size</dfn>: A [=32-bit unsigned integer=].
 <dfn>Lookback</dfn>: A positive [=duration=].
@@ -1465,6 +1475,9 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
 1.  If <a attribute for=Attribution>aggregationServices</a> does not [=map/exist|contain=]
     an [=map/entry=] with a [=map/key=] of |options|.{{AttributionConversionOptions/aggregationService}},
     throw a {{ReferenceError}}.
+1.  Let |aggregationService| be the result of [=map/get|getting the value=]
+    from {{AttributionAggregationServices}},
+    given |options|.{{AttributionConversionOptions/aggregationService}}.
 1.  If |options|.{{AttributionConversionOptions/epsilon}}
     is less than or equal to 0 or is greater than 4294,
     throw a {{RangeError}}.
@@ -1507,7 +1520,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
 1.  If any result in |impressionCallers| is failure, throw a {{"SyntaxError"}} {{DOMException}}.
 1.  Return a [=validated conversion options=] with the following fields:
     : [=validated conversion options/Aggregation Service=]
-    :: |options|.{{AttributionConversionOptions/aggregationService}}
+    :: |aggregationService|
     : [=validated conversion options/Epsilon=]
     :: |options|.{{AttributionConversionOptions/epsilon}}
     : [=validated conversion options/Histogram Size=]
@@ -1796,6 +1809,7 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
     * [=Impression site=] for [=conversions=]
     * [=impression/histogram index|Histogram indexes=]
 
+
 # Aggregation # {#aggregation}
 
 An <dfn>aggregation service</dfn> takes multiple pieces of attribution information
@@ -1858,7 +1872,7 @@ by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
-The <a enum-value for=PrivateAttributionAggregationProtocol>"dap-12-histogram"</a>
+The <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
 aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
@@ -1902,10 +1916,18 @@ as close to 2<sup><var>n</var></sup> − 1 as other constraints allow.
 Several extensions to DAP [[DAP-EXT]] are necessary for this application:
 
 *   [[DAP-EXT#name-late-task-binding|Late task binding]]
+    (`late_binding`)
     improves the ability of a site to collect reports
     and aggregate them as needed.
 
-*   [[DAP-EXT#name-requester-website-identity|Website identity]]
+*   [[DAP-EXT#name-privacy-budget-consumption|Privacy budget]]
+    (`privacy_budget`)
+    ensures that the aggregation service does not aggregate reports
+    that received less privacy budget
+    than the aggregation task was configured with.
+
+*   [[DAP-EXT#name-requester-website-identity|Requester identity]]
+    (`requester_identity`)
     is critical to ensure
     that differential privacy protections are effective.
     This prevents a malicious actor
@@ -1913,13 +1935,126 @@ Several extensions to DAP [[DAP-EXT]] are necessary for this application:
     from exceeding the sensitivity bounds for that user
     by aggregating reports from multiple sites together.
 
-*   [[DAP-EXT#name-privacy-budget-consumption|Privacy budget consumption]]
-    ensures that the aggregation service does not aggregate reports
-    that received less privacy budget
-    than the aggregation task was configured with.
-
-User agents MUST include all of these extensions
+User agents include all of these extensions
 in reports that they generate.
+
+
+### Report Encryption For DAP ### {#encrypt-dap}
+
+<div algorithm>
+To <dfn>construct a DAP report</dfn>,
+producing a [=byte sequence=] |report|,
+given [=validated conversion options=] |options|,
+[=site=] |topLevelSite|,
+[=moment=] |now|,
+and a [=list=] of [=integers=] |histogram|:
+
+1.  Let |field| be Field128,
+    as defined in [Section 6.1.3](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15#section-6.1.3)
+    of [[VDAF]].
+
+1.  Let |length| be the [=list/size=] of |histogram|.
+
+1.  Let |bits| be the base-2 logarithm
+    of |options|.[=validated conversion options/max value=],
+    rounded toward positive Infinity.
+
+1.  Let |chunkLength| be the square root of (|bits| + 1) * |length|,
+    rounded to the nearest integer.
+
+1.  Let |vdaf| be a new PrioL1BoundSum VDAF [[PRIO-L1]] instance,
+    passing |field|, |length|, |bits|, and |chunkLength|.
+
+1.  Let |taskID| be the [=byte sequence=]
+    from the hex string `b13e8440f1cdb4da51eed3967e0a2652d27f5005bc35f751daf188b4b746708b`
+    [[DAP-EXT]].
+
+1.  Let |ctx| be the [=byte sequence=] formed by concatenating
+    the [=isomorphic encode|encoded=] string `dap-15`
+    and |taskID|,
+    as defined in [Section 4.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
+    of [[DAP]].
+
+1.  Let |reportID| be 16 bytes sampled from a cryptographically-secure random source [[RFC4086]].
+
+1.  Let |rand| be 128 bytes sampled from a cryptographically-secure random source [[RFC4086]].
+
+1.  Let |publicShare|, |inputShares| be the result of invoking |vdaf|.[`shard()`](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf#section-4.1),
+    as defined in [Section 4.1](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15#section-4.1)
+    of [[VDAF]],
+    with |ctx|, |histogram|, |reportID| (as the VDAF "nonce" parameter), and |rand|.
+
+1.  Let |time| be |now| as a [=duration=] since the [=Unix epoch=],
+    divided by a [=duration=] of 5 seconds.
+    <!-- TODO: confirm fixed time resolution -->
+
+1.  Let |extensions| be a [=map=] of [=16-bit unsigned integers=] to [=byte sequences=],
+    comprised of:
+
+    *   The extension codepoint for [[DAP-EXT#name-late-task-binding|late task binding]],
+        mapped to an [=list/is empty|empty=] [=byte sequence=].
+
+    *   The extension codepoint for [[DAP-EXT#name-privacy-budget-consumption|privacy budget]],
+        mapped to the value of |encodedEpsilon|, derived as follows:
+
+        1.  Let |scaledEpsilon| be the [=32-bit unsigned integer=]
+            that is |options|.[=validated conversion options/epsilon=],
+            multiplied by 1,000,000, then rounded toward positive Infinity.
+
+        1.  Let |encodedEpsilon| be the result of invoking
+            [`NumericToRawBytes`](https://tc39.es/ecma262/multipage/structured-data.html#sec-numerictorawbytes)
+            with [UINT32](https://tc39.es/ecma262/multipage/indexed-collections.html#table-the-typedarray-constructors), |scaledEpsilon|, and `false` (for `isLittleEndian`).
+
+    *   The extension codepoint for [[DAP-EXT#name-requester-website-identity|requester identity]],
+        mapped to the [=isomorphic encode|encoded=] value of |topLevelSite|[1].
+
+1.  Let |reportMetadata| be encoded DAP [`ReportMetadata`](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
+    generated from |reportID|, |time|, and |extensions|.
+
+1.  Let |encryptedInputShares| be an [=list/is empty|empty=] [=list=].
+
+1.  [=list/iterate|For each=] |share| of |inputShares|,
+    follow the method for encrypting shares
+    described in [Section 4.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2):
+
+    1.  Let |pkR| be the public key of the corresponding role from
+        the [=aggregation service=] [HPKE configuration](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.1)
+        obtained for the [=aggregation service=]
+        indicated by |options|.[=validated conversion options/Aggregation Service=].
+
+        <p class=note>The URL for <a enum-value for=PrivateAttributionAggregationProtocol>"dap-15-histogram"</a> is expected to identify the DAP Leader role.
+        Implementations need to obtain HPKE configuration for both Aggregators statically.
+        The HPKE configuration <span class=allow-2119>must not</span> be fetched on demand, as the time that takes
+        will leak information to callers of <a method for=Attribution>measureConversion()</a>.
+
+    1.  Let |serverRole| be 2 for the first item (the Leader)
+        and 3 for the second (the Helper role).
+
+    1.  Let |info| be the [=byte sequence=] formed by concatenating:
+        the [=isomorphic encode|encoded=] value of the string `dap-15 input share`,
+        a byte with the value 0x01, and |serverRole|.
+
+    1.  Let |inputShareAAD| be constructed from
+        |taskID|, |reportMetadata|, and |publicShare|,
+        following the structure for [`InputShareAad`](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2).
+
+    1.  Let |hpke| be an HPKE [[RFC9180]] configuration
+        that is based on the same [HPKE configuration](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.1).
+
+    1.  Let |encryptedShare| be the result of invoking |hpke|.[`Seal<mode_base>()`](https://hpkewg.github.io/hpke/draft-ietf-hpke-hpke.html#section-6.1),
+        passing |pkR|, |info|, |inputShareAAD|, and |share|.
+
+    1.  [=list/Append=] |encryptedShare| to |encryptedInputShares|.
+
+1.  Let |report| be an encoded DAP [`Report`](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.2)
+    generated from |reportMetadata|, |publicShare|, |encryptedInputShares|
+    (the two values being the leader and helper encrypted input shares respectively),
+    and [=aggregation service=] [HPKE configuration](https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15#section-4.5.1)
+    obtained from the DAP aggregators.
+
+1.  Return |report|.
+
+</div>
 
 
 ## Trusted Execution Environments ## {#s-tee}
@@ -2762,8 +2897,8 @@ spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
       "Eric Rescorla",
       "Christopher A. Wood"
     ],
-    "date": "2024-10-10",
-    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-12",
+    "date": "2024-04-29",
+    "href": "https://datatracker.ietf.org/doc/html/draft-ietf-ppm-dap-15",
     "title": "Distributed Aggregation Protocol for Privacy Preserving Measurement",
     "publisher": "IETF"
   },
@@ -2771,9 +2906,9 @@ spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
     "authors": [
       "Martin Thomson"
     ],
-    "title": "Distributed Aggregation Protocol (DAP) Extensions for Improved Application of Differential Privacy",
-    "date": "2024-10-18",
-    "href": "https://datatracker.ietf.org/doc/draft-thomson-ppm-dap-dp-ext/"
+    "title": "Distributed Aggregation Protocol (DAP) Report Binding Extensions",
+    "date": "2025-07-04",
+    "href": "https://datatracker.ietf.org/doc/html/draft-thomson-ppm-dap-dp-ext-02"
   },
   "dp": {
     "authors": [
@@ -2868,8 +3003,8 @@ spec:structured header; type:dfn; urlPrefix: https://httpwg.org/specs/rfc9651;
       "Phillipp Schoppmann"
     ],
     "title": "Verifiable Distributed Aggregation Functions",
-    "date": "2024-10-04",
-    "href": "https://datatracker.ietf.org/doc/draft-irtf-cfrg-vdaf/"
+    "date": "2025-06-17",
+    "href": "https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-15"
   }
 }
 </pre>
