@@ -1494,9 +1494,9 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
                 throw a {{RangeError}}.
             1.  If |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}} [=map/exists=]:
                 1.  Set |credit| to |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}}.
-                1.  If |credit| is not a list or is the [=list/is empty=] list, throw a {{RangeError}}.
+                1.  If |credit| is not a [=list=] or [=list/is empty=], throw a {{RangeError}}.
                 1.  If any of the [=list/items=] of |credit| are less than or equal to 0, throw a {{RangeError}}.
-                1.  If the [=list/size=] of |credit| exceeds an implementation defined maximum, throw a {{RangeError}}.
+                1.  If the [=list/size=] of |credit| exceeds an implementation-defined maximum, throw a {{RangeError}}.
     </dl>
 1.  Let |validatedLogicOptions| be a {{AttributionLogicOptions}} with the following fields:
     : {{AttributionLogicOptions/credit}}
@@ -1602,7 +1602,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
       :: Return the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
         |options|' [=validated conversion options/histogram size=],
         |options|' [=validated conversion options/value=], and
-        |options|' [=validated conversion options/logic options=]["credit"]
+        |options|' [=validated conversion options/logic options=].{{AttributionLogicOptions/credit}}.
 
       </dl>
 
