@@ -647,6 +647,10 @@ The arguments to <a method for=Attribution>saveImpression()</a> are as follows:
     The [=user agent=] should impose an upper limit on the lifetime,
     and silently reduce the value specified here if it exceeds that limit.
   </dd>
+  <dt><dfn>priority</dfn></dt>
+  <dd>
+    An integer used to sort [=impressions=] during attribution.
+  </dd>
 </dl>
 
 ## Requesting Attribution for a Conversion ## {#measure-conversion-api}
@@ -969,7 +973,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 <dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
 <dfn>Lifetime</dfn>: The [=duration=] an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 <dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
-<dfn>Priority</dfn>: An integer which aids in attribution.
+<dfn>Priority</dfn>: An integer used to sort [=/impressions=] during attribution.
 </pre>
 </div>
 
@@ -1695,7 +1699,11 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  Return |normalizedCredit|.
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
     2) never bias towards any particular credit assignment in rounding, and
-    3) never incur an error greater than 1 to any assignment
+    3) never incur an error greater than 1 to any assignment.
+    <p class=issue>
+    While the algorithm is "unbiased" in the sense that the probability of being decremented is equal
+    across entries, ideally the final array of value is unbiased in the sense that its expectation
+    should be equal to |normalizedCredit|. This is not achieved by the current algorithm.
 
 </div>
 
@@ -1787,6 +1795,11 @@ the {{AttributionImpressionOptions}} dictionary passed to
     Value of <a dict-member for=AttributionImpressionOptions>histogramIndex</a>,
     a non-negative [=structured header/integer=]. This key is required.
   </dd>
+  <dt><dfn noexport><code>priority</code></dfn></dt>
+  <dd>
+    Value of <a dict-member for=AttributionImpressionOptions>priority</a>,
+    an [=structured header/integer=]. This key is optional.
+  </dd>
   <dt><dfn noexport><code>match-value</code></dfn></dt>
   <dd>
     Value of <a dict-member for=AttributionImpressionOptions>matchValue</a>,
@@ -1821,6 +1834,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
 1.  If |lifetimeDays| is not an [=structured header/integer=] or is less than or equal to 0, return an error.
+1.  Let |priority| be |dict|["<code>[=save-impression/priority=]</code>"] [=map/with default=] 0.
+1.  If |priority| is not an [=structured header/integer=], return an error.
 1.  Return a new {{AttributionImpressionOptions}} with the following items:
      : {{AttributionImpressionOptions/histogramIndex}}
      :: |histogramIndex|
@@ -1832,6 +1847,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
      :: |conversionCallers|
      : {{AttributionImpressionOptions/lifetimeDays}}
      :: |lifetimeDays|
+     : {{AttributionImpressionOptions/priority}}
+     :: |priority|
 
 </div>
 
