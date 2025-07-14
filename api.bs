@@ -358,7 +358,7 @@ The histogram created by the [=conversion report=] is constructed as follows:
     a histogram consisting entirely of zeros (0) is constructed.
 
 *   If one or more matching impressions is found, the browser runs the attribution
-    logic (default last-touch) to select the most recent impression. The provided conversion
+    logic (default last-n-touch) to select the most recent impression. The provided conversion
     value is added to a histogram at the bucket that was specified at the time of the
     attributed impression. All other buckets are set to zero.
 
@@ -597,6 +597,7 @@ dictionary AttributionImpressionOptions {
   sequence<USVString> conversionSites = [];
   sequence<USVString> conversionCallers = [];
   unsigned long lifetimeDays = 30;
+  long priority = 0;
 };
 
 dictionary AttributionImpressionResult {
@@ -645,6 +646,10 @@ The arguments to <a method for=Attribution>saveImpression()</a> are as follows:
     longer receive attribution.
     The [=user agent=] should impose an upper limit on the lifetime,
     and silently reduce the value specified here if it exceeds that limit.
+  </dd>
+  <dt><dfn>priority</dfn></dt>
+  <dd>
+    An integer used to sort [=impressions=] during attribution.
   </dd>
 </dl>
 
@@ -721,7 +726,10 @@ contribute to the histogram, i.e., will be uniformly zero.
 
       <xmp highlight=js>
         const attributionDetails = {
-          logic: "last-touch",
+          logic: "last-n-touch",
+          logicOptions: {
+            credit: [.25, .25, .5]
+          }
           value: 3,
           maxValue: 7,
         };
@@ -759,13 +767,18 @@ dictionary AttributionConversionOptions {
   sequence<USVString> impressionSites = [];
   sequence<USVString> impressionCallers = [];
 
-  AttributionLogic logic = "last-touch";
+  AttributionLogic logic = "last-n-touch";
+  AttributionLogicOptions logicOptions;
   unsigned long value = 1;
   unsigned long maxValue = 1;
 };
 
 enum AttributionLogic {
-  "last-touch",
+  "last-n-touch",
+};
+
+dictionary AttributionLogicOptions {
+  sequence<double> credit;
 };
 
 dictionary AttributionConversionResult {
@@ -960,6 +973,7 @@ The [=impression store=] is a [=set=] of [=impression|impressions=]:
 <dfn>Timestamp</dfn>: The time at which <a>saveImpression()</a> was called.
 <dfn>Lifetime</dfn>: The [=duration=] an [=/impression=] remains eligible for attribution, either from the call to <a>saveImpression()</a>, or a [=/user agent=]-defined limit.
 <dfn>Histogram Index</dfn>: The histogram index passed to <a>saveImpression()</a>.
+<dfn>Priority</dfn>: An integer used to sort [=/impressions=] during attribution.
 </pre>
 </div>
 
@@ -1382,6 +1396,8 @@ The <dfn method for=Attribution>saveImpression(|options|)</dfn> method steps are
              multiplied by a [=duration=] of one day
          :   [=impression/Histogram Index=]
          ::  |options|.{{AttributionImpressionOptions/histogramIndex}}
+         :   [=impression/Priority=]
+         ::  |options|.{{AttributionImpressionOptions/priority}}
      1.  If the Attribution API is [[#opt-out|enabled]],
          save |impression| to the [=impression store=].
 1.  Let |result| be a new {{AttributionImpressionResult}}.
@@ -1464,6 +1480,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
 <dfn>Logic</dfn>: A {{AttributionLogic}}.
+<dfn>Logic Options</dfn>: An {{AttributionLogicOptions}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
 </pre>
@@ -1486,16 +1503,25 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     or is greater than the <dfn ignore>maximum aggregation-service histogram size</dfn>,
     if any, for |options|.{{AttributionConversionOptions/aggregationService}},
     throw a {{RangeError}}.
+1.  Let |credit| be «1».
 1.  Switch on the value of |options|.{{AttributionConversionOptions/logic}}:
     <dl class="switch">
-        :   <a enum-value for=AttributionLogic>"last-touch"</a>
+        :   <a enum-value for=AttributionLogic>"last-n-touch"</a>
         ::  Perform the following steps:
             1.  If |options|.{{AttributionConversionOptions/value}} is 0,
                 throw a {{RangeError}}.
             1.  If |options|.{{AttributionConversionOptions/value}}
                 is greater than |options|.{{AttributionConversionOptions/maxValue}},
                 throw a {{RangeError}}.
+            1.  If |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}} [=map/exists=]:
+                1.  Set |credit| to |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}}.
+                1.  If |credit| is not a [=list=] or [=list/is empty=], throw a {{RangeError}}.
+                1.  If any of the [=list/items=] of |credit| are less than or equal to 0, throw a {{RangeError}}.
+                1.  If the [=list/size=] of |credit| exceeds an implementation-defined maximum, throw a {{RangeError}}.
     </dl>
+1.  Let |validatedLogicOptions| be a {{AttributionLogicOptions}} with the following fields:
+    : {{AttributionLogicOptions/credit}}
+    :: |credit|
 1.  Let |lookback| be |options|.{{AttributionConversionOptions/lookbackDays}} [=days=]
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
@@ -1535,6 +1561,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     :: |impressionCallers|
     : [=validated conversion options/Logic=]
     :: |options|.{{AttributionConversionOptions/logic}}
+    : [=validated conversion options/Logic Options=]
+    :: |validatedLogicOptions|
     : [=validated conversion options/Value=]
     :: |options|.{{AttributionConversionOptions/value}}
     : [=validated conversion options/Max Value=]
@@ -1591,10 +1619,11 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
-      : <a enum-value for=AttributionLogic>"last-touch"</a>
-      :: Return the result of [=fill a histogram with last-touch attribution=] with |matchedImpressions|,
-        |options|' [=validated conversion options/histogram size=], and
-        |options|' [=validated conversion options/value=].
+      : <a enum-value for=AttributionLogic>"last-n-touch"</a>
+      :: Return the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
+        |options|' [=validated conversion options/histogram size=],
+        |options|' [=validated conversion options/value=], and
+        |options|' [=validated conversion options/logic options=].{{AttributionLogicOptions/credit}}.
 
       </dl>
 
@@ -1668,23 +1697,50 @@ To perform <dfn>common matching logic</dfn>, given
 
 </div>
 
-#### Last-Touch Attribution #### {#last-touch-attribution}
+#### Last-N-Touch Attribution #### {#last-n-touch-attribution}
 
 <div algorithm>
-To <dfn>fill a histogram with last-touch attribution</dfn>, given a [=set=] of
-  [=impressions=] |matchedImpressions|, an integer |histogramSize|, and an integer |value|:
+To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
+1.  Multiply each entry in |credit| by |value|.
+1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
+1.  Let |rawNormalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|.
+1.  Let |normalizedCredit| be |rawNormalizedCredit|, with each [=list/item=] rounded towards positive Infinity and converted to an integer.
+1.  Let |shuffledFractionalIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
+1.  [=list/remove|Remove=] any index |i| from |shuffledFractionalIndices| where |rawNormalizedCredit|[|i|] has no fractional part.
+1.  [=list/iterate|For each=] |index| of |shuffledFractionalIndices|:
+      1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
+      1. Decrement |normalizedCredit|[|index|] by 1.
+1.  Return |normalizedCredit|.
+    <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
+    2) never bias towards any particular credit assignment in rounding, and
+    3) never incur an error greater than 1 to any assignment.
+    <p class=issue>
+    While the algorithm is "unbiased" in the sense that the probability of being decremented is equal
+    across entries, ideally the final array of value is unbiased in the sense that its expectation
+    should be equal to |normalizedCredit|. This is not achieved by the current algorithm.
+
+</div>
+
+<div algorithm>
+To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
+  [=impressions=] |matchedImpressions|, an integer |histogramSize|, an integer |value|, and
+  a [=list=] of doubles |credit|:
 
 1.  [=Assert=]: |matchedImpressions| is [=set/is empty|not empty=].
-
-1.  Let |impression| be the value in |matchedImpressions| with the most recent
-    [=impression/timestamp=].
-
+1.  Let |sortedImpressions| be |matchedImpressions|, [=list/sorted in ascending order=]
+    by [=impression/priority=], then by [=impression/timestamp=].
+1.  Let |N| be the minimum of the [=list/size=] of |credit|, and the [=list/size=] of |sortedImpressions|.
+1.  Let |lastNImpressions| be the last |N| entries of |sortedImpressions|.
+1.  [=list/remove|Remove=] all but the last |N| entries of |credit|.
+1.  Let |normalizedCredit| be the result of [=fairly allocate credit|fairly allocating credit=] with |credit| and |value|.
 1.  Let |histogram| be the result of invoking [=create an all-zero histogram=]
     with |histogramSize|.
 
-1.  Let |index| be |impression|'s [=impression/histogram index=].
-
-1.  If |index| is less than |histogram|'s [=list/size=], set |histogram|[|index|] to |value|.
+1. [=list/iterate|For each=] |i| of [=list/get the indices|the indices=] of |lastNImpressions|:
+    1.  Let |impression| be |lastNImpressions|[|i|].
+    1.  Let |value| be |normalizedCredit|[|i|].
+    1.  Let |index| be |impression|'s [=impression/histogram index=].
+    1.  If |index| is less than |histogram|'s [=list/size=], increment |histogram|[|index|] by |value|.
 
 1.  Return |histogram|.
 
@@ -1753,6 +1809,11 @@ the {{AttributionImpressionOptions}} dictionary passed to
     Value of <a dict-member for=AttributionImpressionOptions>histogramIndex</a>,
     a non-negative [=structured header/integer=]. This key is required.
   </dd>
+  <dt><dfn noexport><code>priority</code></dfn></dt>
+  <dd>
+    Value of <a dict-member for=AttributionImpressionOptions>priority</a>,
+    an [=structured header/integer=]. This key is optional.
+  </dd>
   <dt><dfn noexport><code>match-value</code></dfn></dt>
   <dd>
     Value of <a dict-member for=AttributionImpressionOptions>matchValue</a>,
@@ -1787,6 +1848,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
 1.  If |lifetimeDays| is not an [=structured header/integer=] or is less than or equal to 0, return an error.
+1.  Let |priority| be |dict|["<code>[=save-impression/priority=]</code>"] [=map/with default=] 0.
+1.  If |priority| is not an [=structured header/integer=], return an error.
 1.  Return a new {{AttributionImpressionOptions}} with the following items:
      : {{AttributionImpressionOptions/histogramIndex}}
      :: |histogramIndex|
@@ -1798,6 +1861,8 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
      :: |conversionCallers|
      : {{AttributionImpressionOptions/lifetimeDays}}
      :: |lifetimeDays|
+     : {{AttributionImpressionOptions/priority}}
+     :: |priority|
 
 </div>
 
