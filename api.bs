@@ -1692,8 +1692,9 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
 1.  Let |normalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|,
     rounding towards positive Infinity and converting to an integer.
-1.  Let |shuffledIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
-1.  [=list/iterate|For each=] |index| of |shuffledIndices|:
+1.  Let |shuffledFractionalIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
+1.  [=list/remove|Remove=] any index |i| from |shuffledFractionalIndices| where |normalizedCredit|[|i|] has no fractional part.
+1.  [=list/iterate|For each=] |index| of |shuffledFractionalIndices|:
       1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
       1. Decrement |normalizedCredit|[|index|] by 1.
 1.  Return |normalizedCredit|.
