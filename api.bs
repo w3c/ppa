@@ -507,7 +507,7 @@ and impressions are not scoped to a single aggregation service.
 </div>
 
 <xmp class=idl>
-enum PrivateAttributionAggregationProtocol { "dap-15-histogram", "tee-00" };
+enum AttributionAggregationProtocol { "dap-15-histogram", "tee-00" };
 
 dictionary AttributionAggregationService {
   required DOMString protocol;
@@ -531,7 +531,7 @@ that service:
 <dl dfn-for=AttributionAggregationService dfn-type=dict-member>
   <dt><dfn>protocol</dfn></dt>
   <dd>
-    The {{PrivateAttributionAggregationProtocol|protocol}} that the [=aggregation service=] uses.
+    The {{AttributionAggregationProtocol|protocol}} that the [=aggregation service=] uses.
     Different versions of the same protocol use different values.
     Even if a single service provider supports multiple protocols,
     each needs to use a different URL.
@@ -543,10 +543,10 @@ that service:
 The URL is passed as the {{AttributionConversionOptions/aggregationService}} parameter
 to <a method for=Attribution>measureConversion()</a> to select the identified aggregation service.
 
-The <dfn enum>PrivateAttributionAggregationProtocol</dfn> describes the submission protocol
+The <dfn enum>AttributionAggregationProtocol</dfn> describes the submission protocol
 used by different [=aggregation services=]. This document defines two protocols:
 
-<dl dfn-for=PrivateAttributionAggregationProtocol dfn-type=enum-value>
+<dl dfn-for=AttributionAggregationProtocol dfn-type=enum-value>
   <dt><dfn>dap-15-histogram</dfn></dt>
   <dd>A DAP-based protocol [[DAP]] that uses [=MPC=]; see [[#s-mpc]].</dd>
   <dt><dfn>tee-00</dfn></dt>
@@ -865,7 +865,7 @@ Each [=impression=] has a single [=impression/Histogram Index=] attribute
 that determines where the [=validated conversion options/Value|value=]
 allocated to that [=impression=] appears in [[#histograms|the resulting histgram]].
 
-Each invocation of {{PrivateAttribution/measureConversion()}}
+Each invocation of {{Attribution/measureConversion()}}
 therefore needs to select [=impressions=] that have the same histogram definition.
 Though this applies to all uses of the API,
 consistent definition of histograms is especially important when [=impressions=]
@@ -873,7 +873,7 @@ are [[#save-impression-api|saved]] and [[#measure-conversion-api|measured]]
 by multiple [=intermediaries=].
 
 All [=impressions=] that might be [=common matching logic|selected=]
-when invoking {{PrivateAttribution/measureConversion()}}
+when invoking {{Attribution/measureConversion()}}
 need to use the same histogram definition.
 The API provides several tools
 for ensuring that only the right [=impressions=] are chosen.
@@ -884,11 +884,11 @@ For saved [=impressions=]:
     by histogram definition.
 
 *   Use of an [=impression=] for [=conversion=] can be restricted
-    to be visible only to {{PrivateAttribution/measureConversion()}}
+    to be visible only to {{Attribution/measureConversion()}}
     on a [=impression/Conversion Sites|set of conversion sites=].
 
 *   Use of an [=impression=] for [=conversion=] can be restricted
-    to be visible only to {{PrivateAttribution/measureConversion()}}
+    to be visible only to {{Attribution/measureConversion()}}
     invoked by a [=impression/Conversion Callers|set of sites=].
 
 As part of [=common matching logic=] at the point of [=conversion=]:
@@ -907,10 +907,10 @@ These options provide sites with flexibility in how attribution selects histogra
 It does not preclude the use of different histograms by a [=conversion site=].
 Multiple [=impressions=] can be saved
 with different histogram definitions
-provided that {{PrivateAttribution/measureConversion()}} invocations
+provided that {{Attribution/measureConversion()}} invocations
 never [=common matching logic|select=] [=impressions=] with different histogram definitions.
 This ensures that [=conversions=] can be [=attribution|attributed=] to multiple histograms
-by invoking {{PrivateAttribution/measureConversion()}} multiple times.
+by invoking {{Attribution/measureConversion()}} multiple times.
 
 
 ## Permissions Policy Integration ## {#permission-policy}
@@ -1450,12 +1450,12 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
      1.  Let |aggregationService| be |validatedOptions|'s [=validated conversion options/aggregation service=].
      1.  Switch on the value of |aggregationService|.{{AttributionAggregationService/protocol}}:
          <dl class="switch">
-            :   <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
+            :   <a enum-value for=AttributionAggregationProtocol>`dap-15-histogram`</a>
             ::  Perform the following steps:
                 1.  Let |encryptedReport| be the result of invoking <a>construct a DAP report</a>,
                     given |validatedOptions|, |topLevelSite|, |now|, and |report|.
 
-            :   <a enum-value for=PrivateAttributionAggregationProtocol>`tee-00`</a>
+            :   <a enum-value for=AttributionAggregationProtocol>`tee-00`</a>
             ::  Perform the following steps:
                 1.  TODO: see [#130](https://github.com/w3c/ppa/issues/130)
          </dl>
@@ -1937,7 +1937,7 @@ by either MPC operator.
 
 ### Prio and DAP ### {#prio}
 
-The <a enum-value for=PrivateAttributionAggregationProtocol>`dap-15-histogram`</a>
+The <a enum-value for=AttributionAggregationProtocol>`dap-15-histogram`</a>
 aggregation method uses Prio [[PRIO]]
 and the Distributed Aggregation Protocol (DAP) [[DAP]].
 Specifically, this aggregation method uses
@@ -2087,7 +2087,7 @@ and a [=list=] of [=integers=] |histogram|:
         obtained for the [=aggregation service=]
         indicated by |options|.[=validated conversion options/Aggregation Service=].
 
-        <p class=note>The URL for <a enum-value for=PrivateAttributionAggregationProtocol>"dap-15-histogram"</a> is expected to identify the DAP Leader role.
+        <p class=note>The URL for <a enum-value for=AttributionAggregationProtocol>"dap-15-histogram"</a> is expected to identify the DAP Leader role.
         Implementations need to obtain HPKE configuration for both Aggregators statically.
         The HPKE configuration <span class=allow-2119>must not</span> be fetched on demand, as the time that takes
         will leak information to callers of <a method for=Attribution>measureConversion()</a>.
