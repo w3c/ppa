@@ -1705,7 +1705,7 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  Let |rawNormalizedCredit| be a new [=list=].
 1.  Let |normalizedCredit| be a new [=list=].
 1.  [=list/iterate|For each=] |item| of |credit|:
-      1. Let |rawNormalized| be |item| / |sumCredit| * |value|.
+      1. Let |rawNormalized| be |value| * |item| / |sumCredit|.
       1. [=list/Append=] |rawNormalized| to |rawNormalizedCredit|.
       1. Let |normalized| be |rawNormalized| rounded towards positive Infinity and converted to an integer.
       1. [=list/Append=] |normalized| to |normalizedCredit|.
