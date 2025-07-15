@@ -1513,8 +1513,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
             1.  If |options|.{{AttributionConversionOptions/value}}
                 is greater than |options|.{{AttributionConversionOptions/maxValue}},
                 throw a {{RangeError}}.
-            1.  If |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}} [=map/exists=]:
-                1.  Set |credit| to |options|.{{AttributionConversionOptions}}.{{AttributionLogicOptions/credit}}.
+            1.  If |options|.{{AttributionConversionOptions/logicOptions}}.{{AttributionLogicOptions/credit}} [=map/exists=]:
+                1.  Set |credit| to |options|.{{AttributionConversionOptions/logicOptions}}.{{AttributionLogicOptions/credit}}.
                 1.  If |credit| is not a [=list=] or [=list/is empty=], throw a {{RangeError}}.
                 1.  If any of the [=list/items=] of |credit| are less than or equal to 0, throw a {{RangeError}}.
                 1.  If the [=list/size=] of |credit| exceeds an implementation-defined maximum, throw a {{RangeError}}.
@@ -1706,7 +1706,7 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  Let |rawNormalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|.
 1.  Let |normalizedCredit| be |rawNormalizedCredit|, with each [=list/item=] rounded towards positive Infinity and converted to an integer.
 1.  Let |shuffledFractionalIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
-1.  [=list/remove|Remove=] any index |i| from |shuffledFractionalIndices| where |rawNormalizedCredit|[|i|] has no fractional part.
+1.  [=list/remove|Remove=] all indices |i| from |shuffledFractionalIndices| where |rawNormalizedCredit|[|i|] has no fractional part.
 1.  [=list/iterate|For each=] |index| of |shuffledFractionalIndices|:
       1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
       1. Decrement |normalizedCredit|[|index|] by 1.
