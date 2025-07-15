@@ -1706,25 +1706,32 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  Let |roundedCredit| be a new [=map=].
 1.  [=list/iterate|For each=] |idx| of [=list/get the indices|the indices=] of |credit|:
     1.  Let |rawNormalized| be |value| * |credit|[|idx|] / |sumCredit|.
-    1.  If |rawNormalizedCredit| is equal to |rawNormalizedCredit| rounded towards positive Infinity,
+    1.  If |rawNormalizedCredit| is equal to |rawNormalizedCredit| converted to an integer,
         [=map/set=] |roundedCredit|[|idx|] to |rawNormalizedCredit|, converted to an integer.
     1.  Otherwise, [=map/set|set=] |unroundedCredit|[idx] to |rawNormalized|.
-1.  While the [=map/size=] of |unroundedCredit| is greater than 1.
+1.  While the [=map/size=] of |unroundedCredit| is greater than 1:
     1.  Let |idx1| and |x1| be the [=map/key=] and [=map/value=] of the first [=map/entry=] of |unroundedCredit|.
     1.  Let |idx2| and |x2| be the [=map/key=] and [=map/value=] of the second [=map/entry=] of |unroundedCredit|.
-    1.  Let |delta1| be min(ceiling(|x1|) - x1, x2 - floor(x2)).
-    1.  Let |delta2| be min(ceiling(|x2|) - x2, x1 - floor(x1)).
+    1.  Let |delta1| be min(ceiling(|x1|) - |x1|, |x2| - floor(|x2|)).
+    1.  Let |delta2| be min(ceiling(|x2|) - |x2|, |x1| - floor(|x1|)).
     1.  Let |p| be |delta2| / (|delta1| + |delta2|)
     1.  Let |r| be a random double between 0 and 1 (inclusive).
-    1.  If |r| is less than |p|, set |x1| to |x1| + |delta1|, and set |x2| to |x2 - |delta1|.
-    1.  Otherwise, set |x2| to |x2| + |delta2|, and set |x1| to |x1 - |delta2|.
+    1.  If |r| is less than |p|, set |x1| to |x1| + |delta1|, and set |x2| to |x2| - |delta1|.
+    1.  Otherwise, set |x2| to |x2| + |delta2|, and set |x1| to |x1| - |delta2|.
     1.  If floor(|x1|) is equal to |x1|, [=map/remove=] |unroundedCredit|[|idx1|] and [=map/set=] |roundedCredit|[|idx1|] to |x1|, converted to an integer.
+    1.  Otherwise, [=map/set=] |unroundedCredit|[|idx1|] to |x1|.
     1.  If floor(|x2|) is equal to |x2|, [=map/remove=] |unroundedCredit|[|idx2|] and [=map/set=] |roundedCredit|[|idx2|] to |x2|, converted to an integer.
-        <p class=note>Each loop iteration removes at least one entry from |unroundedCredit|.
-1.  Let |idxlast| and |xlast| be the remaining [=map/entry=] of |unroundedCredit|.
-1.  [=map/set|Set=] |roundedCredit|[|idxlast|] to the result of rounding |xlast| to the nearest integer.
+    1.  Otherwise, [=map/set=] |unroundedCredit|[|idx2|] to |x2|.
+        <p class=note>Each loop iteration removes at least one entry from |unroundedCredit|. This follows from the fact that
+        floating point arithmetic operations perform correct rounding [[!IEEE-754]], i.e. if |x| and |y| are floating point and f(|x|, |y|)
+        can be represented exactly as a floating point, the output of f will be represented exactly. It follows that one of |x1| and |x2| is clamped
+        to either its floor or ceiling in each iteration, which can be represented as a double as long as it is less than or equal to 2<sup>53</sup>.
+1.  If |unroundedCredit| is not [=map/is empty|empty=]:
+    1.  Let |idxLast| and |xLast| be the remaining [=map/entry=] of |unroundedCredit|.
+    1.  [=map/set|Set=] |roundedCredit|[|idxLast|] to the result of rounding |xLast| to the nearest integer.
+
     <p class=note>This final rounding step is only here in cases where floating point addition and subtraction does not completely remove
-    the fractional part for |xlast|.
+    the fractional part for |xLast|.
 1.  Let |finalCredit| be a new [=list=].
 1.  [=list/iterate|For each=] |idx| of [=list/get the indices|the indices=] of |credit|:
     1.  [=list/append|Append=] |roundedCredit|[|idx|] to |finalCredit|.
