@@ -1701,10 +1701,14 @@ To perform <dfn>common matching logic</dfn>, given
 
 <div algorithm>
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
-1.  Multiply each entry in |credit| by |value|.
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
-1.  Let |rawNormalizedCredit| be the result of element-wise dividing each [=list/item=] in |credit| by |sumCredit|.
-1.  Let |normalizedCredit| be |rawNormalizedCredit|, with each [=list/item=] rounded towards positive Infinity and converted to an integer.
+1.  Let |rawNormalizedCredit| be a new [=list=].
+1.  Let |normalizedCredit| be a new [=list=].
+1.  [=list/iterate|For each=] |item| of |credit|:
+      1. Let |rawNormalized| be |value| * |item| / |sumCredit|.
+      1. [=list/Append=] |rawNormalized| to |rawNormalizedCredit|.
+      1. Let |normalized| be |rawNormalized| rounded towards positive Infinity and converted to an integer.
+      1. [=list/Append=] |normalized| to |normalizedCredit|.
 1.  Let |shuffledFractionalIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
 1.  [=list/remove|Remove=] all indices |i| from |shuffledFractionalIndices| where |rawNormalizedCredit|[|i|] has no fractional part.
 1.  [=list/iterate|For each=] |index| of |shuffledFractionalIndices|:
