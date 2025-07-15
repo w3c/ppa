@@ -1721,7 +1721,7 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
     <p class=issue>
     While the algorithm is "unbiased" in the sense that the probability of being decremented is equal
     across entries, ideally the final array of value is unbiased in the sense that its expectation
-    should be equal to |normalizedCredit|. This is not achieved by the current algorithm.
+    should be equal to |rawNormalizedCredit|. This is not achieved by the current algorithm.
 
 </div>
 
