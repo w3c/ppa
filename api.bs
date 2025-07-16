@@ -1701,7 +1701,7 @@ To perform <dfn>common matching logic</dfn>, given
 
 <div algorithm>
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
-1.  [=Assert=] |credit| is not [=list/is empty|empty=].
+1.  [=Assert=]: |credit| is not [=list/is empty|empty=].
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
 1.  Let |unroundedCreditIndices| be a new [=list=].
 1.  Let |roundedCredit| be a new [=list=].
@@ -1710,29 +1710,30 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
     1.  If |normalizedCredit| is not equal to |normalizedCredit| converted to an integer,
         [=list/append=] |idx| to |unroundedCreditIndices|.
     1.  [=list/append|Append=] |normalizedCredit| to |roundedCredit|.
-1.  If |unroundedCreditIndices| is [=list/is empty|empty=], return |roundedCredit|, converting each [=list/item=] into an integer.
+1.  If |unroundedCreditIndices| [=list/is empty=], return |roundedCredit|, converting each [=list/item=] into an integer.
 1.  Let |idx1| be the first [=list/item=] of |unroundedCreditIndices|.
 1.  [=list/iterate|For each=] |n| of [=list/get the indices|the indices=] of |unroundedCredit|, removing the first [=list/item=]: 
     1.  Let |idx2| be |n|.
     1.  Let |frac1| be |roundedCredit|[|idx1|].
     1.  Let |frac2| be |roundedCredit|[|idx2|].
-    1.  If |frac1| + |frac2| is greater than 1, let |incr1| be 1 - |frac1| and |incr2| be 1 - |frac2|.
-    1.  Otherwise let |incr1| be -|frac1| and |incr2| be -|frac2|.
-    1.  Let |pa| be |incr2| / (|incr1| + |incr2|).
+    1.  If |frac1| + |frac2| is greater than 1, let |frac1| be |frac1| − 1 and |frac2| be |frac2| − 1.
+    1.  Let |pa| be |frac2| / (|frac1| + |frac2|).
         <p class=note>Divide by zero is not possible here. This is true because |frac2| is in the exclusive range (0, 1) and |frac1| is in the inclusive range [0, 1].
         In the first case, divide by zero occurs if |frac1| + |frac2| = 2, and in the second case it occurs if |frac1| + |frac2| = 0.
 
     1.  Let |r| be a random double between 0 and 1 (inclusive).
-    1.  If |r| is less than |pa|, set |incr| to |incr1| and swap the values of |idx1| and |idx2|.
-    1.  Otherwise, set |incr| to |incr2|.
-    1.  Increment |roundedCredit|[|idx2|] by |incr|.
-    1.  Decrement |roundedCredit|[|idx1|] by |incr|.
-1.  Return |roundedCredit|, converting each [=list/item=] into an integer by rounding to the nearest integer.
-    <p class=note>This final rounding step is only here in cases where floating point addition and subtraction errors do not completely remove
+    1.  If |r| is less than |pa|, set |incr| to |frac1| and swap the values of |idx1| and |idx2|.
+    1.  Otherwise, set |incr| to |frac2|.
+    1.  Increment |roundedCredit|[|idx1|] by |incr|.
+    1.  Decrement |roundedCredit|[|idx2|] by |incr|.
+1.  Let |integerCredit| be the result of converting [=list/iterate|every=] [=list/item=] from |roundedCredit| into an integer by rounding.
+<!-- insert your note -->
+1.  Return |integerCredit|.
+    <p class=note>This final rounding step is only here in cases where floating-point addition and subtraction errors do not completely remove
     the fractional part for |roundedCredit|[|idx1|].
 
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
-    2) the expected value of each value of |roundedCredit| is exactly equal to its corresponding value in |unroundedCredit|, and
+    2) ensure that the expected value of items in |roundedCredit| is exactly equal to the corresponding item in |unroundedCredit|, and
     3) never incur an error greater than 1 to any assignment.
 
 </div>
