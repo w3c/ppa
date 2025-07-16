@@ -13,7 +13,7 @@ bikeshed := venv/bin/bikeshed
 venv: $(venv-marker)
 
 $(venv-marker): Makefile
-	python3.12 -m venv venv
+	python3 -m venv venv
 	@touch $@
 
 $(bikeshed): $(venv-marker) Makefile

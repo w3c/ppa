@@ -1701,41 +1701,36 @@ To perform <dfn>common matching logic</dfn>, given
 
 <div algorithm>
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
+1.  [=Assert=] |credit| is not [=list/is empty|empty=].
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
-1.  Let |unroundedCredit| be a new [=map=].
-1.  Let |roundedCredit| be a new [=map=].
+1.  Let |unroundedCreditIndices| be a new [=list=].
+1.  Let |roundedCredit| be a new [=list=].
 1.  [=list/iterate|For each=] |idx| of [=list/get the indices|the indices=] of |credit|:
-    1.  Let |rawNormalized| be |value| * |credit|[|idx|] / |sumCredit|.
-    1.  If |rawNormalizedCredit| is equal to |rawNormalizedCredit| converted to an integer,
-        [=map/set=] |roundedCredit|[|idx|] to |rawNormalizedCredit|, converted to an integer.
-    1.  Otherwise, [=map/set|set=] |unroundedCredit|[idx] to |rawNormalized|.
-1.  While the [=map/size=] of |unroundedCredit| is greater than 1:
-    1.  Let |idx1| and |x1| be the [=map/key=] and [=map/value=] of the first [=map/entry=] of |unroundedCredit|.
-    1.  Let |idx2| and |x2| be the [=map/key=] and [=map/value=] of the second [=map/entry=] of |unroundedCredit|.
-    1.  Let |delta1| be min(ceiling(|x1|) - |x1|, |x2| - floor(|x2|)).
-    1.  Let |delta2| be min(ceiling(|x2|) - |x2|, |x1| - floor(|x1|)).
-    1.  Let |p| be |delta2| / (|delta1| + |delta2|)
-    1.  Let |r| be a random double between 0 and 1 (inclusive).
-    1.  If |r| is less than |p|, set |x1| to |x1| + |delta1|, and set |x2| to |x2| - |delta1|.
-    1.  Otherwise, set |x2| to |x2| + |delta2|, and set |x1| to |x1| - |delta2|.
-    1.  If floor(|x1|) is equal to |x1|, [=map/remove=] |unroundedCredit|[|idx1|] and [=map/set=] |roundedCredit|[|idx1|] to |x1|, converted to an integer.
-    1.  Otherwise, [=map/set=] |unroundedCredit|[|idx1|] to |x1|.
-    1.  If floor(|x2|) is equal to |x2|, [=map/remove=] |unroundedCredit|[|idx2|] and [=map/set=] |roundedCredit|[|idx2|] to |x2|, converted to an integer.
-    1.  Otherwise, [=map/set=] |unroundedCredit|[|idx2|] to |x2|.
-        <p class=note>Each loop iteration removes at least one entry from |unroundedCredit|. This follows from the fact that
-        floating point arithmetic operations perform correct rounding [[!IEEE-754]], i.e. if |x| and |y| are floating point and f(|x|, |y|)
-        can be represented exactly as a floating point, the output of f will be represented exactly. It follows that one of |x1| and |x2| is clamped
-        to either its floor or ceiling in each iteration, which can be represented as a double as long as it is less than or equal to 2<sup>53</sup>.
-1.  If |unroundedCredit| is not [=map/is empty|empty=]:
-    1.  Let |idxLast| and |xLast| be the remaining [=map/entry=] of |unroundedCredit|.
-    1.  [=map/set|Set=] |roundedCredit|[|idxLast|] to the result of rounding |xLast| to the nearest integer.
+    1.  Let |normalizedCredit| be |value| * |credit|[|idx|] / |sumCredit|.
+    1.  If |normalizedCredit| is not equal to |normalizedCredit| converted to an integer,
+        [=list/append=] |idx| to |unroundedCreditIndices|.
+    1.  [=list/append|Append=] |normalizedCredit| to |roundedCredit|.
+1.  If |unroundedCreditIndices| is [=list/is empty|empty=], return |roundedCredit|, converting each [=list/item=] into an integer.
+1.  Let |idx1| be the first [=list/item=] of |unroundedCreditIndices|.
+1.  [=list/iterate|For each=] |n| of [=list/get the indices|the indices=] of |unroundedCredit|, removing the first [=list/item=]: 
+    1.  Let |idx2| be |n|.
+    1.  Let |frac1| be |roundedCredit|[|idx1|].
+    1.  Let |frac2| be |roundedCredit|[|idx2|].
+    1.  If |frac1| + |frac2| is greater than 1, let |incr1| be 1 - |frac1| and |incr2| be 1 - |frac2|.
+    1.  Otherwise let |incr1| be -|frac1| and |incr2| be -|frac2|.
+    1.  Let |pa| be |incr2| / (|incr1| + |incr2|).
+        <p class=note>Divide by zero is not possible here. This is true because |frac2| is in the exclusive range (0, 1) and |frac1| is in the inclusive range [0, 1].
+        In the first case, divide by zero occurs if |frac1| + |frac2| = 2, and in the second case it occurs if |frac1| + |frac2| = 0.
 
-    <p class=note>This final rounding step is only here in cases where floating point addition and subtraction does not completely remove
-    the fractional part for |xLast|.
-1.  Let |finalCredit| be a new [=list=].
-1.  [=list/iterate|For each=] |idx| of [=list/get the indices|the indices=] of |credit|:
-    1.  [=list/append|Append=] |roundedCredit|[|idx|] to |finalCredit|.
-1.  Return |finalCredit|.
+    1.  Let |r| be a random double between 0 and 1 (inclusive).
+    1.  If |r| is less than |pa|, set |incr| to |incr1| and swap the values of |idx1| and |idx2|.
+    1.  Otherwise, set |incr| to |incr2|.
+    1.  Increment |roundedCredit|[|idx2|] by |incr|.
+    1.  Decrement |roundedCredit|[|idx1|] by |incr|.
+1.  Return |roundedCredit|, converting each [=list/item=] into an integer by rounding to the nearest integer.
+    <p class=note>This final rounding step is only here in cases where floating point addition and subtraction errors do not completely remove
+    the fractional part for |roundedCredit|[|idx1|].
+
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
     2) the expected value of each value of |roundedCredit| is exactly equal to its corresponding value in |unroundedCredit|, and
     3) never incur an error greater than 1 to any assignment.
