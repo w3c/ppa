@@ -1728,13 +1728,15 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
     1.  Otherwise, set |incr| to |incr2|.
     1.  Increment |roundedCredit|[|idx2|] by |incr|.
     1.  Decrement |roundedCredit|[|idx1|] by |incr|.
-1.  Let |integerCredit| be the result of converting [=list/iterate|every=] [=list/item=] from |roundedCredit| into an integer by rounding.
+1.  Let |integerCredit| be the result of converting [=list/iterate|every=] [=list/item=] from |roundedCredit| into an integer by rounding to the nearest integer,
+    and rounding halfway cases away from zero.
 1.  Return |integerCredit|.
-    <p class=note>This final rounding step is only here in cases where floating-point addition and subtraction errors do not completely remove
-    the fractional part for |roundedCredit|[|idx1|].
+    <p class=note>This final rounding step is only here in cases where tiny floating-point addition and subtraction errors do not completely remove
+    the fractional part for |roundedCredit|[|idx1|]. The rounding mode at half will never actually occur, and is chosen to match C++ <code>std::round</code>
+    behavior for ease of implementation.
 
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
-    2) the expected value of each value of |roundedCredit| is exactly equal to its corresponding normalized credit
+    2) maintain the property that the expected value of |integerCredit| is exactly equal to the normalized credit
     (i.e. |credit| * |value| / |sumCredit| where * denotes element-wise multiplication)
     3) never incur an error greater than 1 to any assignment.
 
