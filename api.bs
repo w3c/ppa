@@ -1704,14 +1704,14 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
 1.  [=Assert=]: |credit| is not [=list/is empty|empty=].
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
 1.  Let |roundedCredit| be a new [=list=].
-1.  [=list/iterate|For each=] |idx| of [=list/get the indices|the indices=] of |credit|:
-    1.  Let |normalizedCredit| be |value| * |credit|[|idx|] / |sumCredit|.
+1.  [=list/iterate|For each=] |item| of |credit|:
+    1.  Let |normalizedCredit| be |value| * |item| / |sumCredit|.
     1.  [=list/append|Append=] |normalizedCredit| to |roundedCredit|.
 1.  1. Let |idx1| be 0.
 1.  [=list/iterate|For each=] |n| of [=list/get the indices=] of |roundedCredit|, removing the first [=list/item=]:
     1.  Let |idx2| be |n|.
     1.  Let |frac1| be |roundedCredit|[|idx1|] - floor(|roundedCredit|[|idx1|]).
-    1.  Let |frac2| be |roundedCredit|[|idx2|] - floor(|roundedCredit|[|idx2|].
+    1.  Let |frac2| be |roundedCredit|[|idx2|] - floor(|roundedCredit|[|idx2|]).
     1.  If |frac1| and |frac2| are both integers, [=iteration/continue=].
     1.  If |frac1| + |frac2| is greater than 1, let |incr1| be 1-|frac1| and |incr2| be 1-|frac2|.
     1.  Otherwise, let |incr1| be -|frac1| and |incr2| be -|frac2|.
@@ -1721,7 +1721,7 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
     1.  Let |p1| be |incr2| / (|incr1| + |incr2|).
         <p class=note>The value |p1| denotes the probability that the [=list/item=] in |idx1| is rounded to an integer.
         Divide by zero occurs when |incr1| + |incr2| is 0, which is only possible if both |frac1| and |frac2|
-        are integers (either both 0 or 1 exactly). In this case because |idx2| does not need to be rounded, so we just skip it.
+        are integers (either both 0 or 1 exactly). In this case |idx2| does not need to be rounded, so we just skip it.
 
     1.  Let |r| be a random double between 0 and 1 (inclusive).
     1.  If |r| is less than |p1|, set |incr| to |incr1| and swap the values of |idx1| and |idx2|.
