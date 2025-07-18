@@ -25,11 +25,11 @@ void test("e2e", () => {
     random: () => 0.5,
   });
 
-  ppa.saveImpression(site, { histogramIndex: 0 });
+  ppa.saveImpression(site, intermediarySite, { histogramIndex: 0 });
 
   now = now.add({ seconds: 1 });
 
-  ppa.saveImpression(site, { histogramIndex: 1 });
+  ppa.saveImpression(site, intermediarySite, { histogramIndex: 1 });
 
   now = now.add({ seconds: 1 });
 

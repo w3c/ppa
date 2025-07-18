@@ -17,12 +17,12 @@ import * as psl from "psl";
 interface Impression {
   matchValue: number;
   impressionSite: string;
+  intermediarySite: string | undefined;
   conversionSites: Set<string>;
   conversionCallers: Set<string>;
   timestamp: Temporal.Instant;
   lifetime: Temporal.Duration;
   histogramIndex: number;
-  intermediarySite?: string;
   priority: number;
 }
 
@@ -129,6 +129,7 @@ export class Backend {
 
   saveImpression(
     impressionSite: string,
+    intermediarySite: string | undefined,
     {
       histogramIndex,
       matchValue = index.DEFAULT_IMPRESSION_MATCH_VALUE,
@@ -184,6 +185,7 @@ export class Backend {
     this.#impressions.push({
       matchValue,
       impressionSite,
+      intermediarySite,
       conversionSites: parsedConversionSites,
       conversionCallers: parsedConversionCallers,
       timestamp,
@@ -331,7 +333,12 @@ export class Backend {
     intermediarySite: string | undefined,
     epoch: number, // TODO
     now: Temporal.Instant,
-    { lookback, impressionSites, matchValue }: ValidatedConversionOptions,
+    {
+      lookback,
+      impressionSites,
+      impressionCallers,
+      matchValue,
+    }: ValidatedConversionOptions,
   ): Set<Impression> {
     const matching = new Set<Impression>();
 
@@ -370,7 +377,7 @@ export class Backend {
       ) {
         continue;
       }
-      const caller = intermediarySite ?? topLevelSite;
+      let caller = intermediarySite ?? topLevelSite;
       if (
         impression.conversionCallers.size > 0 &&
         !impression.conversionCallers.has(caller)
@@ -384,6 +391,12 @@ export class Backend {
         impressionSites.size > 0 &&
         !impressionSites.has(impression.impressionSite)
       ) {
+        continue;
+      }
+      // TODO: The wording from Step 4.10 of
+      // https://w3c.github.io/ppa/#common-matching-logic is a bit ambiguous.
+      caller = impression.intermediarySite ?? impression.impressionSite;
+      if (impressionCallers.size > 0 && !impressionCallers.has(caller)) {
         continue;
       }
       matching.add(impression);

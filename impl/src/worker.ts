@@ -26,7 +26,11 @@ onmessage = (e: MessageEvent<AsyncAttributionCall>) => {
   try {
     switch (e.data.method) {
       case "save-impression":
-        result = backend.saveImpression(e.data.site, e.data.options);
+        result = backend.saveImpression(
+          e.data.site,
+          e.data.intermediarySite,
+          e.data.options,
+        );
         break;
       case "measure-conversion":
         result = backend.measureConversion(
