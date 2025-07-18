@@ -9,7 +9,7 @@ void test("e2e", () => {
   const intermediarySite = undefined;
   let now = new Temporal.Instant(0n);
 
-  const ppa = new Backend({
+  const backend = new Backend({
     aggregationServices: new Map([["", { protocol: "dap-15-histogram" }]]),
     includeUnencryptedHistogram: true,
 
@@ -25,15 +25,15 @@ void test("e2e", () => {
     random: () => 0.5,
   });
 
-  ppa.saveImpression(site, intermediarySite, { histogramIndex: 0 });
+  backend.saveImpression(site, intermediarySite, { histogramIndex: 0 });
 
   now = now.add({ seconds: 1 });
 
-  ppa.saveImpression(site, intermediarySite, { histogramIndex: 1 });
+  backend.saveImpression(site, intermediarySite, { histogramIndex: 1 });
 
   now = now.add({ seconds: 1 });
 
-  const { unencryptedHistogram } = ppa.measureConversion(
+  const { unencryptedHistogram } = backend.measureConversion(
     site,
     intermediarySite,
     {

@@ -331,7 +331,7 @@ export class Backend {
   #commonMatchingLogic(
     topLevelSite: string,
     intermediarySite: string | undefined,
-    epoch: number, // TODO
+    epoch: number,
     now: Temporal.Instant,
     {
       lookback,
