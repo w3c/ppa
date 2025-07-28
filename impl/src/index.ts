@@ -15,11 +15,11 @@ export const DEFAULT_IMPRESSION_PRIORITY = 0;
 
 export interface AttributionImpressionOptions {
   histogramIndex: number;
-  matchValue?: number; // = DEFAULT_IMPRESSION_PRIORITY
-  conversionSites?: string[]; // = []
-  conversionCallers?: string[]; // = []
-  lifetimeDays?: number; // = DEFAULT_IMPRESSION_LIFETIME_DAYS
-  priority?: number; // = DEFAULT_IMPRESSION_PRIORITY
+  matchValue?: number | undefined; // = DEFAULT_IMPRESSION_PRIORITY
+  conversionSites?: string[] | undefined; // = []
+  conversionCallers?: string[] | undefined; // = []
+  lifetimeDays?: number | undefined; // = DEFAULT_IMPRESSION_LIFETIME_DAYS
+  priority?: number | undefined; // = DEFAULT_IMPRESSION_PRIORITY
 }
 
 export type AttributionImpressionResult = object;
@@ -27,7 +27,7 @@ export type AttributionImpressionResult = object;
 export type AttributionLogic = "last-n-touch";
 
 export interface AttributionLogicOptions {
-  credit?: number[];
+  credit?: number[] | undefined;
 }
 
 export const DEFAULT_CONVERSION_EPSILON = 1.0;
@@ -35,21 +35,23 @@ export const DEFAULT_CONVERSION_LOGIC = "last-n-touch";
 export const DEFAULT_CONVERSION_VALUE = 1;
 export const DEFAULT_CONVERSION_MAX_VALUE = 1;
 
+export const MAX_CONVERSION_EPSILON = 4294;
+
 export interface AttributionConversionOptions {
   aggregationService: string;
-  epsilon?: number; // = DEFAULT_CONVERSION_EPSILON
+  epsilon?: number | undefined; // = DEFAULT_CONVERSION_EPSILON
 
   histogramSize: number;
 
-  lookbackDays?: number;
-  matchValue?: number[]; // = []
-  impressionSites?: string[]; // = []
-  impressionCallers?: string[]; // = []
+  lookbackDays?: number | undefined;
+  matchValue?: number[] | undefined; // = []
+  impressionSites?: string[] | undefined; // = []
+  impressionCallers?: string[] | undefined; // = []
 
-  logic?: AttributionLogic; // = DEFAULT_CONVERSION_LOGIC
-  logicOptions?: AttributionLogicOptions;
-  value?: number; // = DEFAULT_CONVERSION_VALUE
-  maxValue?: number; // = DEFAULT_CONVERSION_MAX_VALUE
+  logic?: AttributionLogic | undefined; // = DEFAULT_CONVERSION_LOGIC
+  logicOptions?: AttributionLogicOptions | undefined;
+  value?: number | undefined; // = DEFAULT_CONVERSION_VALUE
+  maxValue?: number | undefined; // = DEFAULT_CONVERSION_MAX_VALUE
 }
 
 export interface AttributionConversionResult {
