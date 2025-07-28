@@ -40,7 +40,7 @@ interface ValidatedConversionOptions {
   epsilon: number;
   histogramSize: number;
   lookback: Temporal.Duration;
-  matchValue: Set<number>;
+  matchValues: Set<number>;
   impressionSites: Set<string>;
   impressionCallers: Set<string>;
   logic: AttributionLogic;
@@ -207,7 +207,7 @@ export class Backend {
     logic = index.DEFAULT_CONVERSION_LOGIC,
     logicOptions,
     maxValue = index.DEFAULT_CONVERSION_MAX_VALUE,
-    matchValue = [],
+    matchValues = [],
     value = index.DEFAULT_CONVERSION_VALUE,
   }: AttributionConversionOptions): ValidatedConversionOptions {
     const aggregationServiceEntry =
@@ -269,7 +269,7 @@ export class Backend {
     }
 
     const matchValueSet = new Set<number>();
-    for (const value of matchValue) {
+    for (const value of matchValues) {
       if (value < 0 || !Number.isInteger(value)) {
         throw new RangeError("match value must be a non-negative integer");
       }
@@ -291,7 +291,7 @@ export class Backend {
       epsilon,
       histogramSize,
       lookback: days(lookbackDays),
-      matchValue: matchValueSet,
+      matchValues: matchValueSet,
       impressionSites: parsedImpressionSites,
       impressionCallers: parsedImpressionCallers,
       logic,
@@ -337,7 +337,7 @@ export class Backend {
       lookback,
       impressionSites,
       impressionCallers,
-      matchValue,
+      matchValues,
     }: ValidatedConversionOptions,
   ): Set<Impression> {
     const matching = new Set<Impression>();
@@ -384,7 +384,7 @@ export class Backend {
       ) {
         continue;
       }
-      if (matchValue.size > 0 && !matchValue.has(impression.matchValue)) {
+      if (matchValues.size > 0 && !matchValues.has(impression.matchValue)) {
         continue;
       }
       if (

@@ -44,7 +44,7 @@ export interface AttributionConversionOptions {
   histogramSize: number;
 
   lookbackDays?: number | undefined;
-  matchValue?: number[] | undefined; // = []
+  matchValues?: number[] | undefined; // = []
   impressionSites?: string[] | undefined; // = []
   impressionCallers?: string[] | undefined; // = []
 

@@ -127,7 +127,7 @@ function reportValidity(this: HTMLFormElement) {
       aggregationService: "",
       epsilon: numberOrUndefined(epsilon),
       histogramSize: histogramSize.valueAsNumber,
-      matchValue: matchValues.value
+      matchValues: matchValues.value
         .trim()
         .split(/\s+/)
         .map((v) => Number.parseInt(v, 10)),
