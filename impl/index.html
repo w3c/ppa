@@ -35,6 +35,16 @@
     padding: 0.5em;
     flex: 1;
   }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 0.5em;
+    border: 1px solid #000;
+  }
 </style>
 <body>
   <nav>
@@ -81,6 +91,20 @@
         <h3>Results</h3>
         <ol></ol>
       </output>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Impression Site</th>
+            <th>Intermediary Site</th>
+            <th>Histogram Index</th>
+            <th>Match Value</th>
+            <th>Lifetime Days</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </form>
     <form id="measureConversion">
       <h2>Measure Conversion</h2>

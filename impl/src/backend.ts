@@ -116,6 +116,10 @@ export class Backend {
     return this.#privacyBudgetStore;
   }
 
+  get impressions(): Iterable<Readonly<Impression>> {
+    return this.#impressions;
+  }
+
   get aggregationServices(): AttributionAggregationServices {
     return this.#delegate.aggregationServices;
   }

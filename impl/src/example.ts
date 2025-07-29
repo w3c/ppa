@@ -46,6 +46,25 @@ function sites(
   ];
 }
 
+const impressionTable = document.querySelector("tbody")!;
+
+function updateImpressionsTable() {
+  impressionTable.replaceChildren();
+  for (const i of backend.impressions) {
+    const tr = document.createElement("tr");
+
+    tr.insertCell().innerText = i.timestamp.toString();
+    tr.insertCell().innerText = i.impressionSite;
+    tr.insertCell().innerText = i.intermediarySite ?? "";
+    tr.insertCell().innerText = i.histogramIndex.toString();
+    tr.insertCell().innerText = i.matchValue.toString();
+    tr.insertCell().innerText = (i.lifetime.hours / 24).toString();
+    tr.insertCell().innerText = i.priority.toString();
+
+    impressionTable.append(tr);
+  }
+}
+
 (function () {
   const form = document.querySelector<HTMLFormElement>("#time")!;
 
@@ -66,6 +85,7 @@ function sites(
     now = now.add({ hours: days.valueAsNumber * 24 });
     time.innerText = now.toString();
     backend.clearExpiredImpressions();
+    updateImpressionsTable();
   });
 })();
 
@@ -125,6 +145,7 @@ function sites(
     }
 
     output.append(li);
+    updateImpressionsTable();
   });
 })();
 
