@@ -63,9 +63,9 @@ function sites(
       return;
     }
 
-    // TODO: Run expiry code, etc.
     now = now.add({ hours: days.valueAsNumber * 24 });
     time.innerText = now.toString();
+    backend.clearExpiredImpressions();
   });
 })();
 

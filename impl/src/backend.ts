@@ -569,6 +569,19 @@ export class Backend {
   clearDataForUser(): void {
     this.#lastBrowsingHistoryClear = this.#delegate.now();
   }
+
+  clearExpiredImpressions(): void {
+    const now = this.#delegate.now();
+
+    this.#impressions = this.#impressions.filter((impression) => {
+      return (
+        Temporal.Instant.compare(
+          now,
+          impression.timestamp.add(impression.lifetime),
+        ) < 0
+      );
+    });
+  }
 }
 
 function fairlyAllocateCredit(credit: number[], value: number): number[] {
