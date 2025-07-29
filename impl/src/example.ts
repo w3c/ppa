@@ -164,13 +164,12 @@ function reportValidity(this: HTMLFormElement) {
       const result = backend.measureConversion(site, intermediarySite, opts);
 
       const dl = document.createElement("dl");
-      let any = false;
+      let zeroes = 0;
       for (const [i, v] of result.unencryptedHistogram!.entries()) {
         if (v === 0) {
+          zeroes++;
           continue;
         }
-
-        any = true;
 
         const dt = document.createElement("dt");
         dt.innerText = i.toString();
@@ -181,10 +180,14 @@ function reportValidity(this: HTMLFormElement) {
         dl.append(dt, dd);
       }
 
-      li.append("Histogram:", any ? dl : " all-zero");
+      li.append(`Histogram: ${zeroes} zeroes`);
+      if (zeroes != result.unencryptedHistogram!.length) {
+        li.append(dl);
+      }
     } catch (e) {
       li.innerText = `Error: ${e}`;
     }
+
     output.append(li);
     submitter.disabled = false;
   });
