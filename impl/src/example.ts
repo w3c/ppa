@@ -9,9 +9,6 @@ import { Backend } from "./backend";
 
 import { Temporal } from "temporal-polyfill";
 
-// TODO: Allow these to be modified by the UI.
-const site = "https://a.example";
-const intermediarySite = undefined;
 let now = new Temporal.Instant(0n);
 
 const backend = new Backend({
@@ -37,6 +34,16 @@ function numberOrUndefined(input: HTMLInputElement): number | undefined {
 
 function reportValidity(this: HTMLFormElement) {
   this.reportValidity();
+}
+
+function sites(
+  site: HTMLInputElement,
+  intermediary: HTMLInputElement,
+): [string, string | undefined] {
+  return [
+    site.value,
+    intermediary.value.length === 0 ? undefined : intermediary.value,
+  ];
 }
 
 (function () {
@@ -65,10 +72,17 @@ function reportValidity(this: HTMLFormElement) {
 (function () {
   const form = document.querySelector<HTMLFormElement>("#saveImpression")!;
 
+  const site = form.elements.namedItem("impressionSite") as HTMLInputElement;
+
+  const intermediary = form.elements.namedItem(
+    "impressionIntermediary",
+  ) as HTMLInputElement;
+
   const histogramIndex = form.elements.namedItem(
     "histogramIndex",
   ) as HTMLInputElement;
   histogramIndex.min = "0";
+  histogramIndex.value = "0";
 
   const matchValue = form.elements.namedItem("matchValue") as HTMLInputElement;
   matchValue.min = "0";
@@ -107,7 +121,7 @@ function reportValidity(this: HTMLFormElement) {
     const li = document.createElement("li");
 
     try {
-      backend.saveImpression(site, intermediarySite, opts);
+      backend.saveImpression(...sites(site, intermediary), opts);
       li.innerText = "Success";
     } catch (e) {
       li.innerText = `Error: ${e}`;
@@ -121,10 +135,17 @@ function reportValidity(this: HTMLFormElement) {
 (function () {
   const form = document.querySelector<HTMLFormElement>("#measureConversion")!;
 
+  const site = form.elements.namedItem("conversionSite") as HTMLInputElement;
+
+  const intermediary = form.elements.namedItem(
+    "conversionIntermediary",
+  ) as HTMLInputElement;
+
   const histogramSize = form.elements.namedItem(
     "histogramSize",
   ) as HTMLInputElement;
-  histogramSize.min = "0";
+  histogramSize.min = "1";
+  histogramSize.value = "1";
 
   const epsilon = form.elements.namedItem("epsilon") as HTMLInputElement;
   epsilon.min = "0.01";
@@ -190,7 +211,10 @@ function reportValidity(this: HTMLFormElement) {
 
     const li = document.createElement("li");
     try {
-      const result = backend.measureConversion(site, intermediarySite, opts);
+      const result = backend.measureConversion(
+        ...sites(site, intermediary),
+        opts,
+      );
 
       const dl = document.createElement("dl");
       let zeroes = 0;
