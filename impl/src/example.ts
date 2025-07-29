@@ -108,9 +108,6 @@ function sites(
       return;
     }
 
-    const submitter = e.submitter as HTMLButtonElement;
-    submitter.disabled = true;
-
     const opts: AttributionImpressionOptions = {
       histogramIndex: histogramIndex.valueAsNumber,
       lifetimeDays: numberOrUndefined(lifetimeDays),
@@ -128,7 +125,6 @@ function sites(
     }
 
     output.append(li);
-    submitter.disabled = false;
   });
 })();
 
@@ -189,9 +185,6 @@ function sites(
       return;
     }
 
-    const submitter = e.submitter as HTMLButtonElement;
-    submitter.disabled = true;
-
     const opts: AttributionConversionOptions = {
       aggregationService: "",
       epsilon: numberOrUndefined(epsilon),
@@ -242,7 +235,6 @@ function sites(
     }
 
     output.append(li);
-    submitter.disabled = false;
 
     epochStarts.replaceChildren();
     for (const [site, start] of backend.epochStarts) {
