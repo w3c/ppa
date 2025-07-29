@@ -112,19 +112,8 @@ export class Backend {
     return this.#epochStartStore.entries();
   }
 
-  logState(): void {
-    console.log(
-      "backend state",
-      JSON.stringify(
-        {
-          impressions: this.#impressions,
-          epochStartStore: this.#epochStartStore,
-          privacyBudgetStore: this.#privacyBudgetStore,
-        },
-        null,
-        " ",
-      ),
-    );
+  get privacyBudgetEntries(): Iterable<Readonly<PrivacyBudgetStoreEntry>> {
+    return this.#privacyBudgetStore;
   }
 
   get aggregationServices(): AttributionAggregationServices {

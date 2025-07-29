@@ -155,6 +155,10 @@ function reportValidity(this: HTMLFormElement) {
 
   const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
 
+  const privacyBudgetEntries = document.querySelector<HTMLDListElement>(
+    "#privacyBudgetEntries",
+  )!;
+
   form.addEventListener("input", reportValidity);
 
   form.addEventListener("submit", function (this: HTMLFormElement, e) {
@@ -223,6 +227,15 @@ function reportValidity(this: HTMLFormElement) {
       const dd = document.createElement("dd");
       dd.innerText = start.toString();
       epochStarts.append(dt, dd);
+    }
+
+    privacyBudgetEntries.replaceChildren();
+    for (const entry of backend.privacyBudgetEntries) {
+      const dt = document.createElement("dt");
+      dt.innerText = `${entry.site} @ epoch ${entry.epoch}`;
+      const dd = document.createElement("dd");
+      dd.innerText = entry.value.toString();
+      privacyBudgetEntries.append(dt, dd);
     }
   });
 })();
