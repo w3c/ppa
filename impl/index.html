@@ -15,12 +15,17 @@
     }
   }
 
-  body {
+  body,
+  div {
     display: flex;
     gap: 1em;
+    width: 100%;
+  }
+
+  body {
+    flex-direction: column;
     margin: 0;
     padding: 0.5em;
-    width: 100%;
   }
 
   form {
@@ -30,67 +35,79 @@
   }
 </style>
 <body>
-  <form id="saveImpression">
-    <h2>Save Impression</h2>
-    <dl>
-      <!-- TODO: conversionSites, conversionCallers -->
-      <dt><label for="histogramIndex">Histogram Index</label></dt>
-      <dd>
-        <input type="number" required id="histogramIndex" />
-      </dd>
-      <dt><label for="matchValue">Match Value</label></dt>
-      <dd><input type="number" id="matchValue" /></dd>
-      <dt><label for="lifetimeDays">Lifetime Days</label></dt>
-      <dd><input type="number" id="lifetimeDays" /></dd>
-      <dt><label for="priority">Priority</label></dt>
-      <dd><input type="number" id="priority" /></dd>
-    </dl>
-    <button>Submit</button>
-    <output>
-      <h3>Results</h3>
-      <ol></ol>
-    </output>
-  </form>
-  <form id="measureConversion">
-    <h2>Measure Conversion</h2>
-    <dl>
-      <!-- TODO: impressionSites, impressionCallers -->
-      <dt><label for="histogramSize">Histogram Size</label></dt>
-      <dd><input type="number" required id="histogramSize" /></dd>
-      <dt><label for="lookbackDays">Lookback Days</label></dt>
-      <dd><input type="number" id="lookbackDays" /></dd>
-      <dt><label for="matchValues">Match Values</label></dt>
-      <dd>
-        <input id="matchValues" pattern="^\s*([0-9]+)(\s+[0-9]+)*\s*$" />
-      </dd>
-      <dt><label for="logic">Logic</label></dt>
-      <dd>
-        <select id="logic">
-          <option>last-n-touch</option>
-        </select>
-      </dd>
-      <dt><label for="credit">Credit</label></dt>
-      <dd>
-        <input
-          id="credit"
-          pattern="^\s*([0-9]+(\.[0-9]+)?)(\s+[0-9]+(\.[0-9]+)?)*\s*$"
-          value="1"
-        />
-      </dd>
-      <dt><label for="value">Value</label></dt>
-      <dd><input type="number" id="value" /></dd>
-      <dt><label for="maxValue">Max Value</label></dt>
-      <dd><input type="number" id="maxValue" /></dd>
-      <dt><label for="epsilon">Epsilon</label></dt>
-      <dd>
-        <input type="number" id="epsilon" />
-      </dd>
-    </dl>
-    <button>Submit</button>
-    <output>
-      <h3>Results</h3>
-      <ol></ol>
-    </output>
-  </form>
+  <nav>
+    <form id="time">
+      <h2>Time: <time></time></h2>
+      <button>Advance</button> by
+      <label
+        ><input id="days" type="number" min="0" value="1" step="0.25" />
+        days</label
+      >
+    </form>
+  </nav>
+  <div>
+    <form id="saveImpression">
+      <h2>Save Impression</h2>
+      <dl>
+        <!-- TODO: conversionSites, conversionCallers -->
+        <dt><label for="histogramIndex">Histogram Index</label></dt>
+        <dd>
+          <input type="number" required id="histogramIndex" />
+        </dd>
+        <dt><label for="matchValue">Match Value</label></dt>
+        <dd><input type="number" id="matchValue" /></dd>
+        <dt><label for="lifetimeDays">Lifetime Days</label></dt>
+        <dd><input type="number" id="lifetimeDays" /></dd>
+        <dt><label for="priority">Priority</label></dt>
+        <dd><input type="number" id="priority" /></dd>
+      </dl>
+      <button>Submit</button>
+      <output>
+        <h3>Results</h3>
+        <ol></ol>
+      </output>
+    </form>
+    <form id="measureConversion">
+      <h2>Measure Conversion</h2>
+      <dl>
+        <!-- TODO: impressionSites, impressionCallers -->
+        <dt><label for="histogramSize">Histogram Size</label></dt>
+        <dd><input type="number" required id="histogramSize" /></dd>
+        <dt><label for="lookbackDays">Lookback Days</label></dt>
+        <dd><input type="number" id="lookbackDays" /></dd>
+        <dt><label for="matchValues">Match Values</label></dt>
+        <dd>
+          <input id="matchValues" pattern="^\s*([0-9]+)(\s+[0-9]+)*\s*$" />
+        </dd>
+        <dt><label for="logic">Logic</label></dt>
+        <dd>
+          <select id="logic">
+            <option>last-n-touch</option>
+          </select>
+        </dd>
+        <dt><label for="credit">Credit</label></dt>
+        <dd>
+          <input
+            id="credit"
+            pattern="^\s*([0-9]+(\.[0-9]+)?)(\s+[0-9]+(\.[0-9]+)?)*\s*$"
+            value="1"
+          />
+        </dd>
+        <dt><label for="value">Value</label></dt>
+        <dd><input type="number" id="value" /></dd>
+        <dt><label for="maxValue">Max Value</label></dt>
+        <dd><input type="number" id="maxValue" /></dd>
+        <dt><label for="epsilon">Epsilon</label></dt>
+        <dd>
+          <input type="number" id="epsilon" />
+        </dd>
+      </dl>
+      <button>Submit</button>
+      <output>
+        <h3>Results</h3>
+        <ol></ol>
+      </output>
+    </form>
+  </div>
   <script src="dist/example.js"></script>
 </body>

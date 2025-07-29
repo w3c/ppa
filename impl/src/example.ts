@@ -12,7 +12,7 @@ import { Temporal } from "temporal-polyfill";
 // TODO: Allow these to be modified by the UI.
 const site = "https://a.example";
 const intermediarySite = undefined;
-const now = new Temporal.Instant(0n);
+let now = new Temporal.Instant(0n);
 
 const backend = new Backend({
   aggregationServices: new Map([["", { protocol: "dap-15-histogram" }]]),
@@ -38,6 +38,29 @@ function numberOrUndefined(input: HTMLInputElement): number | undefined {
 function reportValidity(this: HTMLFormElement) {
   this.reportValidity();
 }
+
+(function () {
+  const form = document.querySelector<HTMLFormElement>("#time")!;
+
+  const time = document.querySelector("time")!;
+  time.innerText = now.toString();
+
+  const days = form.elements.namedItem("days") as HTMLInputElement;
+
+  form.addEventListener("input", reportValidity);
+
+  form.addEventListener("submit", function (this: HTMLFormElement, e) {
+    e.preventDefault();
+
+    if (!this.reportValidity()) {
+      return;
+    }
+
+    // TODO: Run expiry code, etc.
+    now = now.add({ hours: days.valueAsNumber * 24 });
+    time.innerText = now.toString();
+  });
+})();
 
 (function () {
   const form = document.querySelector<HTMLFormElement>("#saveImpression")!;
