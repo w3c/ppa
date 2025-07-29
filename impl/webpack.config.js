@@ -3,7 +3,6 @@ const path = require("path");
 module.exports = {
   entry: {
     example: "./src/example.ts",
-    worker: "./src/worker.ts",
   },
   module: {
     rules: [

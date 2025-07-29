@@ -5,9 +5,30 @@ import type {
 
 import * as index from "./index";
 
-import { Frontend } from "./frontend";
+import { Backend } from "./backend";
 
-const frontend = new Frontend();
+import { Temporal } from "temporal-polyfill";
+
+// TODO: Allow these to be modified by the UI.
+const site = "https://a.example";
+const intermediarySite = undefined;
+const now = new Temporal.Instant(0n);
+
+const backend = new Backend({
+  aggregationServices: new Map([["", { protocol: "dap-15-histogram" }]]),
+  includeUnencryptedHistogram: true,
+
+  maxConversionSitesPerImpression: 10,
+  maxConversionCallersPerImpression: 10,
+  maxCreditSize: Infinity,
+  maxLifetimeDays: 30,
+  maxLookbackDays: 60,
+  maxHistogramSize: 100,
+  privacyBudgetMicroEpsilons: 1000000,
+
+  now: () => now,
+  random: () => 0.5,
+});
 
 function numberOrUndefined(input: HTMLInputElement): number | undefined {
   const val = input.valueAsNumber;
@@ -60,19 +81,17 @@ function reportValidity(this: HTMLFormElement) {
       priority: numberOrUndefined(priority),
     };
 
-    void frontend
-      .saveImpression(opts)
-      .then(() => {
-        const li = document.createElement("li");
-        li.innerText = "Success";
-        output.append(li);
-      })
-      .catch((e) => {
-        const li = document.createElement("li");
-        li.innerText = `Error: ${e}`;
-        output.append(li);
-      })
-      .finally(() => (submitter.disabled = false));
+    const li = document.createElement("li");
+
+    try {
+      backend.saveImpression(site, intermediarySite, opts);
+      li.innerText = "Success";
+    } catch (e) {
+      li.innerText = `Error: ${e}`;
+    }
+
+    output.append(li);
+    submitter.disabled = false;
   });
 })();
 
@@ -140,37 +159,33 @@ function reportValidity(this: HTMLFormElement) {
       value: numberOrUndefined(value),
     };
 
-    void frontend
-      .measureConversion(opts)
-      .then((result) => {
-        const li = document.createElement("li");
+    const li = document.createElement("li");
+    try {
+      const result = backend.measureConversion(site, intermediarySite, opts);
 
-        const dl = document.createElement("dl");
-        let any = false;
-        for (const [i, v] of result.unencryptedHistogram!.entries()) {
-          if (v === 0) {
-            continue;
-          }
-
-          any = true;
-
-          const dt = document.createElement("dt");
-          dt.innerText = i.toString();
-
-          const dd = document.createElement("dd");
-          dd.innerText = v.toString();
-
-          dl.append(dt, dd);
+      const dl = document.createElement("dl");
+      let any = false;
+      for (const [i, v] of result.unencryptedHistogram!.entries()) {
+        if (v === 0) {
+          continue;
         }
 
-        li.append("Histogram:", any ? dl : " all-zero");
-        output.append(li);
-      })
-      .catch((e) => {
-        const li = document.createElement("li");
-        li.innerText = `Error: ${e}`;
-        output.append(li);
-      })
-      .finally(() => (submitter.disabled = false));
+        any = true;
+
+        const dt = document.createElement("dt");
+        dt.innerText = i.toString();
+
+        const dd = document.createElement("dd");
+        dd.innerText = v.toString();
+
+        dl.append(dt, dd);
+      }
+
+      li.append("Histogram:", any ? dl : " all-zero");
+    } catch (e) {
+      li.innerText = `Error: ${e}`;
+    }
+    output.append(li);
+    submitter.disabled = false;
   });
 })();
