@@ -233,9 +233,9 @@ function sites(
         dl.append(dt, dd);
       }
 
-      li.append(`Histogram: ${zeroes} zeroes`);
-      if (zeroes != result.unencryptedHistogram!.length) {
-        li.append(dl);
+      li.innerText = `Histogram: ${zeroes} zeroes`;
+      if (zeroes !== result.unencryptedHistogram!.length) {
+        li.append(" and…", dl);
       }
     } catch (e) {
       li.innerText = `Error: ${e}`;
