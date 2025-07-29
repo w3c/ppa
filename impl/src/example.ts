@@ -130,6 +130,7 @@ function reportValidity(this: HTMLFormElement) {
       matchValues: matchValues.value
         .trim()
         .split(/\s+/)
+        .filter((v) => v.length > 0)
         .map((v) => Number.parseInt(v, 10)),
       logicOptions: {
         credit: credit.value.trim().split(/\s+/).map(Number.parseFloat),
