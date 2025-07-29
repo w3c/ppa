@@ -5,7 +5,7 @@ import test from "node:test";
 import { Temporal } from "temporal-polyfill";
 
 void test("e2e", () => {
-  const site = "https://a.example";
+  const site = "a.example";
   const intermediarySite = undefined;
   let now = new Temporal.Instant(0n);
 

@@ -136,6 +136,12 @@ export class Backend {
       priority = index.DEFAULT_IMPRESSION_PRIORITY,
     }: AttributionImpressionOptions,
   ): AttributionImpressionResult {
+    impressionSite = parseSite(impressionSite);
+
+    if (intermediarySite !== undefined) {
+      intermediarySite = parseSite(intermediarySite);
+    }
+
     const timestamp = this.#delegate.now();
 
     if (histogramIndex < 0 || !Number.isInteger(histogramIndex)) {
@@ -303,6 +309,12 @@ export class Backend {
     intermediarySite: string | undefined,
     options: AttributionConversionOptions,
   ): AttributionConversionResult {
+    topLevelSite = parseSite(topLevelSite);
+
+    if (intermediarySite !== undefined) {
+      intermediarySite = parseSite(intermediarySite);
+    }
+
     const now = this.#delegate.now();
 
     const validatedOptions = this.#validateConversionOptions(options);
