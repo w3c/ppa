@@ -108,6 +108,10 @@ export class Backend {
     this.#delegate = delegate;
   }
 
+  get epochStarts(): Iterable<[string, Temporal.Instant]> {
+    return this.#epochStartStore.entries();
+  }
+
   logState(): void {
     console.log(
       "backend state",

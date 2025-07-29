@@ -153,6 +153,8 @@ function reportValidity(this: HTMLFormElement) {
 
   const output = form.querySelector("ol")!;
 
+  const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
+
   form.addEventListener("input", reportValidity);
 
   form.addEventListener("submit", function (this: HTMLFormElement, e) {
@@ -213,5 +215,14 @@ function reportValidity(this: HTMLFormElement) {
 
     output.append(li);
     submitter.disabled = false;
+
+    epochStarts.replaceChildren();
+    for (const [site, start] of backend.epochStarts) {
+      const dt = document.createElement("dt");
+      dt.innerText = site;
+      const dd = document.createElement("dd");
+      dd.innerText = start.toString();
+      epochStarts.append(dt, dd);
+    }
   });
 })();
