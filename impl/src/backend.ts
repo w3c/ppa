@@ -573,13 +573,23 @@ export class Backend {
   }
 
   clearImpressionsForConversionSite(site: string): void {
-    this.#impressions = this.#impressions.filter((impression) => {
-      return (
-        impression.intermediarySite !== site ||
-        !impression.conversionSites.delete(site) ||
-        impression.conversionSites.size > 0
-      );
-    });
+    function shouldRemoveImpression(i: Impression): boolean {
+      if (i.intermediarySite === site) {
+        return true;
+      }
+      if (!i.conversionSites.has(site)) {
+        return false;
+      }
+      if (i.conversionSites.size > 1) {
+        i.conversionSites.delete(site);
+        return false;
+      }
+      return true;
+    }
+
+    this.#impressions = this.#impressions.filter(
+      (i) => !shouldRemoveImpression(i),
+    );
   }
 
   clearDataForUser(): void {
