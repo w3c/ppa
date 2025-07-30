@@ -592,10 +592,6 @@ export class Backend {
     );
   }
 
-  clearDataForUser(): void {
-    this.#lastBrowsingHistoryClear = this.#delegate.now();
-  }
-
   clearExpiredImpressions(): void {
     const now = this.#delegate.now();
 
