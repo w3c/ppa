@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    example: "./src/example.ts",
+    simulator: "./src/simulator.ts",
   },
   module: {
     rules: [
