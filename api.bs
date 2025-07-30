@@ -863,7 +863,7 @@ the [=intermediary site|intermediary site identity=] can be used to select impre
 Conceptually, each saved [=impression=] has a single histogram definition.
 Each [=impression=] has a single [=impression/Histogram Index=] attribute
 that determines where the [=validated conversion options/Value|value=]
-allocated to that [=impression=] appears in [[#histograms|the resulting histgram]].
+allocated to that [=impression=] appears in [[#histograms|the resulting histogram]].
 
 Each invocation of {{Attribution/measureConversion()}}
 therefore needs to select [=impressions=] that have the same histogram definition.
@@ -1479,7 +1479,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 <dfn>Match Values</dfn>: A [=set=] of [=32-bit unsigned integers=].
 <dfn>Impression Sites</dfn>: A [=set=] of [=sites=].
 <dfn>Impression Callers</dfn>: A [=set=] of [=sites=].
-<dfn>Logic</dfn>: A {{AttributionLogic}}.
+<dfn>Logic</dfn>: An {{AttributionLogic}}.
 <dfn>Logic Options</dfn>: An {{AttributionLogicOptions}}.
 <dfn>Value</dfn>: A [=32-bit unsigned integer=].
 <dfn>Max Value</dfn>: A [=32-bit unsigned integer=].
@@ -2768,7 +2768,7 @@ for all affected [=sites=].
 
 When clearing site data at the request of a [=site=],
 through the use of the [:Clear-Site-Data:] header,
-A [=user agent=] only [[#removing-impressions|removes impressions]],
+a [=user agent=] only [[#removing-impressions|removes impressions]],
 without altering either the [=privacy budget store=]
 or the [=epoch start store=] for affected [=sites=].
 
