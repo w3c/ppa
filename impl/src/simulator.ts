@@ -60,10 +60,10 @@ function listCell(tr: HTMLTableRowElement, vs: Iterable<string>): void {
 
   for (const v of vs) {
     if (!ul) {
-      ul = document.createElement('ul');
+      ul = document.createElement("ul");
     }
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.innerText = v;
     ul.append(li);
   }
@@ -94,7 +94,7 @@ function updateImpressionsTable() {
   }
 }
 
-(function () {
+{
   const form = document.querySelector<HTMLFormElement>("#time")!;
 
   const time = document.querySelector("time")!;
@@ -116,9 +116,9 @@ function updateImpressionsTable() {
     backend.clearExpiredImpressions();
     updateImpressionsTable();
   });
-})();
+}
 
-(function () {
+{
   const form = document.querySelector<HTMLFormElement>("#saveImpression")!;
 
   const site = form.elements.namedItem("impressionSite") as HTMLInputElement;
@@ -186,9 +186,9 @@ function updateImpressionsTable() {
     output.append(li);
     updateImpressionsTable();
   });
-})();
+}
 
-(function () {
+{
   const form = document.querySelector<HTMLFormElement>("#measureConversion")!;
 
   const site = form.elements.namedItem("conversionSite") as HTMLInputElement;
@@ -322,4 +322,4 @@ function updateImpressionsTable() {
       privacyBudgetEntries.append(dt, dd);
     }
   });
-})();
+}
