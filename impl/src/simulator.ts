@@ -32,6 +32,13 @@ function numberOrUndefined(input: HTMLInputElement): number | undefined {
   return Number.isNaN(val) ? undefined : val;
 }
 
+function spaceSeparated(input: HTMLInputElement): string[] {
+  return input.value
+    .trim()
+    .split(/\s+/)
+    .filter((v) => v.length > 0);
+}
+
 function reportValidity(this: HTMLFormElement) {
   this.reportValidity();
 }
@@ -44,6 +51,26 @@ function sites(
     site.value,
     intermediary.value.length === 0 ? undefined : intermediary.value,
   ];
+}
+
+function listCell(tr: HTMLTableRowElement, vs: Iterable<string>): void {
+  const td = tr.insertCell();
+
+  let ul;
+
+  for (const v of vs) {
+    if (!ul) {
+      ul = document.createElement('ul');
+    }
+
+    const li = document.createElement('li');
+    li.innerText = v;
+    ul.append(li);
+  }
+
+  if (ul) {
+    td.append(ul);
+  }
 }
 
 const impressionTable = document.querySelector("tbody")!;
@@ -60,6 +87,8 @@ function updateImpressionsTable() {
     tr.insertCell().innerText = i.matchValue.toString();
     tr.insertCell().innerText = (i.lifetime.hours / 24).toString();
     tr.insertCell().innerText = i.priority.toString();
+    listCell(tr, i.conversionSites);
+    listCell(tr, i.conversionCallers);
 
     impressionTable.append(tr);
   }
@@ -117,6 +146,14 @@ function updateImpressionsTable() {
   const priority = form.elements.namedItem("priority") as HTMLInputElement;
   priority.valueAsNumber = index.DEFAULT_IMPRESSION_PRIORITY;
 
+  const conversionSites = form.elements.namedItem(
+    "conversionSites",
+  ) as HTMLInputElement;
+
+  const conversionCallers = form.elements.namedItem(
+    "conversionCallers",
+  ) as HTMLInputElement;
+
   const output = form.querySelector("ol")!;
 
   form.addEventListener("input", reportValidity);
@@ -133,6 +170,8 @@ function updateImpressionsTable() {
       lifetimeDays: numberOrUndefined(lifetimeDays),
       matchValue: numberOrUndefined(matchValue),
       priority: numberOrUndefined(priority),
+      conversionSites: spaceSeparated(conversionSites),
+      conversionCallers: spaceSeparated(conversionCallers),
     };
 
     const li = document.createElement("li");
@@ -189,6 +228,14 @@ function updateImpressionsTable() {
     "matchValues",
   ) as HTMLInputElement;
 
+  const impressionSites = form.elements.namedItem(
+    "impressionSites",
+  ) as HTMLInputElement;
+
+  const impressionCallers = form.elements.namedItem(
+    "impressionCallers",
+  ) as HTMLInputElement;
+
   const output = form.querySelector("ol")!;
 
   const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
@@ -210,17 +257,17 @@ function updateImpressionsTable() {
       aggregationService: "",
       epsilon: numberOrUndefined(epsilon),
       histogramSize: histogramSize.valueAsNumber,
-      matchValues: matchValues.value
-        .trim()
-        .split(/\s+/)
-        .filter((v) => v.length > 0)
-        .map((v) => Number.parseInt(v, 10)),
+      matchValues: spaceSeparated(matchValues).map((v) =>
+        Number.parseInt(v, 10),
+      ),
       logicOptions: {
-        credit: credit.value.trim().split(/\s+/).map(Number.parseFloat),
+        credit: spaceSeparated(credit).map(Number.parseFloat),
       },
       lookbackDays: numberOrUndefined(lookbackDays),
       maxValue: numberOrUndefined(maxValue),
       value: numberOrUndefined(value),
+      impressionSites: spaceSeparated(impressionSites),
+      impressionCallers: spaceSeparated(impressionCallers),
     };
 
     const li = document.createElement("li");

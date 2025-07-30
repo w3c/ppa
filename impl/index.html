@@ -80,7 +80,6 @@
         <dd><input id="impressionSite" value="publisher.example" /></dd>
         <dt><label for="impressionIntermediary">Intermediary Site</label></dt>
         <dd><input id="impressionIntermediary" /></dd>
-        <!-- TODO: conversionSites, conversionCallers -->
         <dt><label for="histogramIndex">Histogram Index</label></dt>
         <dd>
           <input type="number" required id="histogramIndex" />
@@ -91,6 +90,10 @@
         <dd><input type="number" id="lifetimeDays" /></dd>
         <dt><label for="priority">Priority</label></dt>
         <dd><input type="number" id="priority" /></dd>
+        <dt><label for="conversionSites">Conversion Sites</label></dt>
+        <dd><input id="conversionSites" /></dd>
+        <dt><label for="conversionCallers">Conversion Callers</label></dt>
+        <dd><input id="conversionCallers" /></dd>
       </dl>
       <button>Submit</button>
       <output>
@@ -107,6 +110,8 @@
             <th>Match Value</th>
             <th>Lifetime Days</th>
             <th>Priority</th>
+            <th>Conversion Sites</th>
+            <th>Conversion Callers</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -121,7 +126,6 @@
         </dd>
         <dt><label for="conversionIntermediary">Intermediary Site</label></dt>
         <dd><input id="conversionIntermediary" /></dd>
-        <!-- TODO: impressionSites, impressionCallers -->
         <dt><label for="histogramSize">Histogram Size</label></dt>
         <dd><input type="number" required id="histogramSize" /></dd>
         <dt><label for="lookbackDays">Lookback Days</label></dt>
@@ -152,6 +156,10 @@
         <dd>
           <input type="number" id="epsilon" />
         </dd>
+        <dt><label for="impressionSites">Impression Sites</label></dt>
+        <dd><input id="impressionSites" /></dd>
+        <dt><label for="impressionCallers">Impression Callers</label></dt>
+        <dd><input id="impressionCallers" /></dd>
       </dl>
       <button>Submit</button>
       <output>
