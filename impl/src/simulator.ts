@@ -180,6 +180,7 @@ function updateImpressionsTable() {
       backend.saveImpression(...sites(site, intermediary), opts);
       li.innerText = "Success";
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       li.innerText = `Error: ${e}`;
     }
 
@@ -299,6 +300,7 @@ function updateImpressionsTable() {
         li.append(" and…", dl);
       }
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       li.innerText = `Error: ${e}`;
     }
 
