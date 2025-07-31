@@ -517,7 +517,7 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = fairlyAllocateCredit(credit, value);
+    const normalizedCredit = this.#fairlyAllocateCredit(credit, value);
 
     const histogram = allZeroHistogram(histogramSize);
 
@@ -602,34 +602,34 @@ export class Backend {
       );
     });
   }
-}
 
-function fairlyAllocateCredit(credit: number[], value: number): number[] {
-  const sumCredit = credit.reduce((a, b) => a + b, 0);
+  #fairlyAllocateCredit(credit: number[], value: number): number[] {
+    const sumCredit = credit.reduce((a, b) => a + b, 0);
 
-  const rawNormalizedCredit = credit.map((c) => (c * value) / sumCredit);
+    const rawNormalizedCredit = credit.map((c) => (c * value) / sumCredit);
 
-  const normalizedCredit = rawNormalizedCredit.map((c) => Math.ceil(c));
+    const normalizedCredit = rawNormalizedCredit.map((c) => Math.ceil(c));
 
-  const shuffledFractionalIndices = shuffleArray(
-    credit
-      .map((_, i) => i)
-      .filter((i) => !Number.isInteger(rawNormalizedCredit[i])),
-  );
+    const shuffledFractionalIndices = this.#shuffleArray(
+      credit
+        .map((_, i) => i)
+        .filter((i) => !Number.isInteger(rawNormalizedCredit[i])),
+    );
 
-  for (const index of shuffledFractionalIndices) {
-    if (normalizedCredit.reduce((a, b) => a + b, 0) === value) {
-      break;
+    for (const index of shuffledFractionalIndices) {
+      if (normalizedCredit.reduce((a, b) => a + b, 0) === value) {
+        break;
+      }
+      normalizedCredit[index]! -= 1;
     }
-    normalizedCredit[index]! -= 1;
+    return normalizedCredit;
   }
-  return normalizedCredit;
-}
 
-function shuffleArray<T>(array: T[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j]!, array[i]!];
+  #shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(this.#delegate.random() * (i + 1));
+      [array[i], array[j]] = [array[j]!, array[i]!];
+    }
+    return array;
   }
-  return array;
 }
