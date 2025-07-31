@@ -215,8 +215,10 @@ export class Backend {
       throw new ReferenceError("unknown aggregation service");
     }
 
-    if (epsilon <= 0 || epsilon > 4294) {
-      throw new RangeError("epsilon must be in the range (0, 4294]");
+    if (epsilon <= 0 || epsilon > index.MAX_CONVERSION_EPSILON) {
+      throw new RangeError(
+        `epsilon must be in the range (0, ${index.MAX_CONVERSION_EPSILON}]`,
+      );
     }
 
     const maxHistogramSize = this.#delegate.maxHistogramSize;
@@ -473,7 +475,7 @@ export class Backend {
       this.#privacyBudgetStore.push(entry);
     }
     const deductionFp = (epsilon * sensitivity) / globalSensitivity;
-    if (deductionFp < 0 || deductionFp > 4294) {
+    if (deductionFp < 0 || deductionFp > index.MAX_CONVERSION_EPSILON) {
       entry.value = 0;
       return false;
     }
