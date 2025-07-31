@@ -606,30 +606,38 @@ export class Backend {
   #fairlyAllocateCredit(credit: number[], value: number): number[] {
     const sumCredit = credit.reduce((a, b) => a + b, 0);
 
-    const rawNormalizedCredit = credit.map((c) => (c * value) / sumCredit);
+    const roundedCredit = credit.map((item) => (value * item) / sumCredit);
 
-    const normalizedCredit = rawNormalizedCredit.map((c) => Math.ceil(c));
+    let idx1 = 0;
 
-    const shuffledFractionalIndices = this.#shuffleArray(
-      credit
-        .map((_, i) => i)
-        .filter((i) => !Number.isInteger(rawNormalizedCredit[i])),
-    );
+    for (let n = 1; n < roundedCredit.length; ++n) {
+      let idx2 = n;
 
-    for (const index of shuffledFractionalIndices) {
-      if (normalizedCredit.reduce((a, b) => a + b, 0) === value) {
-        break;
+      const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
+      const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
+      if (frac1 === 0 && frac2 === 0) {
+        continue;
       }
-      normalizedCredit[index]! -= 1;
-    }
-    return normalizedCredit;
-  }
 
-  #shuffleArray<T>(array: T[]): T[] {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(this.#delegate.random() * (i + 1));
-      [array[i], array[j]] = [array[j]!, array[i]!];
+      const [incr1, incr2] =
+        frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
+
+      const p1 = incr2 / (incr1 + incr2);
+
+      const r = this.#delegate.random();
+
+      let incr;
+      if (r < p1) {
+        incr = incr1;
+        [idx1, idx2] = [idx2, idx1];
+      } else {
+        incr = incr2;
+      }
+
+      roundedCredit[idx2]! += incr;
+      roundedCredit[idx1]! -= incr;
     }
-    return array;
+
+    return roundedCredit.map((item) => Math.round(item));
   }
 }
