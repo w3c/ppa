@@ -1123,7 +1123,8 @@ in units [=microepsilons=].
 A <dfn>microepsilon</dfn> is one-millionth of the unitary epsilon value
 used in differential privacy [[DP]].
 
-<p class=note>The choice of a 32-bit integer restricts the setting of epsilon to be less than 4295.
+<p class=note>The choice of a 32-bit integer restricts the setting of epsilon to
+be less than or equal to the <dfn>max epsilon</dfn> of 4294.
 This <span class=allow-2119>should</span> be more than sufficient for implementations.
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
@@ -1157,7 +1158,7 @@ and integer |globalSensitivity|:
 
 1.  Let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
 
-1.  If |deductionFp| is negative or greater than 4294,
+1.  If |deductionFp| is negative or greater than [=max epsilon=],
     [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
     and return false.
 
@@ -1496,7 +1497,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     from {{AttributionAggregationServices}},
     given |options|.{{AttributionConversionOptions/aggregationService}}.
 1.  If |options|.{{AttributionConversionOptions/epsilon}}
-    is less than or equal to 0 or is greater than 4294,
+    is less than or equal to 0 or is greater than [=max epsilon=],
     throw a {{RangeError}}.
 1.  If |options|.{{AttributionConversionOptions/histogramSize}}
     is 0 or greater than the [=implementation-defined=] <dfn>maximum histogram size</dfn>,
