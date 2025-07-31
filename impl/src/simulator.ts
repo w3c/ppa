@@ -15,6 +15,7 @@ const backend = new Backend({
   aggregationServices: new Map([["", { protocol: "dap-15-histogram" }]]),
   includeUnencryptedHistogram: true,
 
+  // TODO: Allow these values to be configured in the UI.
   maxConversionSitesPerImpression: 10,
   maxConversionCallersPerImpression: 10,
   maxCreditSize: Infinity,
