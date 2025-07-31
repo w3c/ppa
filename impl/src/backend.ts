@@ -53,14 +53,12 @@ interface ValidatedLogicOptions {
   credit: number[];
 }
 
-function days(days: number): Temporal.Duration {
+export function days(days: number): Temporal.Duration {
   // We use `hours: X` here instead of `days` because days are considered to be
   // "calendar" units, making them incapable of being used in calculations
   // without a reference point.
   return Temporal.Duration.from({ hours: days * 24 });
 }
-
-const PRIVACY_BUDGET_EPOCH = days(7);
 
 function parseSite(input: string): string {
   const site = psl.get(input);
@@ -81,6 +79,7 @@ export interface Delegate {
   readonly maxLookbackDays: number;
   readonly maxHistogramSize: number;
   readonly privacyBudgetMicroEpsilons: number;
+  readonly privacyBudgetEpoch: Temporal.Duration;
 
   now(): Temporal.Instant;
   random(): number;
@@ -537,7 +536,7 @@ export class Backend {
   }
 
   #getCurrentEpoch(site: string, t: Temporal.Instant): number {
-    const period = PRIVACY_BUDGET_EPOCH.total("seconds");
+    const period = this.#delegate.privacyBudgetEpoch.total("seconds");
     let start = this.#epochStartStore.get(site);
     if (start === undefined) {
       const p = this.#delegate.random();

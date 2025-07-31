@@ -5,7 +5,7 @@ import type {
 
 import * as index from "./index";
 
-import { Backend } from "./backend";
+import { Backend, days } from "./backend";
 
 import { Temporal } from "temporal-polyfill";
 
@@ -22,6 +22,7 @@ const backend = new Backend({
   maxLookbackDays: 60,
   maxHistogramSize: 100,
   privacyBudgetMicroEpsilons: 1000000,
+  privacyBudgetEpoch: days(7),
 
   now: () => now,
   random: () => 0.5,
@@ -104,7 +105,7 @@ function updateImpressionsTable() {
   const time = document.querySelector("time")!;
   time.innerText = now.toString();
 
-  const days = form.elements.namedItem("days") as HTMLInputElement;
+  const daysInput = form.elements.namedItem("days") as HTMLInputElement;
 
   form.addEventListener("input", reportValidity);
 
@@ -115,7 +116,7 @@ function updateImpressionsTable() {
       return;
     }
 
-    now = now.add({ hours: days.valueAsNumber * 24 });
+    now = now.add(days(daysInput.valueAsNumber));
     time.innerText = now.toString();
     backend.clearExpiredImpressions();
     updateImpressionsTable();
