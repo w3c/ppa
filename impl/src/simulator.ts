@@ -25,6 +25,10 @@ const backend = new Backend({
 
   now: () => now,
   random: () => 0.5,
+  earliestEpochIndex: (site: string) => {
+    void site; // TODO
+    return 0;
+  },
 });
 
 function numberOrUndefined(input: HTMLInputElement): number | undefined {

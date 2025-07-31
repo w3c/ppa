@@ -62,10 +62,6 @@ function days(days: number): Temporal.Duration {
 
 const PRIVACY_BUDGET_EPOCH = days(7);
 
-// TODO: This value is not a constant epoch index. A value is chosen for each
-// site based on user agent preferences or configuration.
-const EARLIEST_EPOCH_INDEX = 0;
-
 function parseSite(input: string): string {
   const site = psl.get(input);
   if (site === null) {
@@ -88,6 +84,7 @@ export interface Delegate {
 
   now(): Temporal.Instant;
   random(): number;
+  earliestEpochIndex(site: string): number;
 }
 
 function allZeroHistogram(size: number): number[] {
@@ -558,7 +555,7 @@ export class Backend {
   }
 
   #getStartEpoch(site: string): number {
-    const startEpoch = EARLIEST_EPOCH_INDEX;
+    const startEpoch = this.#delegate.earliestEpochIndex(site);
     if (this.#lastBrowsingHistoryClear) {
       let clearEpoch = this.#getCurrentEpoch(
         site,

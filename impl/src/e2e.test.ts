@@ -23,6 +23,7 @@ void test("e2e", () => {
 
     now: () => now,
     random: () => 0.5,
+    earliestEpochIndex: () => 0,
   });
 
   backend.saveImpression(site, intermediarySite, { histogramIndex: 0 });
