@@ -1712,7 +1712,7 @@ To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and a
     1.  Let |idx2| be |n|.
     1.  Let |frac1| be |roundedCredit|[|idx1|] − floor(|roundedCredit|[|idx1|]).
     1.  Let |frac2| be |roundedCredit|[|idx2|] − floor(|roundedCredit|[|idx2|]).
-    1.  If |frac1| and |frac2| are both integers, [=iteration/continue=].
+    1.  If |frac1| and |frac2| are both equal to zero, [=iteration/continue=].
     1.  If |frac1| + |frac2| is greater than 1, let |incr1| be 1 − |frac1| and |incr2| be 1 − |frac2|.
     1.  Otherwise, let |incr1| be −|frac1| and |incr2| be −|frac2|.
         <p class=note>|incr1| denotes the amount to increment |roundedCredit|[|idx1|] so that it is integral, and similar for |incr2| and |idx2|.
