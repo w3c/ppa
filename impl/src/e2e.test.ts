@@ -1,4 +1,4 @@
-import { Backend } from "./backend";
+import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
 import test from "node:test";
@@ -20,9 +20,11 @@ void test("e2e", () => {
     maxLookbackDays: 60,
     maxHistogramSize: 100,
     privacyBudgetMicroEpsilons: 1000000,
+    privacyBudgetEpoch: days(7),
 
     now: () => now,
     random: () => 0.5,
+    earliestEpochIndex: () => 0,
   });
 
   backend.saveImpression(site, intermediarySite, { histogramIndex: 0 });

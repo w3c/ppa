@@ -53,18 +53,12 @@ interface ValidatedLogicOptions {
   credit: number[];
 }
 
-function days(days: number): Temporal.Duration {
+export function days(days: number): Temporal.Duration {
   // We use `hours: X` here instead of `days` because days are considered to be
   // "calendar" units, making them incapable of being used in calculations
   // without a reference point.
   return Temporal.Duration.from({ hours: days * 24 });
 }
-
-const PRIVACY_BUDGET_EPOCH = days(7);
-
-// TODO: This value is not a constant epoch index. A value is chosen for each
-// site based on user agent preferences or configuration.
-const EARLIEST_EPOCH_INDEX = 0;
 
 function parseSite(input: string): string {
   const site = psl.get(input);
@@ -85,9 +79,11 @@ export interface Delegate {
   readonly maxLookbackDays: number;
   readonly maxHistogramSize: number;
   readonly privacyBudgetMicroEpsilons: number;
+  readonly privacyBudgetEpoch: Temporal.Duration;
 
   now(): Temporal.Instant;
   random(): number;
+  earliestEpochIndex(site: string): number;
 }
 
 function allZeroHistogram(size: number): number[] {
@@ -219,8 +215,10 @@ export class Backend {
       throw new ReferenceError("unknown aggregation service");
     }
 
-    if (epsilon <= 0 || epsilon > 4294) {
-      throw new RangeError("epsilon must be in the range (0, 4294]");
+    if (epsilon <= 0 || epsilon > index.MAX_CONVERSION_EPSILON) {
+      throw new RangeError(
+        `epsilon must be in the range (0, ${index.MAX_CONVERSION_EPSILON}]`,
+      );
     }
 
     const maxHistogramSize = this.#delegate.maxHistogramSize;
@@ -477,7 +475,7 @@ export class Backend {
       this.#privacyBudgetStore.push(entry);
     }
     const deductionFp = (epsilon * sensitivity) / globalSensitivity;
-    if (deductionFp < 0 || deductionFp > 4294) {
+    if (deductionFp < 0 || deductionFp > index.MAX_CONVERSION_EPSILON) {
       entry.value = 0;
       return false;
     }
@@ -519,7 +517,7 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = fairlyAllocateCredit(credit, value);
+    const normalizedCredit = this.#fairlyAllocateCredit(credit, value);
 
     const histogram = allZeroHistogram(histogramSize);
 
@@ -540,7 +538,7 @@ export class Backend {
   }
 
   #getCurrentEpoch(site: string, t: Temporal.Instant): number {
-    const period = PRIVACY_BUDGET_EPOCH.total("seconds");
+    const period = this.#delegate.privacyBudgetEpoch.total("seconds");
     let start = this.#epochStartStore.get(site);
     if (start === undefined) {
       const p = this.#delegate.random();
@@ -558,7 +556,7 @@ export class Backend {
   }
 
   #getStartEpoch(site: string): number {
-    const startEpoch = EARLIEST_EPOCH_INDEX;
+    const startEpoch = this.#delegate.earliestEpochIndex(site);
     if (this.#lastBrowsingHistoryClear) {
       let clearEpoch = this.#getCurrentEpoch(
         site,
@@ -604,34 +602,42 @@ export class Backend {
       );
     });
   }
-}
 
-function fairlyAllocateCredit(credit: number[], value: number): number[] {
-  const sumCredit = credit.reduce((a, b) => a + b, 0);
+  #fairlyAllocateCredit(credit: number[], value: number): number[] {
+    const sumCredit = credit.reduce((a, b) => a + b, 0);
 
-  const rawNormalizedCredit = credit.map((c) => (c * value) / sumCredit);
+    const roundedCredit = credit.map((item) => (value * item) / sumCredit);
 
-  const normalizedCredit = rawNormalizedCredit.map((c) => Math.ceil(c));
+    let idx1 = 0;
 
-  const shuffledFractionalIndices = shuffleArray(
-    credit
-      .map((_, i) => i)
-      .filter((i) => !Number.isInteger(rawNormalizedCredit[i])),
-  );
+    for (let n = 1; n < roundedCredit.length; ++n) {
+      let idx2 = n;
 
-  for (const index of shuffledFractionalIndices) {
-    if (normalizedCredit.reduce((a, b) => a + b, 0) === value) {
-      break;
+      const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
+      const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
+      if (frac1 === 0 && frac2 === 0) {
+        continue;
+      }
+
+      const [incr1, incr2] =
+        frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
+
+      const p1 = incr2 / (incr1 + incr2);
+
+      const r = this.#delegate.random();
+
+      let incr;
+      if (r < p1) {
+        incr = incr1;
+        [idx1, idx2] = [idx2, idx1];
+      } else {
+        incr = incr2;
+      }
+
+      roundedCredit[idx2]! += incr;
+      roundedCredit[idx1]! -= incr;
     }
-    normalizedCredit[index]! -= 1;
-  }
-  return normalizedCredit;
-}
 
-function shuffleArray<T>(array: T[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j]!, array[i]!];
+    return roundedCredit.map((item) => Math.round(item));
   }
-  return array;
 }
