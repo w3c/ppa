@@ -1158,7 +1158,7 @@ and integer |globalSensitivity|:
 
 1.  Let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
 
-1.  If |deductionFp| is negative or greater than [=max epsilon=],
+1.  If |deductionFp| is negative or greater than [=maximum epsilon=],
     [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
     and return false.
 
@@ -1497,7 +1497,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     from {{AttributionAggregationServices}},
     given |options|.{{AttributionConversionOptions/aggregationService}}.
 1.  If |options|.{{AttributionConversionOptions/epsilon}}
-    is less than or equal to 0 or is greater than [=max epsilon=],
+    is less than or equal to 0 or is greater than [=maximum epsilon=],
     throw a {{RangeError}}.
 1.  If |options|.{{AttributionConversionOptions/histogramSize}}
     is 0 or greater than the [=implementation-defined=] <dfn>maximum histogram size</dfn>,
