@@ -1701,27 +1701,45 @@ To perform <dfn>common matching logic</dfn>, given
 
 <div algorithm>
 To <dfn>fairly allocate credit</dfn>, given a [=list=] of doubles |credit| and an integer |value|:
+1.  [=Assert=]: |credit| is not [=list/is empty|empty=].
 1.  Let |sumCredit| be the sum of |credit|'s [=list/items=].
-1.  Let |rawNormalizedCredit| be a new [=list=].
-1.  Let |normalizedCredit| be a new [=list=].
+1.  Let |roundedCredit| be a new [=list=].
 1.  [=list/iterate|For each=] |item| of |credit|:
-      1. Let |rawNormalized| be |value| * |item| / |sumCredit|.
-      1. [=list/Append=] |rawNormalized| to |rawNormalizedCredit|.
-      1. Let |normalized| be |rawNormalized| rounded towards positive Infinity and converted to an integer.
-      1. [=list/Append=] |normalized| to |normalizedCredit|.
-1.  Let |shuffledFractionalIndices| be [=list/get the indices|the indices=] of |credit|, ordered randomly.
-1.  [=list/remove|Remove=] all indices |i| from |shuffledFractionalIndices| where |rawNormalizedCredit|[|i|] has no fractional part.
-1.  [=list/iterate|For each=] |index| of |shuffledFractionalIndices|:
-      1. If the sum of |normalizedCredit|'s [=list/items=] is equal to |value|, [=iteration/break=].
-      1. Decrement |normalizedCredit|[|index|] by 1.
-1.  Return |normalizedCredit|.
+    1.  Let |normalizedCredit| be |value| * |item| / |sumCredit|.
+    1.  [=list/append|Append=] |normalizedCredit| to |roundedCredit|.
+1.  Let |idx1| be 0.
+1.  [=list/iterate|For each=] |n| of [=list/get the indices=] of |roundedCredit|, removing the first [=list/item=]:
+    1.  Let |idx2| be |n|.
+    1.  Let |frac1| be |roundedCredit|[|idx1|] − floor(|roundedCredit|[|idx1|]).
+    1.  Let |frac2| be |roundedCredit|[|idx2|] − floor(|roundedCredit|[|idx2|]).
+    1.  If |frac1| and |frac2| are both equal to zero, [=iteration/continue=].
+    1.  If |frac1| + |frac2| is greater than 1, let |incr1| be 1 − |frac1| and |incr2| be 1 − |frac2|.
+    1.  Otherwise, let |incr1| be −|frac1| and |incr2| be −|frac2|.
+        <p class=note>|incr1| denotes the amount to increment |roundedCredit|[|idx1|] so that it is integral, and similar for |incr2| and |idx2|.
+        Note that these values can be negative.
+
+    1.  Let |p1| be |incr2| / (|incr1| + |incr2|).
+        <p class=note>The value |p1| denotes the probability that the [=list/item=] in |idx1| is rounded to an integer.
+        Divide by zero occurs when |incr1| + |incr2| is 0, which is only possible if both |frac1| and |frac2|
+        are integers (either both 0 or 1 exactly). In this case |idx2| does not need to be rounded, so we just skip it.
+
+    1.  Let |r| be a random double between 0 and 1 (inclusive).
+    1.  If |r| is less than |p1|, let |incr| be |incr1| and swap the values of |idx1| and |idx2|.
+    1.  Otherwise, let |incr| be |incr2|.
+    1.  Increment |roundedCredit|[|idx2|] by |incr|.
+    1.  Decrement |roundedCredit|[|idx1|] by |incr|.
+1.  Let |integerCredit| be the result of converting [=list/iterate|every=] [=list/item=] from |roundedCredit| into an integer by rounding to the nearest integer,
+    and rounding halfway cases away from zero.
+1.  Return |integerCredit|.
+    <p class=note>This final rounding step is only here in cases where tiny floating-point addition and subtraction errors do not completely remove
+    the fractional part for |roundedCredit|[|idx1|]. The rounding mode at half will never actually occur, and is chosen to match C++ <code>std::round</code>
+    behavior for ease of implementation.
+
     <p class=note>The algorithm aims to 1) allocate exactly |value| total value across assignments,
-    2) never bias towards any particular credit assignment in rounding, and
+    2) maintain the property that the expected value of |integerCredit| is exactly equal to the normalized credit
+    (i.e. |credit| * |value| / |sumCredit| where * denotes element-wise multiplication)
     3) never incur an error greater than 1 to any assignment.
-    <p class=issue>
-    While the algorithm is "unbiased" in the sense that the probability of being decremented is equal
-    across entries, ideally the final array of value is unbiased in the sense that its expectation
-    should be equal to |rawNormalizedCredit|. This is not achieved by the current algorithm.
+
 
 </div>
 
