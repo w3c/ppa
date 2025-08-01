@@ -1124,7 +1124,7 @@ A <dfn>microepsilon</dfn> is one-millionth of the unitary epsilon value
 used in differential privacy [[DP]].
 
 <p class=note>The choice of a 32-bit integer restricts the setting of epsilon to
-be less than or equal to the <dfn>max epsilon</dfn> of 4294.
+be less than or equal to the <dfn>maximum epsilon</dfn> of 4294.
 This <span class=allow-2119>should</span> be more than sufficient for implementations.
 
 A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items:
