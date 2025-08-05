@@ -1,6 +1,7 @@
 import type {
   AttributionImpressionOptions,
   AttributionConversionOptions,
+  AttributionProtocol,
 } from "./index";
 
 import { Backend, days } from "./backend";
@@ -16,6 +17,7 @@ interface TestSuite {
 }
 
 interface TestOptions {
+  aggregationServices: Record<string, AttributionProtocol>;
   maxConversionSitesPerImpression: number;
   maxConversionCallersPerImpression: number;
   maxCreditSize: number;
@@ -58,9 +60,11 @@ function runTestSuite({ name, options, cases }: TestSuite): void {
           let now = new Temporal.Instant(0n);
 
           const backend = new Backend({
-            aggregationServices: new Map([
-              ["", { protocol: "dap-15-histogram" }],
-            ]),
+            aggregationServices: new Map(
+              Object.entries(options.aggregationServices).map(
+                ([url, protocol]) => [url, { protocol }],
+              ),
+            ),
             includeUnencryptedHistogram: true,
 
             maxConversionSitesPerImpression:
@@ -118,6 +122,9 @@ function runTestSuite({ name, options, cases }: TestSuite): void {
 runTestSuite({
   name: "e2e",
   options: {
+    aggregationServices: {
+      "https://agg-service.example": "dap-15-histogram",
+    },
     maxConversionSitesPerImpression: 10,
     maxConversionCallersPerImpression: 10,
     maxCreditSize: Infinity,
@@ -148,7 +155,7 @@ runTestSuite({
           site: "advertiser.example",
           event: "measureConversion",
           options: {
-            aggregationService: "",
+            aggregationService: "https://agg-service.example",
             histogramSize: 3,
             value: 5,
             maxValue: 10,
