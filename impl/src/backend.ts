@@ -50,7 +50,7 @@ interface ValidatedConversionOptions {
 }
 
 interface ValidatedLogicOptions {
-  credit: number[];
+  credit: readonly number[];
 }
 
 export function days(days: number): Temporal.Duration {
@@ -557,7 +557,7 @@ export class Backend {
     matchedImpressions: Set<Impression>,
     histogramSize: number,
     value: number,
-    credit: number[],
+    credit: readonly number[],
   ): number[] {
     if (matchedImpressions.size === 0) {
       throw new DOMException(
@@ -586,8 +586,7 @@ export class Backend {
 
     const histogram = allZeroHistogram(histogramSize);
 
-    for (let i = 0; i < lastNImpressions.length; ++i) {
-      const impression = lastNImpressions[i]!;
+    for (const [i, impression] of lastNImpressions.entries()) {
       const value = normalizedCredit[i];
       const index = impression.histogramIndex;
       if (index < histogram.length) {
@@ -597,7 +596,7 @@ export class Backend {
     return histogram;
   }
 
-  #encryptReport(report: number[]): Uint8Array {
+  #encryptReport(report: readonly number[]): Uint8Array {
     void report;
     return new Uint8Array(0); // TODO
   }
@@ -673,7 +672,7 @@ export class Backend {
     });
   }
 
-  #fairlyAllocateCredit(credit: number[], value: number): number[] {
+  #fairlyAllocateCredit(credit: readonly number[], value: number): number[] {
     const sumCredit = credit.reduce((a, b) => a + b, 0);
 
     const roundedCredit = credit.map((item) => (value * item) / sumCredit);
