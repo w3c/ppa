@@ -602,14 +602,19 @@ export class Backend {
     return new Uint8Array(0); // TODO
   }
 
+  #checkedRandom(): number {
+    const p = this.#delegate.random();
+    if (!(p >= 0 && p < 1)) {
+      throw new RangeError("random must be in the range [0, 1)");
+    }
+    return p;
+  }
+
   #getCurrentEpoch(site: string, t: Temporal.Instant): number {
     const period = this.#delegate.privacyBudgetEpoch.total("seconds");
     let start = this.#epochStartStore.get(site);
     if (start === undefined) {
-      const p = this.#delegate.random();
-      if (!(p >= 0 && p < 1)) {
-        throw new RangeError("random must be in the range [0, 1)");
-      }
+      const p = this.#checkedRandom();
       const dur = Temporal.Duration.from({
         seconds: p * period,
       });
@@ -689,7 +694,7 @@ export class Backend {
 
       const p1 = incr2 / (incr1 + incr2);
 
-      const r = this.#delegate.random();
+      const r = this.#checkedRandom();
 
       let incr;
       if (r < p1) {
