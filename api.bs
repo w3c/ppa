@@ -1864,9 +1864,10 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  Let |histogramIndex| be |dict|["<code>[=save-impression/histogram-index=]</code>"].
 1.  Let |conversionSites| be |dict|["<code>[=save-impression/conversion-sites=]</code>"]
     [=map/with default=] an empty [=structured header/inner list=].
+1.  If |conversionSites| is not an [=structured header/inner list=], or if any of |conversionSites|' [=list/items=] is not a [=structured header/string=], return an error.
 1.  Let |conversionCallers| be |dict|["<code>[=save-impression/conversion-callers=]</code>"]
     [=map/with default=] an empty [=structured header/inner list=].
-1.  If any of |conversionSites|' [=list/items=] is not a [=structured header/string=], return an error.
+1.  If |conversionCallers| is not an [=structured header/inner list=], or if any of |conversionCallers|' [=list/items=] is not a [=structured header/string=], return an error.
 1.  Let |matchValue| be |dict|["<code>[=save-impression/match-value=]</code>"] [=map/with default=] 0.
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
