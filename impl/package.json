@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "pack": "webpack --mode development",
+    "pack": "webpack --mode production",
     "test": "node --test dist/",
     "pretty": "prettier . --write",
     "pretty:check": "prettier . --check",

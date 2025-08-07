@@ -3,7 +3,7 @@ name: "Deploy to GitHub Pages"
 on:
   push:
     branches: [ "main" ]
-    paths: [ "Makefile", "api.bs", "images/**", ".github/workflows/deploy.yml" ]
+    paths: [ "Makefile", "api.bs", "images/**", ".github/workflows/deploy.yml", "impl/**" ]
 
 jobs:
   build:
