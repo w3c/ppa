@@ -582,10 +582,8 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = fairlyAllocateCredit(
-      credit,
-      value,
-      this.#delegate.random,
+    const normalizedCredit = fairlyAllocateCredit(credit, value, () =>
+      this.#delegate.random(),
     );
 
     const histogram = allZeroHistogram(histogramSize);
@@ -681,6 +679,7 @@ export function fairlyAllocateCredit(
   value: number,
   rand: () => number,
 ): number[] {
+  // TODO: replace with precise sum
   const sumCredit = credit.reduce((a, b) => a + b, 0);
 
   const roundedCredit = credit.map((item) => (value * item) / sumCredit);
