@@ -517,10 +517,8 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = fairlyAllocateCredit(
-      credit,
-      value,
-      this.#delegate.random,
+    const normalizedCredit = fairlyAllocateCredit(credit, value, () =>
+      this.#delegate.random(),
     );
 
     const histogram = allZeroHistogram(histogramSize);
