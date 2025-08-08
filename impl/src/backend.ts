@@ -582,7 +582,11 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = this.#fairlyAllocateCredit(credit, value);
+    const normalizedCredit = fairlyAllocateCredit(
+      credit,
+      value,
+      this.#delegate.random,
+    );
 
     const histogram = allZeroHistogram(histogramSize);
 
@@ -601,19 +605,11 @@ export class Backend {
     return new Uint8Array(0); // TODO
   }
 
-  #checkedRandom(): number {
-    const p = this.#delegate.random();
-    if (!(p >= 0 && p < 1)) {
-      throw new RangeError("random must be in the range [0, 1)");
-    }
-    return p;
-  }
-
   #getCurrentEpoch(site: string, t: Temporal.Instant): number {
     const period = this.#delegate.privacyBudgetEpoch.total("seconds");
     let start = this.#epochStartStore.get(site);
     if (start === undefined) {
-      const p = this.#checkedRandom();
+      const p = checkRandom(this.#delegate.random());
       const dur = Temporal.Duration.from({
         seconds: p * period,
       });
@@ -671,42 +667,53 @@ export class Backend {
       );
     });
   }
+}
 
-  #fairlyAllocateCredit(credit: readonly number[], value: number): number[] {
-    const sumCredit = credit.reduce((a, b) => a + b, 0);
+function checkRandom(p: number): number {
+  if (!(p >= 0 && p < 1)) {
+    throw new RangeError("random must be in the range [0, 1)");
+  }
+  return p;
+}
 
-    const roundedCredit = credit.map((item) => (value * item) / sumCredit);
+export function fairlyAllocateCredit(
+  credit: readonly number[],
+  value: number,
+  rand: () => number,
+): number[] {
+  const sumCredit = credit.reduce((a, b) => a + b, 0);
 
-    let idx1 = 0;
+  const roundedCredit = credit.map((item) => (value * item) / sumCredit);
 
-    for (let n = 1; n < roundedCredit.length; ++n) {
-      let idx2 = n;
+  let idx1 = 0;
 
-      const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
-      const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
-      if (frac1 === 0 && frac2 === 0) {
-        continue;
-      }
+  for (let n = 1; n < roundedCredit.length; ++n) {
+    let idx2 = n;
 
-      const [incr1, incr2] =
-        frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
-
-      const p1 = incr2 / (incr1 + incr2);
-
-      const r = this.#checkedRandom();
-
-      let incr;
-      if (r < p1) {
-        incr = incr1;
-        [idx1, idx2] = [idx2, idx1];
-      } else {
-        incr = incr2;
-      }
-
-      roundedCredit[idx2]! += incr;
-      roundedCredit[idx1]! -= incr;
+    const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
+    const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
+    if (frac1 === 0 && frac2 === 0) {
+      continue;
     }
 
-    return roundedCredit.map((item) => Math.round(item));
+    const [incr1, incr2] =
+      frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
+
+    const p1 = incr2 / (incr1 + incr2);
+
+    const r = checkRandom(rand());
+
+    let incr;
+    if (r < p1) {
+      incr = incr1;
+      [idx1, idx2] = [idx2, idx1];
+    } else {
+      incr = incr2;
+    }
+
+    roundedCredit[idx2]! += incr;
+    roundedCredit[idx1]! -= incr;
   }
+
+  return roundedCredit.map((item) => Math.round(item));
 }
