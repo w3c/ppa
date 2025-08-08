@@ -1,12 +1,12 @@
-.PHONY: all venv clean images
+.PHONY: all venv clean images simulator
 .SUFFIXES: .bs .html
 
 IMAGES := $(wildcard images/*.svg)
 
-all: build/index.html
+all: build/index.html simulator
 
 clean:
-	-rm -rf build venv
+	-rm -rf build venv impl/dist
 
 venv-marker := venv/.make
 bikeshed := venv/bin/bikeshed
@@ -32,3 +32,15 @@ images:
 	  tmp="$$(mktemp)"; \
 	  npx aasvg --extract --embed <"$$i" >"$$tmp" && mv "$$tmp" "$$i"; \
 	done
+
+simulator: build/simulator.html build/simulator.js
+
+build/simulator.html: impl/dist/index.html build
+	cp $< $@
+
+build/simulator.js: impl/dist/simulator.js build
+	cp $< $@
+
+impl/dist/index.html impl/dist/simulator.js: impl/index.html impl/package-lock.json impl/package.json impl/tsconfig.json impl/webpack.config.js impl/src/*.ts
+	@ npm ci --prefix ./impl
+	@ npm run pack --prefix ./impl
