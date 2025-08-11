@@ -1852,6 +1852,18 @@ the {{AttributionImpressionOptions}} dictionary passed to
 </dl>
 
 <div algorithm>
+To <dfn>parse an inner list into a list of strings</dfn> given |input|:
+
+1. If |input| is not an [=structured header/inner list=], return an error.
+1. Let |strings| be a new [=list=].
+1. [=list/iterate|For each=] |item| of |input|:
+     1. If |item|'s [=structured header/item|value=] is not a [=string=], return an error.
+     1. [=list/Append=] |item|'s [=structured header/item|value=] to |strings|.
+1. Return |strings|.
+
+</div>
+
+<div algorithm>
 To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 |input|, run these steps:
 
@@ -1862,12 +1874,14 @@ To <dfn noexport>parse a `Save-Impression` header</dfn> given a [=header value=]
 1.  If |dict|["<code>[=save-impression/histogram-index=]</code>"] does not [=map/exist=] or
     is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |histogramIndex| be |dict|["<code>[=save-impression/histogram-index=]</code>"].
-1.  Let |conversionSites| be |dict|["<code>[=save-impression/conversion-sites=]</code>"]
+1.  Let |conversionSites| be the result of [=parse an inner list into a list of strings=]
+    given |dict|["<code>[=save-impression/conversion-sites=]</code>"]
     [=map/with default=] an empty [=structured header/inner list=].
-1.  If |conversionSites| is not an [=structured header/inner list=], or if any of |conversionSites|' [=list/items=] is not a [=structured header/string=], return an error.
-1.  Let |conversionCallers| be |dict|["<code>[=save-impression/conversion-callers=]</code>"]
+1.  If |conversionSites| is an error, return it.
+1.  Let |conversionCallers| be the result of [=parse an inner list into a list of strings=]
+    given |dict|["<code>[=save-impression/conversion-callers=]</code>"]
     [=map/with default=] an empty [=structured header/inner list=].
-1.  If |conversionCallers| is not an [=structured header/inner list=], or if any of |conversionCallers|' [=list/items=] is not a [=structured header/string=], return an error.
+1.  If |conversionCallers| is an error, return it.
 1.  Let |matchValue| be |dict|["<code>[=save-impression/match-value=]</code>"] [=map/with default=] 0.
 1.  If |matchValue| is not an [=structured header/integer=] or is less than 0, return an error.
 1.  Let |lifetimeDays| be |dict|["<code>[=save-impression/lifetime-days=]</code>"] [=map/with default=] 30.
