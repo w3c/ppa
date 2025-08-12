@@ -19,4 +19,5 @@ jobs:
       with:
         path: venv
         key: venv-${{ hashFiles('Makefile') }}
+        python-version: '3.11'
     - run: make
