@@ -164,5 +164,60 @@ runTestSuite({
         },
       ],
     },
+    {
+      name: "simulate-multiple-buckets",
+      events: [
+        {
+          seconds: 1,
+          site: "publisher.example",
+          event: "saveImpression",
+          // 100 will be used for campaign queries
+          options: { histogramIndex: 0, matchValue: 100 },
+        },
+        {
+          seconds: 2,
+          site: "publisher.example",
+          event: "saveImpression",
+          // 200 will be used for geo queries
+          options: { histogramIndex: 1, matchValue: 200 },
+        },
+        {
+          seconds: 3,
+          site: "publisher.example",
+          event: "saveImpression",
+          options: { histogramIndex: 2, matchValue: 100 },
+        },
+        {
+          seconds: 4,
+          site: "publisher.example",
+          event: "saveImpression",
+          options: { histogramIndex: 3, matchValue: 200 },
+        },
+        {
+          seconds: 5,
+          site: "advertiser.example",
+          event: "measureConversion",
+          options: {
+            aggregationService: "https://agg-service.example",
+            histogramSize: 4,
+            matchValues: [100],
+            epsilon: 0.5,
+          },
+          expectedHistogram: [0, 0, 1, 0],
+        },
+        {
+          seconds: 6,
+          site: "advertiser.example",
+          event: "measureConversion",
+          options: {
+            aggregationService: "https://agg-service.example",
+            histogramSize: 4,
+            matchValues: [200],
+            epsilon: 0.5,
+          },
+          expectedHistogram: [0, 0, 0, 1],
+        },
+      ],
+    },
   ],
 });
