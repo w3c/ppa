@@ -16,6 +16,8 @@ jobs:
     - uses: actions/upload-pages-artifact@v3
       with:
         path: build
+        python-version: '3.11'
+
 
   publish:
     name: "Publish HTML"
