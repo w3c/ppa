@@ -1458,7 +1458,7 @@ The <dfn method for=Attribution>measureConversion(|options|)</dfn> method steps 
 
             :   <a enum-value for=AttributionAggregationProtocol>`tee-00`</a>
             ::  Perform the following steps:
-                1.  TODO: see [#130](https://github.com/w3c/ppa/issues/130)
+                1.  TODO: see [#130](https://github.com/w3c/attribution/issues/130)
          </dl>
      1.  Let |result| be a {{AttributionConversionResult}} with the following items:
           : {{AttributionConversionResult/report}}
