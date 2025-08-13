@@ -108,14 +108,22 @@ function runTest(
           );
 
         if (typeof event.expectedError === "string") {
-          assert.throws(call, { name: event.expectedError });
+          assert.throws(
+            call,
+            { name: event.expectedError },
+            `seconds: ${event.seconds}`,
+          );
         } else if (typeof event.expectedError === "object") {
           const expectedError = event.expectedError;
-          assert.throws(call, (err) => {
-            assert.ok(err instanceof DOMException);
-            assert.equal(err.name, expectedError.name);
-            return true;
-          });
+          assert.throws(
+            call,
+            (err) => {
+              assert.ok(err instanceof DOMException);
+              assert.equal(err.name, expectedError.name);
+              return true;
+            },
+            `seconds: ${event.seconds}`,
+          );
         } else {
           call();
         }
@@ -127,7 +135,11 @@ function runTest(
           event.intermediarySite,
           event.options,
         );
-        assert.deepEqual(result.unencryptedHistogram, event.expectedHistogram);
+        assert.deepEqual(
+          result.unencryptedHistogram,
+          event.expectedHistogram,
+          `seconds: ${event.seconds}`,
+        );
         break;
     }
   }
