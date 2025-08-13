@@ -74,44 +74,44 @@ runTests([
   { name: "histogram-index-not-integer", input: "histogram-index=1.2" },
 
   {
-    name: `conversion-sites-wrong-type`,
-    input: `conversion-sites=a, histogram-index=1`,
+    name: "conversion-sites-wrong-type",
+    input: "conversion-sites=a, histogram-index=1",
   },
   {
-    name: `conversion-sites-item-wrong-type`,
-    input: `conversion-sites=(a), histogram-index=1`,
+    name: "conversion-sites-item-wrong-type",
+    input: "conversion-sites=(a), histogram-index=1",
   },
 
   {
-    name: `conversion-callers-wrong-type`,
-    input: `conversion-callers=a, histogram-index=1`,
+    name: "conversion-callers-wrong-type",
+    input: "conversion-callers=a, histogram-index=1",
   },
   {
-    name: `conversion-callers-item-wrong-type`,
-    input: `conversion-callers=(a), histogram-index=1`,
+    name: "conversion-callers-item-wrong-type",
+    input: "conversion-callers=(a), histogram-index=1",
   },
 
-  { name: `match-value-wrong-type`, input: `match-value=a, histogram-index=1` },
-  { name: `match-value-negative`, input: `match-value=-1, histogram-index=1` },
+  { name: "match-value-wrong-type", input: "match-value=a, histogram-index=1" },
+  { name: "match-value-negative", input: "match-value=-1, histogram-index=1" },
   {
-    name: `match-value-not-integer`,
-    input: `match-value=1.2, histogram-index=1`,
+    name: "match-value-not-integer",
+    input: "match-value=1.2, histogram-index=1",
   },
 
   {
-    name: `lifetime-days-wrong-type`,
-    input: `lifetime-days=a, histogram-index=1`,
+    name: "lifetime-days-wrong-type",
+    input: "lifetime-days=a, histogram-index=1",
   },
   {
-    name: `lifetime-days-negative`,
-    input: `lifetime-days=-1, histogram-index=1`,
+    name: "lifetime-days-negative",
+    input: "lifetime-days=-1, histogram-index=1",
   },
   {
-    name: `lifetime-days-not-integer`,
-    input: `lifetime-days=1.2, histogram-index=1`,
+    name: "lifetime-days-not-integer",
+    input: "lifetime-days=1.2, histogram-index=1",
   },
-  { name: `lifetime-days-zero`, input: `lifetime-days=0, histogram-index=1` },
+  { name: "lifetime-days-zero", input: "lifetime-days=0, histogram-index=1" },
 
-  { name: `priority-wrong-type`, input: `priority=a, histogram-index=1` },
-  { name: `priority-not-integer`, input: `priority=1.2, histogram-index=1` },
+  { name: "priority-wrong-type", input: "priority=a, histogram-index=1" },
+  { name: "priority-not-integer", input: "priority=1.2, histogram-index=1" },
 ]);
