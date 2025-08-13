@@ -1518,7 +1518,7 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
                 1.  Set |credit| to |options|.{{AttributionConversionOptions/logicOptions}}.{{AttributionLogicOptions/credit}}.
                 1.  If |credit| is not a [=list=] or [=list/is empty=], throw a {{RangeError}}.
                 1.  If any of the [=list/items=] of |credit| are less than or equal to 0, throw a {{RangeError}}.
-                1.  If the [=list/size=] of |credit| exceeds an implementation-defined maximum, throw a {{RangeError}}.
+                1.  If the [=list/size=] of |credit| exceeds an [=implementation-defined=] maximum, throw a {{RangeError}}.
     </dl>
 1.  Let |validatedLogicOptions| be a {{AttributionLogicOptions}} with the following fields:
     : {{AttributionLogicOptions/credit}}
