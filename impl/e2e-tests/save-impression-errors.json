@@ -1,0 +1,86 @@
+{
+  "$comment": "TODO: conversionSites/Callers size",
+  "events": [
+    {
+      "seconds": 1,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": { "histogramIndex": -1 },
+      "expectedError": "RangeError"
+    },
+    {
+      "seconds": 2,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": { "histogramIndex": 5 },
+      "expectedError": "RangeError"
+    },
+    {
+      "seconds": 3,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": {
+        "histogramIndex": 0,
+        "lifetimeDays": 0
+      },
+      "expectedError": "RangeError"
+    },
+    {
+      "seconds": 4,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": {
+        "histogramIndex": 0,
+        "conversionSites": ["a"]
+      },
+      "expectedError": {
+        "error": "DOMException",
+        "name": "SyntaxError"
+      }
+    },
+    {
+      "seconds": 5,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": {
+        "histogramIndex": 0,
+        "conversionSites": ["a", "a", "a", "a"]
+      },
+      "expectedError": "RangeError"
+    },
+    {
+      "seconds": 6,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": {
+        "histogramIndex": 0,
+        "conversionCallers": ["a"]
+      },
+      "expectedError": {
+        "error": "DOMException",
+        "name": "SyntaxError"
+      }
+    },
+    {
+      "seconds": 7,
+      "site": "publisher.example",
+      "event": "saveImpression",
+      "options": {
+        "histogramIndex": 0,
+        "conversionCallers": ["a", "a", "a", "a"]
+      },
+      "expectedError": "RangeError"
+    },
+    {
+      "seconds": 8,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 5
+      },
+      "$comment": "check that no impression was stored",
+      "expectedHistogram": [0, 0, 0, 0, 0]
+    }
+  ]
+}

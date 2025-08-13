@@ -140,7 +140,11 @@ export class Backend {
 
     const timestamp = this.#delegate.now();
 
-    if (histogramIndex < 0 || !Number.isInteger(histogramIndex)) {
+    if (
+      histogramIndex < 0 ||
+      histogramIndex >= this.#delegate.maxHistogramSize ||
+      !Number.isInteger(histogramIndex)
+    ) {
       throw new RangeError("histogramIndex must be a non-negative integer");
     }
 
