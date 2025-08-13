@@ -211,11 +211,11 @@ runTestSuite({
           event: "measureConversion",
           options: {
             aggregationService: "https://agg-service.example",
-            histogramSize: 4,
+            histogramSize: 5,
             matchValues: [200],
             epsilon: 0.5,
           },
-          expectedHistogram: [0, 0, 0, 1],
+          expectedHistogram: [0, 0, 0, 1, 0],
         },
       ],
     },
