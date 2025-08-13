@@ -4,18 +4,15 @@ import type {
   AttributionProtocol,
 } from "./index";
 
+import type { TestContext } from "node:test";
+
 import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
 import { glob, readFile } from "node:fs/promises";
+import * as path from "node:path";
 import test from "node:test";
 import { Temporal } from "temporal-polyfill";
-
-interface TestSuite {
-  name: string;
-  options: TestOptions;
-  cases: TestCase[];
-}
 
 interface TestOptions {
   aggregationServices: Record<string, AttributionProtocol>;
@@ -30,7 +27,7 @@ interface TestOptions {
 }
 
 interface TestCase {
-  name: string;
+  options?: TestOptions;
   events: Event[];
 }
 
@@ -53,7 +50,12 @@ interface MeasureConversion {
   expectedHistogram: number[];
 }
 
-function runTest(options: Readonly<TestOptions>, tc: Readonly<TestCase>): void {
+function runTest(
+  defaultOptions: Readonly<TestOptions>,
+  tc: Readonly<TestCase>,
+): void {
+  const options = tc.options ?? defaultOptions;
+
   let now = new Temporal.Instant(0n);
 
   const backend = new Backend({
@@ -109,22 +111,29 @@ function runTest(options: Readonly<TestOptions>, tc: Readonly<TestCase>): void {
   }
 }
 
-void test("e2e", async (t) => {
+const optionsName = "OPTIONS.json";
+
+async function runTestsInDir(t: TestContext, dir: string): Promise<void> {
+  const optionsJson = await readFile(path.join(dir, optionsName), "utf8");
+  const defaultOptions = JSON.parse(optionsJson) as TestOptions;
+
   const promises = [];
 
-  for await (const path of glob("./e2e-tests/*.json")) {
-    const promise = t.test(path, async (t) => {
-      const json = await readFile(path, { encoding: "utf8" });
-      const suite = JSON.parse(json) as TestSuite;
-      await Promise.all(
-        suite.cases.map((tc) =>
-          t.test(tc.name, () => runTest(suite.options, tc)),
-        ),
-      );
+  for await (const entry of glob(path.join(dir, "*.json"))) {
+    if (path.basename(entry) === optionsName) {
+      continue;
+    }
+
+    const promise = t.test(entry, async () => {
+      const json = await readFile(entry, "utf8");
+      const tc = JSON.parse(json) as TestCase;
+      runTest(defaultOptions, tc);
     });
 
     promises.push(promise);
   }
 
   await Promise.all(promises);
-});
+}
+
+void test("e2e", async (t) => runTestsInDir(t, "e2e-tests"));
