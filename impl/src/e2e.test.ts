@@ -14,7 +14,7 @@ import * as path from "node:path";
 import test from "node:test";
 import { Temporal } from "temporal-polyfill";
 
-interface TestOptions {
+interface TestConfig {
   aggregationServices: Record<string, AttributionProtocol>;
   maxConversionSitesPerImpression: number;
   maxConversionCallersPerImpression: number;
@@ -27,7 +27,7 @@ interface TestOptions {
 }
 
 interface TestCase {
-  options?: TestOptions;
+  config?: TestConfig;
   events: Event[];
 }
 
@@ -51,31 +51,30 @@ interface MeasureConversion {
 }
 
 function runTest(
-  defaultOptions: Readonly<TestOptions>,
+  defaultConfig: Readonly<TestConfig>,
   tc: Readonly<TestCase>,
 ): void {
-  const options = tc.options ?? defaultOptions;
+  const config = tc.config ?? defaultConfig;
 
   let now = new Temporal.Instant(0n);
 
   const backend = new Backend({
     aggregationServices: new Map(
-      Object.entries(options.aggregationServices).map(([url, protocol]) => [
+      Object.entries(config.aggregationServices).map(([url, protocol]) => [
         url,
         { protocol },
       ]),
     ),
     includeUnencryptedHistogram: true,
 
-    maxConversionSitesPerImpression: options.maxConversionSitesPerImpression,
-    maxConversionCallersPerImpression:
-      options.maxConversionCallersPerImpression,
-    maxCreditSize: options.maxCreditSize,
-    maxLifetimeDays: options.maxLifetimeDays,
-    maxLookbackDays: options.maxLookbackDays,
-    maxHistogramSize: options.maxHistogramSize,
-    privacyBudgetMicroEpsilons: options.privacyBudgetMicroEpsilons,
-    privacyBudgetEpoch: days(options.privacyBudgetEpochDays),
+    maxConversionSitesPerImpression: config.maxConversionSitesPerImpression,
+    maxConversionCallersPerImpression: config.maxConversionCallersPerImpression,
+    maxCreditSize: config.maxCreditSize,
+    maxLifetimeDays: config.maxLifetimeDays,
+    maxLookbackDays: config.maxLookbackDays,
+    maxHistogramSize: config.maxHistogramSize,
+    privacyBudgetMicroEpsilons: config.privacyBudgetMicroEpsilons,
+    privacyBudgetEpoch: days(config.privacyBudgetEpochDays),
 
     now: () => now,
     random: () => 0.5,
@@ -111,23 +110,23 @@ function runTest(
   }
 }
 
-const optionsName = "OPTIONS.json";
+const configName = "CONFIG.json";
 
 async function runTestsInDir(t: TestContext, dir: string): Promise<void> {
-  const optionsJson = await readFile(path.join(dir, optionsName), "utf8");
-  const defaultOptions = JSON.parse(optionsJson) as TestOptions;
+  const configJson = await readFile(path.join(dir, configName), "utf8");
+  const defaultConfig = JSON.parse(configJson) as TestConfig;
 
   const promises = [];
 
   for await (const entry of glob(path.join(dir, "*.json"))) {
-    if (path.basename(entry) === optionsName) {
+    if (path.basename(entry) === configName) {
       continue;
     }
 
     const promise = t.test(entry, async () => {
       const json = await readFile(entry, "utf8");
       const tc = JSON.parse(json) as TestCase;
-      runTest(defaultOptions, tc);
+      runTest(defaultConfig, tc);
     });
 
     promises.push(promise);
