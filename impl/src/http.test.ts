@@ -44,7 +44,7 @@ runTests([
 
   {
     name: "valid-maximal",
-    input: `histogram-index=123;x, match-value=4, conversion-sites=("b" "a";y);z, conversion-callers=("c"), lifetime-days=5, priority=-6`,
+    input: `histogram-index=123;x, match-value=4, conversion-sites=("b" "a";y);z, conversion-callers=("c"), lifetime-days=5, priority=-6, octopus=?1`,
     expected: {
       histogramIndex: 123,
       matchValue: 4,
