@@ -177,6 +177,10 @@ export class Backend {
       throw new RangeError("matchValue must be a non-negative integer");
     }
 
+    if (!Number.isInteger(priority)) {
+      throw new RangeError("priority must be an integer");
+    }
+
     if (!this.enabled) {
       return {};
     }
