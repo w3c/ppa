@@ -54,8 +54,24 @@ interface SaveImpression {
 interface MeasureConversion {
   event: "measureConversion";
   options: AttributionConversionOptions;
-  // TODO: Support checking for errors.
-  expectedHistogram: number[];
+  expected: number[] | ExpectedError;
+}
+
+function assertThrows(
+  call: () => unknown,
+  expectedError: ExpectedError,
+  seconds: number,
+): void {
+  const check =
+    typeof expectedError === "string"
+      ? { name: expectedError }
+      : (err: unknown) => {
+          assert.ok(err instanceof DOMException);
+          assert.equal(err.name, expectedError.name);
+          return true;
+        };
+
+  assert.throws(call, check, `seconds: ${seconds}`);
 }
 
 function runTest(
@@ -99,7 +115,7 @@ function runTest(
     now = newNow;
 
     switch (event.event) {
-      case "saveImpression":
+      case "saveImpression": {
         const call = () =>
           backend.saveImpression(
             event.site,
@@ -107,40 +123,34 @@ function runTest(
             event.options,
           );
 
-        if (typeof event.expectedError === "string") {
-          assert.throws(
-            call,
-            { name: event.expectedError },
-            `seconds: ${event.seconds}`,
-          );
-        } else if (typeof event.expectedError === "object") {
-          const expectedError = event.expectedError;
-          assert.throws(
-            call,
-            (err) => {
-              assert.ok(err instanceof DOMException);
-              assert.equal(err.name, expectedError.name);
-              return true;
-            },
-            `seconds: ${event.seconds}`,
-          );
-        } else {
+        if (event.expectedError === undefined) {
           call();
+        } else {
+          assertThrows(call, event.expectedError, event.seconds);
         }
 
         break;
-      case "measureConversion":
-        const result = backend.measureConversion(
-          event.site,
-          event.intermediarySite,
-          event.options,
-        );
-        assert.deepEqual(
-          result.unencryptedHistogram,
-          event.expectedHistogram,
-          `seconds: ${event.seconds}`,
-        );
+      }
+      case "measureConversion": {
+        const call = () =>
+          backend.measureConversion(
+            event.site,
+            event.intermediarySite,
+            event.options,
+          );
+
+        if (Array.isArray(event.expected)) {
+          assert.deepEqual(
+            call().unencryptedHistogram,
+            event.expected,
+            `seconds: ${event.seconds}`,
+          );
+        } else {
+          assertThrows(call, event.expected, event.seconds);
+        }
+
         break;
+      }
     }
   }
 }

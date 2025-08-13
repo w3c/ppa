@@ -1,0 +1,151 @@
+{
+  "events": [
+    {
+      "seconds": 1,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://invalid.example",
+        "histogramSize": 1
+      },
+      "expected": "ReferenceError"
+    },
+    {
+      "seconds": 2,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "epsilon": 0,
+        "histogramSize": 1
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 3,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "epsilon": -1,
+        "histogramSize": 1
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 4,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 0
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 5,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 6
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 6,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "value": 0
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 7,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "value": 2,
+        "maxValue": 1
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 8,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "logicOptions": { "credit": [] }
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 9,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "logicOptions": { "credit": [0] }
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 10,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "logicOptions": { "credit": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 11,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "lookbackDays": 0
+      },
+      "expected": "RangeError"
+    },
+    {
+      "seconds": 12,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "impressionSites": ["a"]
+      },
+      "expected": {
+        "error": "DOMException",
+        "name": "SyntaxError"
+      }
+    },
+    {
+      "seconds": 13,
+      "site": "advertiser.example",
+      "event": "measureConversion",
+      "options": {
+        "aggregationService": "https://agg-service.example",
+        "histogramSize": 1,
+        "impressionCallers": ["a"]
+      },
+      "expected": {
+        "error": "DOMException",
+        "name": "SyntaxError"
+      }
+    }
+  ]
+}

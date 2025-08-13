@@ -36,7 +36,7 @@
         "matchValues": [100],
         "epsilon": 0.5
       },
-      "expectedHistogram": [0, 0, 1, 0]
+      "expected": [0, 0, 1, 0]
     },
     {
       "seconds": 6,
@@ -48,7 +48,7 @@
         "matchValues": [200],
         "epsilon": 0.5
       },
-      "expectedHistogram": [0, 0, 0, 1, 0]
+      "expected": [0, 0, 0, 1, 0]
     }
   ]
 }
