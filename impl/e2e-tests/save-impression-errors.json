@@ -79,7 +79,7 @@
         "histogramSize": 5
       },
       "$comment": "check that no impression was stored",
-      "expectedHistogram": [0, 0, 0, 0, 0]
+      "expected": [0, 0, 0, 0, 0]
     }
   ]
 }
