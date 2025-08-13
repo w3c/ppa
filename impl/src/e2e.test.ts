@@ -37,10 +37,18 @@ type Event = {
   intermediarySite?: string | undefined;
 } & (SaveImpression | MeasureConversion);
 
+type ExpectedError =
+  | "RangeError"
+  | "ReferenceError"
+  | {
+      error: "DOMException";
+      name: string;
+    };
+
 interface SaveImpression {
   event: "saveImpression";
   options: AttributionImpressionOptions;
-  // TODO: Support checking for errors.
+  expectedError?: ExpectedError;
 }
 
 interface MeasureConversion {
@@ -92,11 +100,26 @@ function runTest(
 
     switch (event.event) {
       case "saveImpression":
-        backend.saveImpression(
-          event.site,
-          event.intermediarySite,
-          event.options,
-        );
+        const call = () =>
+          backend.saveImpression(
+            event.site,
+            event.intermediarySite,
+            event.options,
+          );
+
+        if (typeof event.expectedError === "string") {
+          assert.throws(call, { name: event.expectedError });
+        } else if (typeof event.expectedError === "object") {
+          const expectedError = event.expectedError;
+          assert.throws(call, (err) => {
+            assert.ok(err instanceof DOMException);
+            assert.equal(err.name, expectedError.name);
+            return true;
+          });
+        } else {
+          call();
+        }
+
         break;
       case "measureConversion":
         const result = backend.measureConversion(
