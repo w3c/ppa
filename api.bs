@@ -1157,15 +1157,15 @@ integer |l1Norm|:
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
 
-1.  Let |singleEpochQuery| be true if |l1Norm| is non-null.
+1.  Let |singleEpochQuery| be true if |l1Norm| is non-null, false otherwise.
 
-1.  Let |reportGlobalSensitivity| be |l1Norm| if |singleEpochQuery| else 2 * |value|
+1.  Let |reportGlobalSensitivity| be |l1Norm| if |singleEpochQuery| is true, 2 * |value| otherwise.
 
 1.  Let |noiseScale| be |maxValue| / |epsilon|.
 
 1.  Let |deductionFp| be |reportGlobalSensitivity| / |noiseScale|.
 
-<p class=note> Single epoch attributions do not cause any cascading effects across epochs,
+<p class=note>Single epoch attributions do not cause any cascading effects across epochs,
 so they do not need to consume double the budget. The deduction here is assuming Laplace
 noise is added to the histogram with scale param |maxValue| / |epsilon|.
 
@@ -1612,10 +1612,10 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  Let |earliestEpoch| be the result of calling [=get the current epoch=],
     passing |topLevelSite| and (|now| − |options|' [=validated conversion options/lookback=]).
 
-1.  Let |singleEpoch| be a boolean indicating whether |currentEpoch| is equal to |earliestEpoch|.
+1.  Let |singleEpoch| be true if |currentEpoch| is equal to |earliestEpoch|, false otherwise.
 
 1.  If |singleEpoch| is true:
-    1.  Let |impressions| be the result of invoking [=common matching logic=]
+    1.  Set |matchedImpressions| to the result of invoking [=common matching logic=]
         with |options|, |topLevelSite|, |intermediarySite|, |currentEpoch|, and |now|.
 
 1.  If |singleEpoch| is false:
@@ -1653,7 +1653,7 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  If |singleEpoch| is true:
     1.  Let |l1Norm| be the sum of the [=list/items=] in |histogram|.
 
-    1.  [=Assert=] |l1Norm| is less than or equal to |options|' [=validated conversion options/value=].
+    1.  [=Assert=]: |l1Norm| is less than or equal to |options|' [=validated conversion options/value=].
 
     1.  Let |key| be a [=privacy budget key=] whose items are |currentEpoch| and |topLevelSite|.
 
