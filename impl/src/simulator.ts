@@ -25,6 +25,8 @@ const backend = new Backend({
   privacyBudgetMicroEpsilons: 1000000,
   privacyBudgetEpoch: days(7),
 
+  dbName: "Attribution",
+
   now: () => now,
   random: () => 0.5,
   earliestEpochIndex: (site: string) => {
@@ -81,9 +83,9 @@ function listCell(tr: HTMLTableRowElement, vs: Iterable<string>): void {
 
 const impressionTable = document.querySelector("tbody")!;
 
-function updateImpressionsTable() {
+async function updateImpressionsTable() {
   impressionTable.replaceChildren();
-  for (const i of backend.impressions) {
+  for await (const i of backend.impressions()) {
     const tr = document.createElement("tr");
 
     tr.insertCell().innerText = i.timestamp.toString();
@@ -91,7 +93,7 @@ function updateImpressionsTable() {
     tr.insertCell().innerText = i.intermediarySite ?? "";
     tr.insertCell().innerText = i.histogramIndex.toString();
     tr.insertCell().innerText = i.matchValue.toString();
-    tr.insertCell().innerText = (i.lifetime.hours / 24).toString();
+    tr.insertCell().innerText = i.lifetimeDays.toString();
     tr.insertCell().innerText = i.priority.toString();
     listCell(tr, i.conversionSites);
     listCell(tr, i.conversionCallers);
@@ -120,7 +122,7 @@ function updateImpressionsTable() {
     now = now.add(days(daysInput.valueAsNumber));
     time.innerText = now.toString();
     backend.clearExpiredImpressions();
-    updateImpressionsTable();
+    void updateImpressionsTable();
   });
 }
 
@@ -192,7 +194,7 @@ function updateImpressionsTable() {
     }
 
     output.append(li);
-    updateImpressionsTable();
+    void updateImpressionsTable();
   });
 }
 
@@ -315,7 +317,7 @@ function updateImpressionsTable() {
     output.append(li);
 
     epochStarts.replaceChildren();
-    for (const [site, start] of backend.epochStarts) {
+    for await (const { site, start } of backend.epochStarts()) {
       const dt = document.createElement("dt");
       dt.innerText = site;
       const dd = document.createElement("dd");
@@ -324,9 +326,9 @@ function updateImpressionsTable() {
     }
 
     privacyBudgetEntries.replaceChildren();
-    for (const entry of backend.privacyBudgetEntries) {
+    for await (const entry of backend.privacyBudgetEntries()) {
       const dt = document.createElement("dt");
-      dt.innerText = `${entry.site} @ epoch ${entry.epoch}`;
+      dt.innerText = `${entry.key[0]} @ epoch ${entry.key[1]}`;
       const dd = document.createElement("dd");
       dd.innerText = entry.value.toString();
       privacyBudgetEntries.append(dt, dd);

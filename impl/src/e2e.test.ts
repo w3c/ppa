@@ -9,6 +9,7 @@ import type { TestContext } from "node:test";
 import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
+import "fake-indexeddb/auto";
 import { glob, readFile } from "node:fs/promises";
 import * as path from "node:path";
 import test from "node:test";
@@ -75,6 +76,7 @@ async function assertRejects(
 }
 
 async function runTest(
+  t: TestContext,
   defaultConfig: Readonly<TestConfig>,
   tc: Readonly<TestCase>,
 ): Promise<void> {
@@ -99,6 +101,9 @@ async function runTest(
     maxHistogramSize: config.maxHistogramSize,
     privacyBudgetMicroEpsilons: config.privacyBudgetMicroEpsilons,
     privacyBudgetEpoch: days(config.privacyBudgetEpochDays),
+
+    // Give each run a separate DB name to prevent interference.
+    dbName: t.fullName,
 
     now: () => now,
     random: () => 0.5,
@@ -167,10 +172,10 @@ async function runTestsInDir(t: TestContext, dir: string): Promise<void> {
       continue;
     }
 
-    const promise = t.test(entry, async () => {
+    const promise = t.test(entry, async (t) => {
       const json = await readFile(entry, "utf8");
       const tc = JSON.parse(json) as TestCase;
-      await runTest(defaultConfig, tc);
+      await runTest(t, defaultConfig, tc);
     });
 
     promises.push(promise);
