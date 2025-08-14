@@ -7,6 +7,7 @@ import type {
 import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
+import "fake-indexeddb/auto";
 import test from "node:test";
 import { Temporal } from "temporal-polyfill";
 
@@ -56,7 +57,7 @@ function runTestSuite({ name, options, cases }: TestSuite): void {
   void test(name, async (t) => {
     await Promise.all(
       cases.map((tc) =>
-        t.test(tc.name, () => {
+        t.test(tc.name, async () => {
           let now = new Temporal.Instant(0n);
 
           const backend = new Backend({
@@ -94,14 +95,14 @@ function runTestSuite({ name, options, cases }: TestSuite): void {
 
             switch (event.event) {
               case "saveImpression":
-                backend.saveImpression(
+                await backend.saveImpression(
                   event.site,
                   event.intermediarySite,
                   event.options,
                 );
                 break;
               case "measureConversion":
-                const result = backend.measureConversion(
+                const result = await backend.measureConversion(
                   event.site,
                   event.intermediarySite,
                   event.options,

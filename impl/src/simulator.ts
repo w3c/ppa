@@ -80,18 +80,22 @@ function listCell(tr: HTMLTableRowElement, vs: Iterable<string>): void {
 }
 
 const impressionTable = document.querySelector("tbody")!;
+const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
+const privacyBudgetEntries = document.querySelector<HTMLDListElement>(
+  "#privacyBudgetEntries",
+)!;
 
-function updateImpressionsTable() {
+async function updateImpressionsTable() {
   impressionTable.replaceChildren();
-  for (const i of backend.impressions) {
+  for await (const i of backend.impressions()) {
     const tr = document.createElement("tr");
 
-    tr.insertCell().innerText = i.timestamp.toString();
+    tr.insertCell().innerText = i.timestamp.toTemporalInstant().toString();
     tr.insertCell().innerText = i.impressionSite;
     tr.insertCell().innerText = i.intermediarySite ?? "";
     tr.insertCell().innerText = i.histogramIndex.toString();
     tr.insertCell().innerText = i.matchValue.toString();
-    tr.insertCell().innerText = (i.lifetime.hours / 24).toString();
+    tr.insertCell().innerText = i.lifetimeDays.toString();
     tr.insertCell().innerText = i.priority.toString();
     listCell(tr, i.conversionSites);
     listCell(tr, i.conversionCallers);
@@ -119,8 +123,7 @@ function updateImpressionsTable() {
 
     now = now.add(days(daysInput.valueAsNumber));
     time.innerText = now.toString();
-    backend.clearExpiredImpressions();
-    updateImpressionsTable();
+    void backend.clearExpiredImpressions().then(updateImpressionsTable);
   });
 }
 
@@ -164,7 +167,8 @@ function updateImpressionsTable() {
 
   form.addEventListener("input", reportValidity);
 
-  form.addEventListener("submit", function (this: HTMLFormElement, e) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  form.addEventListener("submit", async function (this: HTMLFormElement, e) {
     e.preventDefault();
 
     if (!this.reportValidity()) {
@@ -183,7 +187,7 @@ function updateImpressionsTable() {
     const li = document.createElement("li");
 
     try {
-      backend.saveImpression(...sites(site, intermediary), opts);
+      await backend.saveImpression(...sites(site, intermediary), opts);
       li.innerText = "Success";
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -191,7 +195,7 @@ function updateImpressionsTable() {
     }
 
     output.append(li);
-    updateImpressionsTable();
+    void updateImpressionsTable();
   });
 }
 
@@ -245,15 +249,10 @@ function updateImpressionsTable() {
 
   const output = form.querySelector("ol")!;
 
-  const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
-
-  const privacyBudgetEntries = document.querySelector<HTMLDListElement>(
-    "#privacyBudgetEntries",
-  )!;
-
   form.addEventListener("input", reportValidity);
 
-  form.addEventListener("submit", function (this: HTMLFormElement, e) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  form.addEventListener("submit", async function (this: HTMLFormElement, e) {
     e.preventDefault();
 
     if (!this.reportValidity()) {
@@ -279,7 +278,7 @@ function updateImpressionsTable() {
 
     const li = document.createElement("li");
     try {
-      const result = backend.measureConversion(
+      const result = await backend.measureConversion(
         ...sites(site, intermediary),
         opts,
       );
@@ -311,23 +310,33 @@ function updateImpressionsTable() {
     }
 
     output.append(li);
-
-    epochStarts.replaceChildren();
-    for (const [site, start] of backend.epochStarts) {
-      const dt = document.createElement("dt");
-      dt.innerText = site;
-      const dd = document.createElement("dd");
-      dd.innerText = start.toString();
-      epochStarts.append(dt, dd);
-    }
-
-    privacyBudgetEntries.replaceChildren();
-    for (const entry of backend.privacyBudgetEntries) {
-      const dt = document.createElement("dt");
-      dt.innerText = `${entry.site} @ epoch ${entry.epoch}`;
-      const dd = document.createElement("dd");
-      dd.innerText = entry.value.toString();
-      privacyBudgetEntries.append(dt, dd);
-    }
+    void updateEpochStartsTable();
+    void updatePrivacyBudgetEntriesTable();
   });
 }
+
+async function updateEpochStartsTable(): Promise<void> {
+  epochStarts.replaceChildren();
+  for await (const { site, start } of backend.epochStarts()) {
+    const dt = document.createElement("dt");
+    dt.innerText = site;
+    const dd = document.createElement("dd");
+    dd.innerText = start.toString();
+    epochStarts.append(dt, dd);
+  }
+}
+
+async function updatePrivacyBudgetEntriesTable(): Promise<void> {
+  privacyBudgetEntries.replaceChildren();
+  for await (const entry of backend.privacyBudgetEntries()) {
+    const dt = document.createElement("dt");
+    dt.innerText = `${entry.key[0]} @ epoch ${entry.key[1]}`;
+    const dd = document.createElement("dd");
+    dd.innerText = entry.value.toString();
+    privacyBudgetEntries.append(dt, dd);
+  }
+}
+
+void updateImpressionsTable();
+void updateEpochStartsTable();
+void updatePrivacyBudgetEntriesTable();
