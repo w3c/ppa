@@ -57,11 +57,11 @@ interface MeasureConversion {
   expected: number[] | ExpectedError;
 }
 
-function assertThrows(
-  call: () => unknown,
+async function assertRejects(
+  promise: Promise<unknown>,
   expectedError: ExpectedError,
   seconds: number,
-): void {
+): Promise<void> {
   const check =
     typeof expectedError === "string"
       ? { name: expectedError }
@@ -71,13 +71,13 @@ function assertThrows(
           return true;
         };
 
-  assert.throws(call, check, `seconds: ${seconds}`);
+  await assert.rejects(promise, check, `seconds: ${seconds}`);
 }
 
-function runTest(
+async function runTest(
   defaultConfig: Readonly<TestConfig>,
   tc: Readonly<TestCase>,
-): void {
+): Promise<void> {
   const config = tc.config ?? defaultConfig;
 
   let now = new Temporal.Instant(0n);
@@ -116,37 +116,36 @@ function runTest(
 
     switch (event.event) {
       case "saveImpression": {
-        const call = () =>
-          backend.saveImpression(
-            event.site,
-            event.intermediarySite,
-            event.options,
-          );
+        const promise = backend.saveImpression(
+          event.site,
+          event.intermediarySite,
+          event.options,
+        );
 
         if (event.expectedError === undefined) {
-          call();
+          await assert.doesNotReject(promise);
         } else {
-          assertThrows(call, event.expectedError, event.seconds);
+          await assertRejects(promise, event.expectedError, event.seconds);
         }
 
         break;
       }
       case "measureConversion": {
-        const call = () =>
-          backend.measureConversion(
-            event.site,
-            event.intermediarySite,
-            event.options,
-          );
+        const promise = backend.measureConversion(
+          event.site,
+          event.intermediarySite,
+          event.options,
+        );
 
         if (Array.isArray(event.expected)) {
+          const result = await promise;
           assert.deepEqual(
-            call().unencryptedHistogram,
+            result.unencryptedHistogram,
             event.expected,
             `seconds: ${event.seconds}`,
           );
         } else {
-          assertThrows(call, event.expected, event.seconds);
+          await assertRejects(promise, event.expected, event.seconds);
         }
 
         break;
@@ -171,7 +170,7 @@ async function runTestsInDir(t: TestContext, dir: string): Promise<void> {
     const promise = t.test(entry, async () => {
       const json = await readFile(entry, "utf8");
       const tc = JSON.parse(json) as TestCase;
-      runTest(defaultConfig, tc);
+      await runTest(defaultConfig, tc);
     });
 
     promises.push(promise);

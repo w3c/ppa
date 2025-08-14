@@ -164,7 +164,8 @@ function updateImpressionsTable() {
 
   form.addEventListener("input", reportValidity);
 
-  form.addEventListener("submit", function (this: HTMLFormElement, e) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  form.addEventListener("submit", async function (this: HTMLFormElement, e) {
     e.preventDefault();
 
     if (!this.reportValidity()) {
@@ -183,7 +184,7 @@ function updateImpressionsTable() {
     const li = document.createElement("li");
 
     try {
-      backend.saveImpression(...sites(site, intermediary), opts);
+      await backend.saveImpression(...sites(site, intermediary), opts);
       li.innerText = "Success";
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -253,7 +254,8 @@ function updateImpressionsTable() {
 
   form.addEventListener("input", reportValidity);
 
-  form.addEventListener("submit", function (this: HTMLFormElement, e) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  form.addEventListener("submit", async function (this: HTMLFormElement, e) {
     e.preventDefault();
 
     if (!this.reportValidity()) {
@@ -279,7 +281,7 @@ function updateImpressionsTable() {
 
     const li = document.createElement("li");
     try {
-      const result = backend.measureConversion(
+      const result = await backend.measureConversion(
         ...sites(site, intermediary),
         opts,
       );

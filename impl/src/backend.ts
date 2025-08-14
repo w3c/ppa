@@ -120,7 +120,7 @@ export class Backend {
     return this.#delegate.aggregationServices;
   }
 
-  saveImpression(
+  async saveImpression(
     impressionSite: string,
     intermediarySite: string | undefined,
     {
@@ -131,7 +131,7 @@ export class Backend {
       lifetimeDays = index.DEFAULT_IMPRESSION_LIFETIME_DAYS,
       priority = index.DEFAULT_IMPRESSION_PRIORITY,
     }: AttributionImpressionOptions,
-  ): AttributionImpressionResult {
+  ): Promise<AttributionImpressionResult> {
     impressionSite = parseSite(impressionSite);
 
     if (intermediarySite !== undefined) {
@@ -310,11 +310,11 @@ export class Backend {
     };
   }
 
-  measureConversion(
+  async measureConversion(
     topLevelSite: string,
     intermediarySite: string | undefined,
     options: AttributionConversionOptions,
-  ): AttributionConversionResult {
+  ): Promise<AttributionConversionResult> {
     topLevelSite = parseSite(topLevelSite);
 
     if (intermediarySite !== undefined) {
