@@ -1641,15 +1641,20 @@ To <dfn>do attribution and fill a histogram</dfn>, given
     [=create an all-zero histogram=] with
     |options|' [=validated conversion options/histogram size=].
 
+1.  Let |histogram| be null.
+
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
       : <a enum-value for=AttributionLogic>"last-n-touch"</a>
-      :: Let |histogram| be the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
+      :: Set |histogram| to the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
         |options|' [=validated conversion options/histogram size=],
         |options|' [=validated conversion options/value=], and
         |options|' [=validated conversion options/logic options=].{{AttributionLogicOptions/credit}}.
 
       </dl>
+
+1.  [=Assert=]: |histogram| is not null.
+
 1.  If |singleEpoch| is true:
     1.  Let |l1Norm| be the sum of the [=list/items=] in |histogram|.
 
