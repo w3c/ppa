@@ -92,7 +92,7 @@ async function updateImpressionsTable() {
   for await (const i of backend.impressions()) {
     const tr = document.createElement("tr");
 
-    tr.insertCell().innerText = i.timestamp.toString();
+    tr.insertCell().innerText = i.timestamp.toTemporalInstant().toString();
     tr.insertCell().innerText = i.impressionSite;
     tr.insertCell().innerText = i.intermediarySite ?? "";
     tr.insertCell().innerText = i.histogramIndex.toString();
