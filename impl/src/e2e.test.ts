@@ -7,6 +7,7 @@ import type {
 import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
+import "fake-indexeddb/auto";
 import test from "node:test";
 import { Temporal } from "temporal-polyfill";
 
