@@ -125,8 +125,7 @@ async function updateImpressionsTable() {
 
     now = now.add(days(daysInput.valueAsNumber));
     time.innerText = now.toString();
-    backend.clearExpiredImpressions();
-    void updateImpressionsTable();
+    void backend.clearExpiredImpressions().then(updateImpressionsTable);
   });
 }
 

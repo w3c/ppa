@@ -711,42 +711,43 @@ export class Backend {
     return startEpoch;
   }
 
-  clearImpressionsForConversionSite(site: string): void {
-    void site;
-    /* TODO
-    function shouldRemoveImpression(i: Impression): boolean {
+  async clearImpressionsForConversionSite(site: string): Promise<void> {
+    const db = await this.#getOrCreateDB();
+    const txn = db.transaction("impressions", "readwrite");
+
+    for await (const cursor of txn.store) {
+      const i = cursor.value;
+
       if (i.intermediarySite === site) {
-        return true;
+        await cursor.delete();
+        continue;
       }
       if (!i.conversionSites.has(site)) {
-        return false;
+        continue;
       }
       if (i.conversionSites.size > 1) {
         i.conversionSites.delete(site);
-        return false;
+        await cursor.update(i);
+        continue;
       }
-      return true;
+      await cursor.delete();
     }
-
-    this.#impressions = this.#impressions.filter(
-      (i) => !shouldRemoveImpression(i),
-    );
-    */
   }
 
-  clearExpiredImpressions(): void {
-    /* TODO
+  async clearExpiredImpressions(): Promise<void> {
+    const db = await this.#getOrCreateDB();
+    const txn = db.transaction("impressions", "readwrite");
+
     const now = this.#delegate.now();
 
-    this.#impressions = this.#impressions.filter((impression) => {
-      return (
-        Temporal.Instant.compare(
-          now,
-          impression.timestamp.add(impression.lifetime),
-        ) < 0
-      );
-    });
-    */
+    for await (const cursor of txn.store.iterate()) {
+      const i = cursor.value;
+      const expiry = i.timestamp.toTemporalInstant().add(days(i.lifetimeDays));
+
+      if (Temporal.Instant.compare(now, expiry) > 0) {
+        await cursor.delete();
+      }
+    }
   }
 
   #fairlyAllocateCredit(credit: number[], value: number): number[] {
