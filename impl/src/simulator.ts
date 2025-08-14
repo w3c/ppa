@@ -82,6 +82,10 @@ function listCell(tr: HTMLTableRowElement, vs: Iterable<string>): void {
 }
 
 const impressionTable = document.querySelector("tbody")!;
+const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
+const privacyBudgetEntries = document.querySelector<HTMLDListElement>(
+  "#privacyBudgetEntries",
+)!;
 
 async function updateImpressionsTable() {
   impressionTable.replaceChildren();
@@ -248,12 +252,6 @@ async function updateImpressionsTable() {
 
   const output = form.querySelector("ol")!;
 
-  const epochStarts = document.querySelector<HTMLDListElement>("#epochStarts")!;
-
-  const privacyBudgetEntries = document.querySelector<HTMLDListElement>(
-    "#privacyBudgetEntries",
-  )!;
-
   form.addEventListener("input", reportValidity);
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -315,23 +313,33 @@ async function updateImpressionsTable() {
     }
 
     output.append(li);
-
-    epochStarts.replaceChildren();
-    for await (const { site, start } of backend.epochStarts()) {
-      const dt = document.createElement("dt");
-      dt.innerText = site;
-      const dd = document.createElement("dd");
-      dd.innerText = start.toString();
-      epochStarts.append(dt, dd);
-    }
-
-    privacyBudgetEntries.replaceChildren();
-    for await (const entry of backend.privacyBudgetEntries()) {
-      const dt = document.createElement("dt");
-      dt.innerText = `${entry.key[0]} @ epoch ${entry.key[1]}`;
-      const dd = document.createElement("dd");
-      dd.innerText = entry.value.toString();
-      privacyBudgetEntries.append(dt, dd);
-    }
+    void updateEpochStartsTable();
+    void updatePrivacyBudgetEntriesTable();
   });
 }
+
+async function updateEpochStartsTable(): Promise<void> {
+  epochStarts.replaceChildren();
+  for await (const { site, start } of backend.epochStarts()) {
+    const dt = document.createElement("dt");
+    dt.innerText = site;
+    const dd = document.createElement("dd");
+    dd.innerText = start.toString();
+    epochStarts.append(dt, dd);
+  }
+}
+
+async function updatePrivacyBudgetEntriesTable(): Promise<void> {
+  privacyBudgetEntries.replaceChildren();
+  for await (const entry of backend.privacyBudgetEntries()) {
+    const dt = document.createElement("dt");
+    dt.innerText = `${entry.key[0]} @ epoch ${entry.key[1]}`;
+    const dd = document.createElement("dd");
+    dd.innerText = entry.value.toString();
+    privacyBudgetEntries.append(dt, dd);
+  }
+}
+
+void updateImpressionsTable();
+void updateEpochStartsTable();
+void updatePrivacyBudgetEntriesTable();

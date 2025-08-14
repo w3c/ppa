@@ -143,17 +143,23 @@ export class Backend {
 
   async *epochStarts(): AsyncIterableIterator<EpochStart> {
     const db = await this.#getOrCreateDB();
-    return db.transaction("epochStarts", "readonly").store.iterate();
+    for await (const cursor of db.transaction("epochStarts").store) {
+      yield cursor.value;
+    }
   }
 
   async *privacyBudgetEntries(): AsyncIterableIterator<PrivacyBudgetEntry> {
     const db = await this.#getOrCreateDB();
-    return db.transaction("privacyBudgets", "readonly").store.iterate();
+    for await (const cursor of db.transaction("privacyBudgets").store) {
+      yield cursor.value;
+    }
   }
 
   async *impressions(): AsyncIterableIterator<Impression> {
     const db = await this.#getOrCreateDB();
-    return db.transaction("impressions", "readonly").store.iterate();
+    for await (const cursor of db.transaction("impressions").store) {
+      yield cursor.value;
+    }
   }
 
   get aggregationServices(): AttributionAggregationServices {
@@ -229,10 +235,12 @@ export class Backend {
       return {};
     }
 
+    // A real implementation would not await persistence of the impression, in
+    // order to reduce the ability of the caller to determine whether the API
+    // was enabled. We await it here so that errors are propagated to the
+    // caller.
     const db = await this.#getOrCreateDB();
-    // We deliberately do not await this promise to reduce the ability of the
-    // caller to determine whether the API was enabled.
-    void db.add("impressions", {
+    await db.add("impressions", {
       matchValue,
       impressionSite,
       intermediarySite,
