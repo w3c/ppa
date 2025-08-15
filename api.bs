@@ -1141,8 +1141,9 @@ A <dfn>privacy budget key</dfn> is a [=tuple=] consisting of the following items
 To <dfn>deduct privacy budget</dfn>
 given a [=privacy budget key=] |key|,
 [[WEBIDL#idl-double|double]] |epsilon|,
-integer |sensitivity|,
-and integer |globalSensitivity|:
+integer |value|,
+integer |maxValue|, and
+integer |attributedValueForSingleEpochOpt|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
     its value of |key| to be a [=user agent=]-defined value,
@@ -1156,7 +1157,17 @@ and integer |globalSensitivity|:
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
 
-1.  Let |deductionFp| be |epsilon| * |sensitivity| / |globalSensitivity|.
+1.  Let |singleEpochQuery| be true if |attributedValueForSingleEpochOpt| is non-null, false otherwise.
+
+1.  Let |halfReportGlobalSensitivity| be |attributedValueForSingleEpochOpt|/2 if |singleEpochQuery| is true, |value| otherwise.
+
+1.  Let |noiseScale| be 2 * |maxValue| / |epsilon|.
+
+1.  Let |deductionFp| be |halfReportGlobalSensitivity| / |noiseScale|.
+
+<p class=note>Single epoch attributions do not cause any cascading effects across epochs,
+so they do not need to consume double the budget. The deduction here is assuming Laplace
+noise is added to the histogram with scale param |maxValue| / |epsilon|.
 
 1.  If |deductionFp| is negative or greater than [=maximum epsilon=],
     [=map/set|set=] the value of |key| in the [=privacy budget store=] to 0
@@ -1598,35 +1609,68 @@ To <dfn>do attribution and fill a histogram</dfn>, given
 1.  Let |startEpoch| be the result of [=get the starting epoch for attribution=]
     with |topLevelSite|.
 
-1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
+1.  Let |earliestEpoch| be the result of calling [=get the current epoch=],
+    passing |topLevelSite| and (|now| − |options|' [=validated conversion options/lookback=]).
 
-    1.  Let |impressions| be the result of invoking [=common matching logic=]
-        with |options|, |topLevelSite|, |intermediarySite|, |epoch|, and |now|.
+1.  Let |singleEpoch| be true if |currentEpoch| is equal to |earliestEpoch|, false otherwise.
 
-    1.  If |impressions| [=set/is empty|is not empty=]:
+1.  If |singleEpoch| is true:
+    1.  Set |matchedImpressions| to the result of invoking [=common matching logic=]
+        with |options|, |topLevelSite|, |intermediarySite|, |currentEpoch|, and |now|.
 
-        1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
+1.  If |singleEpoch| is false:
 
-        1.  Let |budgetOk| be the result of [=deduct privacy budget=]
-            with |key|, |options|' [=validated conversion options/epsilon=],
-            |options|' [=validated conversion options/value=],
-            and |options|'s [=validated conversion options/max value=].
+    1.  For each |epoch| from |startEpoch| to |currentEpoch|, inclusive:
 
-        1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
+        1.  Let |impressions| be the result of invoking [=common matching logic=]
+            with |options|, |topLevelSite|, |intermediarySite|, |epoch|, and |now|.
+
+        1.  If |impressions| [=set/is empty|is not empty=]:
+
+            1.  Let |key| be a [=privacy budget key=] whose items are |epoch| and |topLevelSite|.
+
+            1.  Let |budgetOk| be the result of invoking [=deduct privacy budget=]
+                with |key|, |options|' [=validated conversion options/epsilon=],
+                |options|' [=validated conversion options/value=],
+                |options|'s [=validated conversion options/max value=],
+                and null.
+
+            1.  If |budgetOk| is true, [=set/extend=] |matchedImpressions| with |impressions|.
 
 1.  If |matchedImpressions| [=set/is empty=], return the result of invoking
     [=create an all-zero histogram=] with
     |options|' [=validated conversion options/histogram size=].
 
+1.  Let |histogram| be null.
+
 1.  Switch on |options|' [=validated conversion options/logic=]:
       <dl class="switch">
       : <a enum-value for=AttributionLogic>"last-n-touch"</a>
-      :: Return the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
+      :: Set |histogram| to the result of [=fill a histogram with last-n-touch attribution=] with |matchedImpressions|,
         |options|' [=validated conversion options/histogram size=],
         |options|' [=validated conversion options/value=], and
         |options|' [=validated conversion options/logic options=].{{AttributionLogicOptions/credit}}.
 
       </dl>
+
+1.  [=Assert=]: |histogram| is not null.
+
+1.  If |singleEpoch| is true:
+    1.  Let |l1Norm| be the sum of the [=list/items=] in |histogram|.
+
+    1.  [=Assert=]: |l1Norm| is less than or equal to |options|' [=validated conversion options/value=].
+
+    1.  Let |key| be a [=privacy budget key=] whose items are |currentEpoch| and |topLevelSite|.
+
+    1.  Let |budgetOk| be the result of [=deduct privacy budget=]
+        with |key|, |options|' [=validated conversion options/epsilon=],
+        |options|' [=validated conversion options/value=]
+        |options|'s [=validated conversion options/max value=],
+        and |l1Norm|.
+
+    1.  If |budgetOk| is false, set |histogram| to the [=create an all-zero histogram|all-zero histogram=].
+
+1.  Return |histogram|.
 
 </div>
 
