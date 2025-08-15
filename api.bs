@@ -1143,7 +1143,7 @@ given a [=privacy budget key=] |key|,
 [[WEBIDL#idl-double|double]] |epsilon|,
 integer |value|,
 integer |maxValue|, and
-integer |l1Norm|:
+integer |attributedValueForSingleEpochOpt|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
     its value of |key| to be a [=user agent=]-defined value,
@@ -1157,13 +1157,13 @@ integer |l1Norm|:
 1.  Let |currentValue| be the result of [=map/get|getting the value=] of |key|
     in the [=privacy budget store=].
 
-1.  Let |singleEpochQuery| be true if |l1Norm| is non-null, false otherwise.
+1.  Let |singleEpochQuery| be true if |attributedValueForSingleEpochOpt| is non-null, false otherwise.
 
-1.  Let |reportGlobalSensitivity| be |l1Norm| if |singleEpochQuery| is true, 2 * |value| otherwise.
+1.  Let |halfReportGlobalSensitivity| be |attributedValueForSingleEpochOpt|/2 if |singleEpochQuery| is true, |value| otherwise.
 
-1.  Let |noiseScale| be |maxValue| / |epsilon|.
+1.  Let |noiseScale| be 2 * |maxValue| / |epsilon|.
 
-1.  Let |deductionFp| be |reportGlobalSensitivity| / |noiseScale|.
+1.  Let |deductionFp| be |halfReportGlobalSensitivity| / |noiseScale|.
 
 <p class=note>Single epoch attributions do not cause any cascading effects across epochs,
 so they do not need to consume double the budget. The deduction here is assuming Laplace
