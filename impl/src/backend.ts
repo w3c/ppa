@@ -422,51 +422,103 @@ export class Backend {
     now: Temporal.Instant,
     options: ValidatedConversionOptions,
   ): number[] {
-    const matchedImpressions = new Set<Impression>();
+    let matchedImpressions;
     const currentEpoch = this.#getCurrentEpoch(topLevelSite, now);
     const startEpoch = this.#getStartEpoch(topLevelSite);
-    for (let epoch = startEpoch; epoch <= currentEpoch; ++epoch) {
-      const impressions = this.#commonMatchingLogic(
+    const earliestEpoch = this.#getCurrentEpoch(
+      topLevelSite,
+      now.subtract(options.lookback),
+    );
+    const singleEpoch = currentEpoch === earliestEpoch;
+
+    if (singleEpoch) {
+      matchedImpressions = this.#commonMatchingLogic(
         topLevelSite,
         intermediarySite,
-        epoch,
+        currentEpoch,
         now,
         options,
       );
-      if (impressions.size > 0) {
-        const key = { epoch, site: topLevelSite };
-        const budgetOk = this.#deductPrivacyBudget(
-          key,
-          options.epsilon,
-          options.value,
-          options.maxValue,
+    } else {
+      matchedImpressions = new Set<Impression>();
+      for (let epoch = startEpoch; epoch <= currentEpoch; ++epoch) {
+        const impressions = this.#commonMatchingLogic(
+          topLevelSite,
+          intermediarySite,
+          epoch,
+          now,
+          options,
         );
-        if (budgetOk) {
-          for (const i of impressions) {
-            matchedImpressions.add(i);
+        if (impressions.size > 0) {
+          const key = { epoch, site: topLevelSite };
+          const budgetOk = this.#deductPrivacyBudget(
+            key,
+            options.epsilon,
+            options.value,
+            options.maxValue,
+            /*attributedValueForSingleEpochOpt=*/ null,
+          );
+          if (budgetOk) {
+            for (const i of impressions) {
+              matchedImpressions.add(i);
+            }
           }
         }
       }
     }
+
     if (matchedImpressions.size === 0) {
       return allZeroHistogram(options.histogramSize);
     }
+
+    let histogram;
     switch (options.logic) {
       case "last-n-touch":
-        return this.#fillHistogramWithLastNTouchAttribution(
+        histogram = this.#fillHistogramWithLastNTouchAttribution(
           matchedImpressions,
           options.histogramSize,
           options.value,
           options.logicOptions.credit,
         );
+        break;
     }
+
+    if (singleEpoch) {
+      const l1Norm = histogram.reduce((a, b) => a + b);
+      if (l1Norm > options.value) {
+        throw new DOMException(
+          "l1Norm must be less than or equal to options.value",
+          "InvalidStateError",
+        );
+      }
+
+      const key = {
+        site: topLevelSite,
+        epoch: currentEpoch,
+      };
+
+      const budgetOk = this.#deductPrivacyBudget(
+        key,
+        options.epsilon,
+        options.value,
+        options.maxValue,
+        l1Norm,
+      );
+
+      if (!budgetOk) {
+        histogram = allZeroHistogram(options.histogramSize);
+      }
+    }
+
+    return histogram;
   }
 
   #deductPrivacyBudget(
     key: PrivacyBudgetKey,
     epsilon: number,
-    sensitivity: number,
-    globalSensitivity: number,
+    value: number,
+    maxValue: number,
+    attributedValueForSingleEpochOpt: number | null,
   ): boolean {
     let entry = this.#privacyBudgetStore.find(
       (e) => e.epoch === key.epoch && e.site === key.site,
@@ -478,7 +530,12 @@ export class Backend {
       };
       this.#privacyBudgetStore.push(entry);
     }
-    const deductionFp = (epsilon * sensitivity) / globalSensitivity;
+    const singleEpochQuery = attributedValueForSingleEpochOpt !== null;
+    const halfReportGlobalSensitivity = singleEpochQuery
+      ? attributedValueForSingleEpochOpt / 2
+      : value;
+    const noiseScale = (2 * maxValue) / epsilon;
+    const deductionFp = halfReportGlobalSensitivity / noiseScale;
     if (deductionFp < 0 || deductionFp > index.MAX_CONVERSION_EPSILON) {
       entry.value = 0;
       return false;
