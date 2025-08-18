@@ -1143,7 +1143,7 @@ given a [=privacy budget key=] |key|,
 [[WEBIDL#idl-double|double]] |epsilon|,
 integer |value|,
 integer |maxValue|, and
-integer |attributedValueForSingleEpochOpt|:
+nullable integer |attributedValueForSingleEpochOpt|:
 
 1.  If the [=privacy budget store=] does not [=map/contain=] |key|, [=map/set=]
     its value of |key| to be a [=user agent=]-defined value,
@@ -1668,7 +1668,8 @@ To <dfn>do attribution and fill a histogram</dfn>, given
         |options|'s [=validated conversion options/max value=],
         and |l1Norm|.
 
-    1.  If |budgetOk| is false, set |histogram| to the [=create an all-zero histogram|all-zero histogram=].
+    1.  If |budgetOk| is false, set |histogram| to the result of invoking
+        [=create an all-zero histogram=] with |options|' [=validated conversion options/histogram size=].
 
 1.  Return |histogram|.
 
