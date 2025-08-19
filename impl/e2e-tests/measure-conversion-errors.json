@@ -46,6 +46,7 @@
       "seconds": 5,
       "site": "advertiser.example",
       "event": "measureConversion",
+      "$comment": "Greater than CONFIG.maxHistogramSize",
       "options": {
         "aggregationService": "https://agg-service.example",
         "histogramSize": 6
@@ -101,6 +102,7 @@
       "seconds": 10,
       "site": "advertiser.example",
       "event": "measureConversion",
+      "$comment": "Greater than CONFIG.maxCreditSize",
       "options": {
         "aggregationService": "https://agg-service.example",
         "histogramSize": 1,

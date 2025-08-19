@@ -11,6 +11,7 @@
       "seconds": 2,
       "site": "publisher.example",
       "event": "saveImpression",
+      "$comment": "Equal to CONFIG.maxHistogramSize",
       "options": { "histogramIndex": 5 },
       "expectedError": "RangeError"
     },
@@ -41,6 +42,7 @@
       "seconds": 5,
       "site": "publisher.example",
       "event": "saveImpression",
+      "$comment": "Greater than CONFIG.maxConversionSitesPerImpression",
       "options": {
         "histogramIndex": 0,
         "conversionSites": ["a", "a", "a", "a"]
@@ -64,6 +66,7 @@
       "seconds": 7,
       "site": "publisher.example",
       "event": "saveImpression",
+      "$comment": "Greater than CONFIG.maxConversionCallersPerImpression",
       "options": {
         "histogramIndex": 0,
         "conversionCallers": ["a", "a", "a", "a"]
