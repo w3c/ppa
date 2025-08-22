@@ -1598,7 +1598,7 @@ after the [=common matching logic=] is applied and privacy budgeting occurs.
 To <dfn>do attribution and fill a histogram</dfn>, given
   [=validated conversion options=] |options|,
   [=site=] |topLevelSite|,
-  [=site=] |intermediarySite|,
+  [=site=] or `undefined` |intermediarySite|,
   and [=moment=] |now|:
 
 1.  Let |matchedImpressions| be an [=set/is empty|empty=] [=set=].
@@ -1688,7 +1688,7 @@ To <dfn>create an all-zero histogram</dfn>, given an integer |size|:
 To perform <dfn>common matching logic</dfn>, given
 [=validated conversion options=] |options|,
 [=site=] |topLevelSite|,
-[=site=] |intermediarySite|,
+[=site=] or `undefined` |intermediarySite|,
 [=epoch index=] |epoch|, and [=moment=] |now|:
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
@@ -1711,11 +1711,11 @@ To perform <dfn>common matching logic</dfn>, given
         and [=set/contains|does not contain=] |topLevelSite|,
         [=iteration/continue=].
 
-    1.  If |intermediarySite| is not `undefined`, let |caller| be |intermediarySite|.
-        Otherwise, let |caller| be |topLevelSite|.
+    1.  Let |conversionCaller| be |intermediarySite| if it is not `undefined`,
+        |topLevelSite| otherwise.
 
     1.  If |impression|'s [=impression/conversion callers=] [=set/is empty|is not empty=]
-        and [=set/contains|does not contain=] |caller|,
+        and [=set/contains|does not contain=] |conversionCaller|,
         [=iteration/continue=].
 
     1.  If |options|' [=validated conversion options/match values=] [=set/is empty|is not empty=]
@@ -1727,9 +1727,11 @@ To perform <dfn>common matching logic</dfn>, given
         [=list/contains|does not contain=] |impression|'s [=impression/impression site=],
         [=iteration/continue=].
 
+    1.  Let |impressionCaller| be |impression|'s [=impression/intermediary site=]
+        if it is not `undefined`, |impression|'s [=impression/impression site=] otherwise.
+
     1.  If |options|' [=validated conversion options/impression callers=] [=set/is empty|is not empty=]
-        and [=set/contains|does not contain=] |impression|'s [=impression/intermediary site=]
-        or |impression|'s [=impression/impression site=],
+        and [=set/contains|does not contain=] |impressionCaller|,
         [=iteration/continue=].
 
     1.  [=set/Append=] |impression| to |matching|.
