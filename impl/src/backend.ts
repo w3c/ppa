@@ -357,14 +357,6 @@ export class Backend {
   ): Set<Impression> {
     const matching = new Set<Impression>();
 
-    const earliestEpoch = this.#getCurrentEpoch(
-      topLevelSite,
-      now.subtract(lookback),
-    );
-    if (earliestEpoch > epoch) {
-      return matching;
-    }
-
     for (const impression of this.#impressions) {
       const impressionEpoch = this.#getCurrentEpoch(
         topLevelSite,
