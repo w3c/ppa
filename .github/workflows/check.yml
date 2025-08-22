@@ -20,5 +20,5 @@ jobs:
     - uses: actions/cache@v4
       with:
         path: venv
-        key: venv-${{ hashFiles('Makefile') }}
+        key: venv2-${{ hashFiles('Makefile') }}
     - run: make
