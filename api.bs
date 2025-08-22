@@ -1289,20 +1289,21 @@ Resetting the budget is necessary to ensure
 that no information about the gap in browsing history
 is exposed.
 
-<div algorithm>
+<div algorithm="get the starting epoch for attribution">
 To <dfn>get the starting epoch for attribution</dfn>
 given [=site=] |site|,
 returning an [=epoch index=]:
 
 1.  Let |startEpoch| be a [=user agent=]-defined value
-    for the <dfn>earliest epoch index</a>,
+    for the <dfn>earliest epoch index</dfn>,
     which is the first [=epoch index=]
     that is supported for attribution on |site|.
 
     <p class=note>
     This value is not a constant [=epoch index=].
     A value is chosen for each site
-    based on [=user agent=] preferences or configuration.
+    based on [=user agent=] preferences or configuration;
+    see [[#impl-def]].
 
 1.  If the [=last browsing history clear=] is set,
     perform the following steps:
@@ -1772,7 +1773,7 @@ To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
 
 </div>
 
-### Setting Implementation-Defined Values ### {#impl-def}
+## Setting Implementation-Defined Values ## {#impl-def}
 
 This specification identifies several [=implementation-defined=] values.
 This section includes some recommendations for implementations
