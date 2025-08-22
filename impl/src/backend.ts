@@ -392,10 +392,10 @@ export class Backend {
       ) {
         continue;
       }
-      let caller = intermediarySite ?? topLevelSite;
+      const conversionCaller = intermediarySite ?? topLevelSite;
       if (
         impression.conversionCallers.size > 0 &&
-        !impression.conversionCallers.has(caller)
+        !impression.conversionCallers.has(conversionCaller)
       ) {
         continue;
       }
@@ -408,10 +408,12 @@ export class Backend {
       ) {
         continue;
       }
-      // TODO: The wording from Step 4.10 of
-      // https://w3c.github.io/ppa/#common-matching-logic is a bit ambiguous.
-      caller = impression.intermediarySite ?? impression.impressionSite;
-      if (impressionCallers.size > 0 && !impressionCallers.has(caller)) {
+      const impressionCaller =
+        impression.intermediarySite ?? impression.impressionSite;
+      if (
+        impressionCallers.size > 0 &&
+        !impressionCallers.has(impressionCaller)
+      ) {
         continue;
       }
       matching.add(impression);
