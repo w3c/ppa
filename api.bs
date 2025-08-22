@@ -1693,11 +1693,6 @@ To perform <dfn>common matching logic</dfn>, given
 
 1.  Let |matching| be an [=set/is empty|empty=] [=set=].
 
-1.  Let |earliestEpoch| be the result of calling [=get the current epoch=],
-    passing |topLevelSite| and (|now| − |options|' [=validated conversion options/lookback=]).
-
-1.  If |earliestEpoch| is greater than |epoch|, return |matching|.
-
 1.  [=set/iterate|For each=] |impression| in the [=impression store=]:
 
     1.  Let |impressionEpoch| be the result of calling [=get the current epoch=],
