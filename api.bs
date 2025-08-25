@@ -1300,19 +1300,21 @@ Resetting the budget is necessary to ensure
 that no information about the gap in browsing history
 is exposed.
 
-<div algorithm>
+<div algorithm="get the starting epoch for attribution">
 To <dfn>get the starting epoch for attribution</dfn>
 given [=site=] |site|,
 returning an [=epoch index=]:
 
 1.  Let |startEpoch| be a [=user agent=]-defined value
-    for the earliest [=epoch index=]
-    that is supported for attribution.
+    for the <dfn>earliest epoch index</dfn>,
+    which is the first [=epoch index=]
+    that is supported for attribution on |site|.
 
     <p class=note>
     This value is not a constant [=epoch index=].
     A value is chosen for each site
-    based on [=user agent=] preferences or configuration.
+    based on [=user agent=] preferences or configuration;
+    see [[#impl-def]].
 
 1.  If the [=last browsing history clear=] is set,
     perform the following steps:
@@ -1536,6 +1538,8 @@ To <dfn>validate {{AttributionConversionOptions}}</dfn> |options|:
     :: |credit|
 1.  Let |lookback| be |options|.{{AttributionConversionOptions/lookbackDays}} [=days=]
     if it [=map/exists=], the [=implementation-defined=] maximum otherwise.
+1.  Let |lookback| be the [=implementation-defined=] maximum
+    if it is larger than that maximum.
 1.  If |lookback| is 0 [=days=], throw a {{RangeError}}.
 1.  If the [=list/size=] of
     |options|.{{AttributionConversionOptions/matchValues}} is
@@ -1810,6 +1814,33 @@ To <dfn>fill a histogram with last-n-touch attribution</dfn>, given a [=set=] of
 1.  Return |histogram|.
 
 </div>
+
+## Setting Implementation-Defined Values ## {#impl-def}
+
+This specification identifies several [=implementation-defined=] values.
+This section includes some recommendations for implementations
+regarding how to best set those values.
+
+An implementation sets [=implementation-defined=] maximum values
+for {{AttributionImpressionOptions/lifetimeDays}} and
+{{AttributionConversionOptions/lookbackDays}}.
+There is no point to having different maximum values for
+these values as the smaller of the two values
+will determine which saved [=impressions=] are available for conversions.
+
+An implementation can also use the value it sets
+for {{AttributionImpressionOptions/lifetimeDays}} and
+{{AttributionConversionOptions/lookbackDays}}
+to set the [=earliest epoch index=]
+when executing the [=get the starting epoch for attribution=] algorithm.
+Invoking [=get the current epoch=] algorithm for the site,
+passing the current time less the corresponding duration
+ensures that the [=earliest epoch index=]
+includes all possible [=impressions=] that can be queried.
+
+Deciding on a value for differential privacy parameters
+is hard and therefore TBD.
+
 
 ## User Control and Visibility ## {#user-control}
 
