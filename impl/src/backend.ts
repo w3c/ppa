@@ -10,28 +10,30 @@ import type {
 
 import * as index from "./index";
 
-import { Temporal } from "temporal-polyfill";
+import * as idb from "idb";
+
+import "temporal-polyfill/global";
 
 import * as psl from "psl";
 
+// TODO(https://github.com/fullcalendar/temporal-polyfill/issues/77): Use
+// Temporal.Instant for timestamp and Temporal.Duration for lifetime.
 interface Impression {
   matchValue: number;
   impressionSite: string;
   intermediarySite: string | undefined;
   conversionSites: Set<string>;
   conversionCallers: Set<string>;
-  timestamp: Temporal.Instant;
-  lifetime: Temporal.Duration;
+  timestamp: Date;
+  lifetimeDays: number;
   histogramIndex: number;
   priority: number;
 }
 
-interface PrivacyBudgetKey {
-  epoch: number;
-  site: string;
-}
+type PrivacyBudgetKey = [site: string, epoch: number];
 
-interface PrivacyBudgetStoreEntry extends Readonly<PrivacyBudgetKey> {
+interface PrivacyBudgetEntry {
+  key: PrivacyBudgetKey;
   value: number;
 }
 
@@ -81,6 +83,8 @@ export interface Delegate {
   readonly privacyBudgetMicroEpsilons: number;
   readonly privacyBudgetEpoch: Temporal.Duration;
 
+  readonly dbName: string;
+
   now(): Temporal.Instant;
   random(): number;
   earliestEpochIndex(site: string): number;
@@ -90,37 +94,79 @@ function allZeroHistogram(size: number): number[] {
   return new Array<number>(size).fill(0);
 }
 
+interface EpochStart {
+  site: string;
+  start: Date;
+}
+
+interface AttributionDB extends idb.DBSchema {
+  impressions: { key: number; value: Impression };
+  epochStarts: { key: string; value: EpochStart };
+  privacyBudgets: { key: PrivacyBudgetKey; value: PrivacyBudgetEntry };
+  lastBrowsingHistoryClear: { key: string; value: Date };
+}
+
+type FullTransaction = idb.IDBPTransaction<
+  AttributionDB,
+  ["impressions", "epochStarts", "privacyBudgets", "lastBrowsingHistoryClear"],
+  "readwrite"
+>;
+
 export class Backend {
   enabled: boolean = true;
 
   readonly #delegate: Delegate;
-  #impressions: Readonly<Impression>[] = [];
-  readonly #epochStartStore: Map<string, Temporal.Instant> = new Map();
-  readonly #privacyBudgetStore: PrivacyBudgetStoreEntry[] = [];
 
-  #lastBrowsingHistoryClear: Temporal.Instant | null = null;
+  #db: idb.IDBPDatabase<AttributionDB> | null = null;
 
   constructor(delegate: Delegate) {
     this.#delegate = delegate;
   }
 
-  get epochStarts(): Iterable<[string, Temporal.Instant]> {
-    return this.#epochStartStore.entries();
+  async #getOrCreateDB(): Promise<idb.IDBPDatabase<AttributionDB>> {
+    if (this.#db !== null) {
+      return this.#db;
+    }
+
+    this.#db = await idb.openDB<AttributionDB>(this.#delegate.dbName, 1, {
+      upgrade(db) {
+        db.createObjectStore("impressions", { autoIncrement: true });
+        db.createObjectStore("epochStarts", { keyPath: "site" });
+        db.createObjectStore("privacyBudgets", { keyPath: "key" });
+        // Singleton.
+        db.createObjectStore("lastBrowsingHistoryClear", { keyPath: "" });
+      },
+    });
+
+    return this.#db;
   }
 
-  get privacyBudgetEntries(): Iterable<Readonly<PrivacyBudgetStoreEntry>> {
-    return this.#privacyBudgetStore;
+  async *epochStarts(): AsyncIterableIterator<EpochStart> {
+    const db = await this.#getOrCreateDB();
+    for await (const cursor of db.transaction("epochStarts").store) {
+      yield cursor.value;
+    }
   }
 
-  get impressions(): Iterable<Readonly<Impression>> {
-    return this.#impressions;
+  async *privacyBudgetEntries(): AsyncIterableIterator<PrivacyBudgetEntry> {
+    const db = await this.#getOrCreateDB();
+    for await (const cursor of db.transaction("privacyBudgets").store) {
+      yield cursor.value;
+    }
+  }
+
+  async *impressions(): AsyncIterableIterator<Impression> {
+    const db = await this.#getOrCreateDB();
+    for await (const cursor of db.transaction("impressions").store) {
+      yield cursor.value;
+    }
   }
 
   get aggregationServices(): AttributionAggregationServices {
     return this.#delegate.aggregationServices;
   }
 
-  saveImpression(
+  async saveImpression(
     impressionSite: string,
     intermediarySite: string | undefined,
     {
@@ -131,7 +177,7 @@ export class Backend {
       lifetimeDays = index.DEFAULT_IMPRESSION_LIFETIME_DAYS,
       priority = index.DEFAULT_IMPRESSION_PRIORITY,
     }: AttributionImpressionOptions,
-  ): AttributionImpressionResult {
+  ): Promise<AttributionImpressionResult> {
     impressionSite = parseSite(impressionSite);
 
     if (intermediarySite !== undefined) {
@@ -189,14 +235,19 @@ export class Backend {
       return {};
     }
 
-    this.#impressions.push({
+    // A real implementation would not await persistence of the impression, in
+    // order to reduce the ability of the caller to determine whether the API
+    // was enabled. We await it here so that errors are propagated to the
+    // caller.
+    const db = await this.#getOrCreateDB();
+    await db.add("impressions", {
       matchValue,
       impressionSite,
       intermediarySite,
       conversionSites: parsedConversionSites,
       conversionCallers: parsedConversionCallers,
-      timestamp,
-      lifetime: days(lifetimeDays),
+      timestamp: new Date(timestamp.epochMilliseconds),
+      lifetimeDays,
       histogramIndex,
       priority,
     });
@@ -310,11 +361,11 @@ export class Backend {
     };
   }
 
-  measureConversion(
+  async measureConversion(
     topLevelSite: string,
     intermediarySite: string | undefined,
     options: AttributionConversionOptions,
-  ): AttributionConversionResult {
+  ): Promise<AttributionConversionResult> {
     topLevelSite = parseSite(topLevelSite);
 
     if (intermediarySite !== undefined) {
@@ -326,7 +377,7 @@ export class Backend {
     const validatedOptions = this.#validateConversionOptions(options);
 
     const report = this.enabled
-      ? this.#doAttributionAndFillHistogram(
+      ? await this.#doAttributionAndFillHistogram(
           topLevelSite,
           intermediarySite,
           now,
@@ -343,7 +394,8 @@ export class Backend {
     return result;
   }
 
-  #commonMatchingLogic(
+  async #commonMatchingLogic(
+    txn: FullTransaction,
     topLevelSite: string,
     intermediarySite: string | undefined,
     epoch: number,
@@ -354,13 +406,17 @@ export class Backend {
       impressionCallers,
       matchValues,
     }: ValidatedConversionOptions,
-  ): Set<Impression> {
+  ): Promise<Set<Impression>> {
     const matching = new Set<Impression>();
 
-    for (const impression of this.#impressions) {
-      const impressionEpoch = this.#getCurrentEpoch(
+    for await (const cursor of txn.objectStore("impressions").iterate()) {
+      const impression = cursor.value;
+      const timestamp = impression.timestamp.toTemporalInstant();
+
+      const impressionEpoch = await this.#getCurrentEpoch(
+        txn,
         topLevelSite,
-        impression.timestamp,
+        timestamp,
       );
       if (impressionEpoch !== epoch) {
         continue;
@@ -368,14 +424,12 @@ export class Backend {
       if (
         Temporal.Instant.compare(
           now,
-          impression.timestamp.add(impression.lifetime),
+          timestamp.add(days(impression.lifetimeDays)),
         ) > 0
       ) {
         continue;
       }
-      if (
-        Temporal.Instant.compare(now, impression.timestamp.add(lookback)) > 0
-      ) {
+      if (Temporal.Instant.compare(now, timestamp.add(lookback)) > 0) {
         continue;
       }
       if (
@@ -414,23 +468,36 @@ export class Backend {
     return matching;
   }
 
-  #doAttributionAndFillHistogram(
+  async #doAttributionAndFillHistogram(
     topLevelSite: string,
     intermediarySite: string | undefined,
     now: Temporal.Instant,
     options: ValidatedConversionOptions,
-  ): number[] {
+  ): Promise<number[]> {
+    const db = await this.#getOrCreateDB();
+    const txn = db.transaction(
+      [
+        "impressions",
+        "epochStarts",
+        "privacyBudgets",
+        "lastBrowsingHistoryClear",
+      ],
+      "readwrite",
+    );
+
     let matchedImpressions;
-    const currentEpoch = this.#getCurrentEpoch(topLevelSite, now);
-    const startEpoch = this.#getStartEpoch(topLevelSite);
-    const earliestEpoch = this.#getCurrentEpoch(
+    const currentEpoch = await this.#getCurrentEpoch(txn, topLevelSite, now);
+    const startEpoch = await this.#getStartEpoch(txn, topLevelSite);
+    const earliestEpoch = await this.#getCurrentEpoch(
+      txn,
       topLevelSite,
       now.subtract(options.lookback),
     );
     const singleEpoch = currentEpoch === earliestEpoch;
 
     if (singleEpoch) {
-      matchedImpressions = this.#commonMatchingLogic(
+      matchedImpressions = await this.#commonMatchingLogic(
+        txn,
         topLevelSite,
         intermediarySite,
         currentEpoch,
@@ -440,16 +507,19 @@ export class Backend {
     } else {
       matchedImpressions = new Set<Impression>();
       for (let epoch = startEpoch; epoch <= currentEpoch; ++epoch) {
-        const impressions = this.#commonMatchingLogic(
+        const impressions = await this.#commonMatchingLogic(
+          txn,
           topLevelSite,
           intermediarySite,
           epoch,
           now,
           options,
         );
+
         if (impressions.size > 0) {
-          const key = { epoch, site: topLevelSite };
-          const budgetOk = this.#deductPrivacyBudget(
+          const key: PrivacyBudgetKey = [topLevelSite, epoch];
+          const budgetOk = await this.#deductPrivacyBudget(
+            txn,
             key,
             options.epsilon,
             options.value,
@@ -490,12 +560,10 @@ export class Backend {
         );
       }
 
-      const key = {
-        site: topLevelSite,
-        epoch: currentEpoch,
-      };
+      const key: PrivacyBudgetKey = [topLevelSite, currentEpoch];
 
-      const budgetOk = this.#deductPrivacyBudget(
+      const budgetOk = await this.#deductPrivacyBudget(
+        txn,
         key,
         options.epsilon,
         options.value,
@@ -511,22 +579,22 @@ export class Backend {
     return histogram;
   }
 
-  #deductPrivacyBudget(
+  async #deductPrivacyBudget(
+    txn: FullTransaction,
     key: PrivacyBudgetKey,
     epsilon: number,
     value: number,
     maxValue: number,
     attributedValueForSingleEpochOpt: number | null,
-  ): boolean {
-    let entry = this.#privacyBudgetStore.find(
-      (e) => e.epoch === key.epoch && e.site === key.site,
-    );
+  ): Promise<boolean> {
+    const privacyBudgets = txn.objectStore("privacyBudgets");
+    let entry = await privacyBudgets.get(key);
     if (entry === undefined) {
       entry = {
+        key,
         value: this.#delegate.privacyBudgetMicroEpsilons + 1000,
-        ...key,
       };
-      this.#privacyBudgetStore.push(entry);
+      await privacyBudgets.put(entry);
     }
     const singleEpochQuery = attributedValueForSingleEpochOpt !== null;
     const halfReportGlobalSensitivity = singleEpochQuery
@@ -568,7 +636,10 @@ export class Backend {
         if (a.priority > b.priority) {
           return 1;
         }
-        return Temporal.Instant.compare(b.timestamp, a.timestamp);
+        return (
+          b.timestamp[Symbol.toPrimitive]("number") -
+          a.timestamp[Symbol.toPrimitive]("number")
+        );
       },
     );
 
@@ -597,27 +668,38 @@ export class Backend {
     return new Uint8Array(0); // TODO
   }
 
-  #getCurrentEpoch(site: string, t: Temporal.Instant): number {
+  async #getCurrentEpoch(
+    txn: FullTransaction,
+    site: string,
+    t: Temporal.Instant,
+  ): Promise<number> {
+    const epochStarts = txn.objectStore("epochStarts");
+
     const period = this.#delegate.privacyBudgetEpoch.total("seconds");
-    let start = this.#epochStartStore.get(site);
+    let start = (await epochStarts.get(site))?.start;
     if (start === undefined) {
       const p = checkRandom(this.#delegate.random());
       const dur = Temporal.Duration.from({
         seconds: p * period,
       });
-      start = t.subtract(dur);
-      this.#epochStartStore.set(site, start);
+      start = new Date(t.subtract(dur).epochMilliseconds);
+      await epochStarts.put({ site, start });
     }
-    const elapsed = t.since(start).total("seconds") / period;
+    const elapsed =
+      t.since(start.toTemporalInstant()).total("seconds") / period;
     return Math.floor(elapsed);
   }
 
-  #getStartEpoch(site: string): number {
+  async #getStartEpoch(txn: FullTransaction, site: string): Promise<number> {
     const startEpoch = this.#delegate.earliestEpochIndex(site);
-    if (this.#lastBrowsingHistoryClear) {
-      let clearEpoch = this.#getCurrentEpoch(
+    const lastBrowsingHistoryClear = await txn
+      .objectStore("lastBrowsingHistoryClear")
+      .get("");
+    if (lastBrowsingHistoryClear !== undefined) {
+      let clearEpoch = await this.#getCurrentEpoch(
+        txn,
         site,
-        this.#lastBrowsingHistoryClear,
+        lastBrowsingHistoryClear.toTemporalInstant(),
       );
       clearEpoch += 2;
       if (clearEpoch > startEpoch) {
@@ -627,37 +709,43 @@ export class Backend {
     return startEpoch;
   }
 
-  clearImpressionsForConversionSite(site: string): void {
-    function shouldRemoveImpression(i: Impression): boolean {
+  async clearImpressionsForConversionSite(site: string): Promise<void> {
+    const db = await this.#getOrCreateDB();
+    const txn = db.transaction("impressions", "readwrite");
+
+    for await (const cursor of txn.store) {
+      const i = cursor.value;
+
       if (i.intermediarySite === site) {
-        return true;
+        await cursor.delete();
+        continue;
       }
       if (!i.conversionSites.has(site)) {
-        return false;
+        continue;
       }
       if (i.conversionSites.size > 1) {
         i.conversionSites.delete(site);
-        return false;
+        await cursor.update(i);
+        continue;
       }
-      return true;
+      await cursor.delete();
     }
-
-    this.#impressions = this.#impressions.filter(
-      (i) => !shouldRemoveImpression(i),
-    );
   }
 
-  clearExpiredImpressions(): void {
+  async clearExpiredImpressions(): Promise<void> {
+    const db = await this.#getOrCreateDB();
+    const txn = db.transaction("impressions", "readwrite");
+
     const now = this.#delegate.now();
 
-    this.#impressions = this.#impressions.filter((impression) => {
-      return (
-        Temporal.Instant.compare(
-          now,
-          impression.timestamp.add(impression.lifetime),
-        ) < 0
-      );
-    });
+    for await (const cursor of txn.store.iterate()) {
+      const i = cursor.value;
+      const expiry = i.timestamp.toTemporalInstant().add(days(i.lifetimeDays));
+
+      if (Temporal.Instant.compare(now, expiry) > 0) {
+        await cursor.delete();
+      }
+    }
   }
 }
 

@@ -9,6 +9,7 @@ import type { TestContext } from "node:test";
 import { Backend, days } from "./backend";
 
 import { strict as assert } from "assert";
+import "fake-indexeddb/auto";
 import { glob, readFile } from "node:fs/promises";
 import * as path from "node:path";
 import test from "node:test";
@@ -57,11 +58,11 @@ interface MeasureConversion {
   expected: number[] | ExpectedError;
 }
 
-function assertThrows(
-  call: () => unknown,
+async function assertRejects(
+  promise: Promise<unknown>,
   expectedError: ExpectedError,
   seconds: number,
-): void {
+): Promise<void> {
   const check =
     typeof expectedError === "string"
       ? { name: expectedError }
@@ -71,13 +72,14 @@ function assertThrows(
           return true;
         };
 
-  assert.throws(call, check, `seconds: ${seconds}`);
+  await assert.rejects(promise, check, `seconds: ${seconds}`);
 }
 
-function runTest(
+async function runTest(
+  t: TestContext,
   defaultConfig: Readonly<TestConfig>,
   tc: Readonly<TestCase>,
-): void {
+): Promise<void> {
   const config = tc.config ?? defaultConfig;
 
   let now = new Temporal.Instant(0n);
@@ -100,6 +102,9 @@ function runTest(
     privacyBudgetMicroEpsilons: config.privacyBudgetMicroEpsilons,
     privacyBudgetEpoch: days(config.privacyBudgetEpochDays),
 
+    // Give each run a separate DB name to prevent interference.
+    dbName: t.fullName,
+
     now: () => now,
     random: () => 0.5,
     earliestEpochIndex: () => 0,
@@ -116,37 +121,36 @@ function runTest(
 
     switch (event.event) {
       case "saveImpression": {
-        const call = () =>
-          backend.saveImpression(
-            event.site,
-            event.intermediarySite,
-            event.options,
-          );
+        const promise = backend.saveImpression(
+          event.site,
+          event.intermediarySite,
+          event.options,
+        );
 
         if (event.expectedError === undefined) {
-          call();
+          await assert.doesNotReject(promise);
         } else {
-          assertThrows(call, event.expectedError, event.seconds);
+          await assertRejects(promise, event.expectedError, event.seconds);
         }
 
         break;
       }
       case "measureConversion": {
-        const call = () =>
-          backend.measureConversion(
-            event.site,
-            event.intermediarySite,
-            event.options,
-          );
+        const promise = backend.measureConversion(
+          event.site,
+          event.intermediarySite,
+          event.options,
+        );
 
         if (Array.isArray(event.expected)) {
+          const result = await promise;
           assert.deepEqual(
-            call().unencryptedHistogram,
+            result.unencryptedHistogram,
             event.expected,
             `seconds: ${event.seconds}`,
           );
         } else {
-          assertThrows(call, event.expected, event.seconds);
+          await assertRejects(promise, event.expected, event.seconds);
         }
 
         break;
@@ -168,10 +172,10 @@ async function runTestsInDir(t: TestContext, dir: string): Promise<void> {
       continue;
     }
 
-    const promise = t.test(entry, async () => {
+    const promise = t.test(entry, async (t) => {
       const json = await readFile(entry, "utf8");
       const tc = JSON.parse(json) as TestCase;
-      runTest(defaultConfig, tc);
+      await runTest(t, defaultConfig, tc);
     });
 
     promises.push(promise);
