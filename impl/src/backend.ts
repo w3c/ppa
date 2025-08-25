@@ -50,7 +50,7 @@ interface ValidatedConversionOptions {
 }
 
 interface ValidatedLogicOptions {
-  credit: number[];
+  credit: readonly number[];
 }
 
 export function days(days: number): Temporal.Duration {
@@ -551,7 +551,7 @@ export class Backend {
     matchedImpressions: Set<Impression>,
     histogramSize: number,
     value: number,
-    credit: number[],
+    credit: readonly number[],
   ): number[] {
     if (matchedImpressions.size === 0) {
       throw new DOMException(
@@ -576,12 +576,13 @@ export class Backend {
 
     const lastNImpressions = sortedImpressions.slice(0, N);
 
-    const normalizedCredit = this.#fairlyAllocateCredit(credit, value);
+    const normalizedCredit = fairlyAllocateCredit(credit, value, () =>
+      this.#delegate.random(),
+    );
 
     const histogram = allZeroHistogram(histogramSize);
 
-    for (let i = 0; i < lastNImpressions.length; ++i) {
-      const impression = lastNImpressions[i]!;
+    for (const [i, impression] of lastNImpressions.entries()) {
       const value = normalizedCredit[i];
       const index = impression.histogramIndex;
       if (index < histogram.length) {
@@ -591,7 +592,7 @@ export class Backend {
     return histogram;
   }
 
-  #encryptReport(report: number[]): Uint8Array {
+  #encryptReport(report: readonly number[]): Uint8Array {
     void report;
     return new Uint8Array(0); // TODO
   }
@@ -600,10 +601,7 @@ export class Backend {
     const period = this.#delegate.privacyBudgetEpoch.total("seconds");
     let start = this.#epochStartStore.get(site);
     if (start === undefined) {
-      const p = this.#delegate.random();
-      if (!(p >= 0 && p < 1)) {
-        throw new RangeError("random must be in the range [0, 1)");
-      }
+      const p = checkRandom(this.#delegate.random());
       const dur = Temporal.Duration.from({
         seconds: p * period,
       });
@@ -661,42 +659,54 @@ export class Backend {
       );
     });
   }
+}
 
-  #fairlyAllocateCredit(credit: number[], value: number): number[] {
-    const sumCredit = credit.reduce((a, b) => a + b, 0);
+function checkRandom(p: number): number {
+  if (!(p >= 0 && p < 1)) {
+    throw new RangeError("random must be in the range [0, 1)");
+  }
+  return p;
+}
 
-    const roundedCredit = credit.map((item) => (value * item) / sumCredit);
+export function fairlyAllocateCredit(
+  credit: readonly number[],
+  value: number,
+  rand: () => number,
+): number[] {
+  // TODO: replace with precise sum
+  const sumCredit = credit.reduce((a, b) => a + b, 0);
 
-    let idx1 = 0;
+  const roundedCredit = credit.map((item) => (value * item) / sumCredit);
 
-    for (let n = 1; n < roundedCredit.length; ++n) {
-      let idx2 = n;
+  let idx1 = 0;
 
-      const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
-      const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
-      if (frac1 === 0 && frac2 === 0) {
-        continue;
-      }
+  for (let n = 1; n < roundedCredit.length; ++n) {
+    let idx2 = n;
 
-      const [incr1, incr2] =
-        frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
-
-      const p1 = incr2 / (incr1 + incr2);
-
-      const r = this.#delegate.random();
-
-      let incr;
-      if (r < p1) {
-        incr = incr1;
-        [idx1, idx2] = [idx2, idx1];
-      } else {
-        incr = incr2;
-      }
-
-      roundedCredit[idx2]! += incr;
-      roundedCredit[idx1]! -= incr;
+    const frac1 = roundedCredit[idx1]! - Math.floor(roundedCredit[idx1]!);
+    const frac2 = roundedCredit[idx2]! - Math.floor(roundedCredit[idx2]!);
+    if (frac1 === 0 && frac2 === 0) {
+      continue;
     }
 
-    return roundedCredit.map((item) => Math.round(item));
+    const [incr1, incr2] =
+      frac1 + frac2 > 1 ? [1 - frac1, 1 - frac2] : [-frac1, -frac2];
+
+    const p1 = incr2 / (incr1 + incr2);
+
+    const r = checkRandom(rand());
+
+    let incr;
+    if (r < p1) {
+      incr = incr1;
+      [idx1, idx2] = [idx2, idx1];
+    } else {
+      incr = incr2;
+    }
+
+    roundedCredit[idx2]! += incr;
+    roundedCredit[idx1]! -= incr;
   }
+
+  return roundedCredit.map((item) => Math.round(item));
 }
