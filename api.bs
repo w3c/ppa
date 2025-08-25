@@ -1787,7 +1787,7 @@ these values as the smaller of the two values
 will determine which saved [=impressions=] are available for conversions.
 
 An implementation can also use the value it sets
-for for {{AttributionImpressionOptions/lifetimeDays}} and
+for {{AttributionImpressionOptions/lifetimeDays}} and
 {{AttributionConversionOptions/lookbackDays}}
 to set the [=earliest epoch index=]
 when executing the [=get the starting epoch for attribution=] algorithm.
